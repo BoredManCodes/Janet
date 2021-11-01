@@ -23,6 +23,7 @@ from dis_snek.models import (
 from dis_snek.models.events import MessageReactionAdd
 from thefuzz import fuzz
 
+from models.emoji import booleanEmoji
 from models.poll import PollData, PollOption
 
 colours = sorted(
@@ -88,6 +89,8 @@ class Bot(Snake):
     @listen()
     async def on_ready(self):
         print("Connected to discord!")
+        print(f"Logged in as {self.user.username}")
+        print(f"Currently in {len(self.guilds)} guilds")
 
         try:
             await self.connect()
@@ -146,6 +149,17 @@ class Bot(Snake):
                 return poll
         return None
 
+    async def process_poll_option(self, ctx: InteractionContext, poll: str):
+        try:
+            poll = await self.get_poll(ctx.guild_id, to_snowflake(poll))
+        except AttributeError:
+            pass
+        finally:
+            if not isinstance(poll, PollData):
+                await ctx.send("Unable to find the requested poll!")
+                return None
+            return poll
+
     async def set_poll(
         self, guild_id: Snowflake_Type, msg_id: Snowflake_Type, poll: PollData
     ):
@@ -157,6 +171,7 @@ class Bot(Snake):
         )
 
     async def delete_poll(self, guild_id: Snowflake_Type, msg_id: Snowflake_Type):
+        print(f"Deleting poll: {guild_id}|{msg_id}")
         try:
             self.polls[guild_id].pop(msg_id)
         except:
@@ -192,8 +207,8 @@ class Bot(Snake):
     )
     async def boolean(self, ctx: InteractionContext, **kwargs):
         poll = PollData.from_ctx(ctx)
-        poll.poll_options.append(PollOption("Yes", "✅"))
-        poll.poll_options.append(PollOption("No", "❌"))
+        poll.poll_options.append(PollOption("Yes", booleanEmoji[0]))
+        poll.poll_options.append(PollOption("No", booleanEmoji[1]))
 
         msg = await poll.send(ctx)
         await self.set_poll(ctx.guild_id, msg.id, poll)
@@ -244,8 +259,8 @@ class Bot(Snake):
     )
     async def edit_poll_remove(self, ctx: InteractionContext, poll, option):
         await ctx.defer(ephemeral=True)
-        poll = await self.get_poll(ctx.guild_id, to_snowflake(poll))
-        if poll:
+
+        if poll := await self.process_poll_option(ctx, poll):
             if poll.author_id == ctx.author.id:
                 message = await self.cache.get_message(poll.channel_id, poll.message_id)
                 if message:
@@ -287,8 +302,8 @@ class Bot(Snake):
     )
     async def edit_poll_add(self, ctx: InteractionContext, poll, option):
         await ctx.defer(ephemeral=True)
-        poll = await self.get_poll(ctx.guild_id, to_snowflake(poll))
-        if poll:
+
+        if poll := await self.process_poll_option(ctx, poll):
             if poll.author_id == ctx.author.id:
 
                 message = await self.cache.get_message(poll.channel_id, poll.message_id)
@@ -373,7 +388,9 @@ class Bot(Snake):
                     if event.author.id == poll.author_id:
                         poll._expired = True
                         await event.message.edit(embeds=poll.embed, components=[])
-                    await self.delete_poll(event.message._guild_id, event.message.id)
+                        await self.delete_poll(
+                            event.message._guild_id, event.message.id
+                        )
 
     @slash_command("invite", "Invite Inquiry to your server!")
     async def invite(self, ctx: InteractionContext):
