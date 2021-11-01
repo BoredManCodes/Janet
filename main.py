@@ -1,5 +1,6 @@
 import asyncio
 from pathlib import Path
+from typing import Optional
 
 import aioredis
 import orjson
@@ -130,7 +131,7 @@ class Bot(Snake):
 
     async def get_poll(
         self, guild_id: Snowflake_Type, msg_id: Snowflake_Type
-    ) -> PollData | None:
+    ) -> Optional[PollData]:
         try:
             return self.polls[guild_id][msg_id]
         except KeyError:
