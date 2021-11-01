@@ -1,0 +1,4 @@
+dis_snek
+thefuzz[speedup]
+aioredis[hiredis]
+orjson
