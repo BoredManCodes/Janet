@@ -488,7 +488,7 @@ class Bot(Snake):
     async def update_poll_loop(self):
         while not self.is_closed:
             await self.update_polls()
-            await asyncio.sleep(5)
+            await asyncio.sleep(2)
 
 
 bot = Bot()
