@@ -1,6 +1,7 @@
 import asyncio
+from copy import deepcopy
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 
 import aioredis
 import orjson
@@ -84,6 +85,7 @@ class Bot(Snake):
             activity="with polls",
         )
         self.polls: dict[Snowflake_Type, dict[Snowflake_Type, PollData]] = {}
+        self.polls_to_update: dict[Snowflake_Type, set[Snowflake_Type]] = {}
 
         self.redis: aioredis.Redis = MISSING
 
@@ -103,7 +105,8 @@ class Bot(Snake):
         await self.cache_polls()
         print(f"{self.total_polls} polls cached")
 
-        asyncio.create_task(self.task_loop())
+        asyncio.create_task(self.close_poll_loop())
+        asyncio.create_task(self.update_poll_loop())
 
     @property
     def total_polls(self):
@@ -388,7 +391,7 @@ class Bot(Snake):
     @listen()
     async def on_button(self, event):
         ctx: ComponentContext = event.context
-        await ctx.defer(edit_origin=True)
+        await ctx.defer(ephemeral=True)
 
         opt_index = int(ctx.custom_id.removeprefix("poll_option|"))
 
@@ -401,8 +404,18 @@ class Bot(Snake):
                             if _o != opt:
                                 if ctx.author.id in _o.voters:
                                     _o.voters.remove(ctx.author.id)
-                    opt.vote(ctx.author.id)
-                await poll.send(ctx)
+                    if opt.vote(ctx.author.id):
+                        await ctx.send(
+                            f"⬆️ Your vote for {opt.emoji}`{opt.inline_text}` has been added!"
+                        )
+                    else:
+                        await ctx.send(
+                            f"⬇️ Your vote for {opt.emoji}`{opt.inline_text}` has been removed!"
+                        )
+
+                if ctx.guild_id not in self.polls_to_update:
+                    self.polls_to_update[ctx.guild_id] = set()
+                self.polls_to_update[ctx.guild_id].add(poll.message_id)
                 await self.set_poll(ctx.guild_id, ctx.message.id, poll)
 
     @listen()
@@ -447,9 +460,33 @@ class Bot(Snake):
 
                     await self.delete_poll(k, poll.message_id)
 
-    async def task_loop(self):
+    async def update_polls(self):
+        polls = deepcopy(self.polls_to_update)
+        if polls:
+            for guild in polls.keys():
+                for poll_id in polls[guild]:
+                    poll = await self.get_poll(guild, poll_id)
+                    async with poll.lock:
+                        if not poll.expired:
+                            print(f"updating {poll_id}")
+                            msg = await self.cache.get_message(
+                                poll.channel_id, poll.message_id
+                            )
+                            if msg:
+                                await msg.edit(
+                                    embeds=poll.embed, components=poll.components
+                                )
+                        self.polls_to_update[guild].remove(poll_id)
+                    await asyncio.sleep(0)
+
+    async def close_poll_loop(self):
         while not self.is_closed:
             await asyncio.gather(asyncio.sleep(30), self.close_polls())
+
+    async def update_poll_loop(self):
+        while not self.is_closed:
+            await self.update_polls()
+            await asyncio.sleep(5)
 
 
 bot = Bot()

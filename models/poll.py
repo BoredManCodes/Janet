@@ -35,6 +35,10 @@ class PollOption:
     voters: set[Snowflake_Type] = attr.ib(factory=set, converter=set)
     style: int = attr.ib(default=1)
 
+    @property
+    def inline_text(self):
+        return f"{self.text[:15].strip()}" + ("..." if len(self.text) > 15 else "")
+
     def create_bar(self, total_votes) -> str:
         progBarStr = ""
         progBarLength = 10
@@ -54,8 +58,10 @@ class PollOption:
     def vote(self, author_id: Snowflake_Type):
         if author_id not in self.voters:
             self.voters.add(author_id)
+            return True
         else:
             self.voters.remove(author_id)
+            return False
 
 
 @attr.s(auto_attribs=True, on_setattr=[attr.setters.convert, attr.setters.validate])
