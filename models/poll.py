@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+from typing import Union
 
 import attr
 from dis_snek.const import MISSING
@@ -14,6 +15,8 @@ from dis_snek.models import (
     spread_to_rows,
     Message,
     InteractionContext,
+    to_snowflake,
+    GuildText,
 )
 
 from models.emoji import emoji
@@ -156,7 +159,9 @@ class PollData:
         return spread_to_rows(*buttons)
 
     def add_option(self, opt_name: str):
-        self.poll_options.append(PollOption(opt_name, emoji[len(self.poll_options)]))
+        self.poll_options.append(
+            PollOption(opt_name.strip(), emoji[len(self.poll_options)])
+        )
 
     def parse_message(self, msg: Message):
         self.channel_id = msg.channel.id
@@ -171,21 +176,29 @@ class PollData:
             single_vote=kwargs.get("single_vote", False),
             inline=kwargs.get("inline", True),
             colour=kwargs.get("colour", "BLURPLE"),
+            channel_id=ctx.channel.id,
         )
 
         if options := kwargs.get("options"):
-            for o in options.split(", "):
+            for o in options.split(","):
                 new_cls.add_option(o)
 
+        if channel := kwargs.get("channel"):
+            try:
+                new_cls.channel_id = to_snowflake(channel)
+            except:
+                pass
+
         if duration := kwargs.get("duration"):
-            new_cls.expire_time = datetime.datetime.now() + datetime.timedelta(
-                minutes=duration
-            )
+            if duration > 0:
+                new_cls.expire_time = datetime.datetime.now() + datetime.timedelta(
+                    minutes=duration
+                )
 
         return new_cls
 
-    async def send(self, ctx: InteractionContext) -> Message:
-        msg = await ctx.send(
+    async def send(self, target: Union[GuildText, InteractionContext]) -> Message:
+        msg = await target.send(
             embeds=self.embed, components=[] if self.expired else self.components
         )
         self.parse_message(msg)

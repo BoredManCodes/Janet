@@ -19,6 +19,7 @@ from dis_snek.models import (
     SlashCommandChoice,
     MaterialColors,
     Timestamp,
+    Permissions,
 )
 from dis_snek.models.events import MessageReactionAdd
 from thefuzz import fuzz
@@ -54,7 +55,7 @@ def_options = [
     ),
     SlashCommandOption(
         "duration",
-        OptionTypes.NUMBER,
+        OptionTypes.INTEGER,
         "Automatically close the poll after this many minutes",
         required=False,
     ),
@@ -78,7 +79,7 @@ class Bot(Snake):
     def __init__(self):
         super().__init__(
             sync_interactions=False,
-            asyncio_debug=False,
+            asyncio_debug=True,
             delete_unused_application_cmds=True,
             activity="with polls",
         )
@@ -195,7 +196,7 @@ class Bot(Snake):
     async def poll(self, ctx: InteractionContext, **kwargs):
         poll = PollData.from_ctx(ctx)
 
-        msg = await poll.send(ctx)
+        msg = await poll.send(await self.cache.get_channel(poll.channel_id))
         await self.set_poll(ctx.guild_id, msg.id, poll)
 
     @slash_command(
@@ -206,11 +207,17 @@ class Bot(Snake):
         options=def_options,
     )
     async def boolean(self, ctx: InteractionContext, **kwargs):
+        if channel := kwargs.get("channel"):
+            u_perms = await ctx.author.channel_permissions(channel)
+            if Permissions.SEND_MESSAGES not in u_perms:
+                return await ctx.send(
+                    f"You do not have permission to send messages in {channel.mention}"
+                )
         poll = PollData.from_ctx(ctx)
         poll.poll_options.append(PollOption("Yes", booleanEmoji[0]))
         poll.poll_options.append(PollOption("No", booleanEmoji[1]))
 
-        msg = await poll.send(ctx)
+        msg = await poll.send(await self.cache.get_channel(poll.channel_id))
         await self.set_poll(ctx.guild_id, msg.id, poll)
 
     @boolean.subcommand(
@@ -266,20 +273,22 @@ class Bot(Snake):
                 if message:
                     async with poll.lock:
                         for i in range(len(poll.poll_options)):
-                            if poll.poll_options[i].text == option:
+                            if poll.poll_options[i].text == option.replace("_", " "):
                                 del poll.poll_options[i]
+                                await message.edit(
+                                    embeds=poll.embed, components=poll.components
+                                )
+                                await ctx.send(
+                                    f"Removed `{option}` from `{poll.title}`"
+                                )
                                 break
                         else:
-                            return await ctx.send(
-                                f"Failed to remove`{option}` from `{poll.title}`"
+                            await ctx.send(
+                                f"Failed to remove `{option}` from `{poll.title}`"
                             )
-                        await message.edit(
-                            embeds=poll.embed, components=poll.components
-                        )
-                        return await ctx.send(f"Removed `{option}` from `{poll.title}`")
-                await ctx.send("Failed to edit poll!")
+                    return
             else:
-                await ctx.send("Only the author of the poll can edit it!")
+                return await ctx.send("Only the author of the poll can edit it!")
 
     @edit_poll_remove.subcommand(
         sub_cmd_name="add_option",
@@ -313,8 +322,8 @@ class Bot(Snake):
                         await message.edit(
                             embeds=poll.embed, components=poll.components
                         )
-                        return await ctx.send(f"Added `{option}` to `{poll.title}`")
-                await ctx.send("Failed to edit poll!")
+                        await ctx.send(f"Added `{option}` to `{poll.title}`")
+                    return
             else:
                 await ctx.send("Only the author of the poll can edit it!")
 
@@ -323,7 +332,11 @@ class Bot(Snake):
     async def poll_autocomplete(self, ctx: AutocompleteContext, **kwargs):
         polls = self.polls.get(ctx.guild_id)
         if polls:
-            polls = [p for p in polls.values() if not p.expired]
+            polls = [
+                p
+                for p in polls.values()
+                if p.author_id == ctx.author.id and not p.expired
+            ]
             polls = sorted(
                 polls,
                 key=lambda x: fuzz.partial_ratio(x.title, ctx.input_text),
@@ -413,12 +426,13 @@ class Bot(Snake):
 
         for k, polls in polls_to_close.items():
             for poll in polls:
-                print(f"Closing poll: {poll.message_id}")
-                msg = await self.cache.get_message(poll.channel_id, poll.message_id)
-                if msg:
-                    await msg.edit(embeds=poll.embed, components=[])
+                async with poll.lock:
+                    print(f"Closing poll: {poll.message_id}")
+                    msg = await self.cache.get_message(poll.channel_id, poll.message_id)
+                    if msg:
+                        await msg.edit(embeds=poll.embed, components=[])
 
-                await self.delete_poll(k, poll.message_id)
+                    await self.delete_poll(k, poll.message_id)
 
     async def task_loop(self):
         while not self.is_closed:
