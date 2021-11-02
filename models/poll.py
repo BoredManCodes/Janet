@@ -64,6 +64,7 @@ class PollData:
     author_id: Snowflake_Type
     channel_id: Snowflake_Type = attr.ib(default=MISSING)
     message_id: Snowflake_Type = attr.ib(default=MISSING)
+    author_data: dict = attr.ib(default=MISSING)
 
     poll_options: list[PollOption] = attr.ib(
         factory=list,
@@ -142,8 +143,15 @@ class PollData:
 
         e.description = "\n".join(description)
 
+        if self.author_data:
+            e.set_footer(
+                f'Asked by {self.author_data["name"]}',
+                icon_url=self.author_data["avatar_url"],
+            )
+
         if self.expired:
-            e.set_footer("This poll has ended")
+            name = f' • Asked by {self.author_data["name"]}' if self.author_data else ""
+            e.set_footer(f"This poll has ended{name}")
 
         return e
 
@@ -177,6 +185,10 @@ class PollData:
             inline=kwargs.get("inline", True),
             colour=kwargs.get("colour", "BLURPLE"),
             channel_id=ctx.channel.id,
+            author_data={
+                "name": ctx.author.display_name,
+                "avatar_url": ctx.author.avatar.url,
+            },
         )
 
         if options := kwargs.get("options"):

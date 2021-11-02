@@ -126,6 +126,11 @@ class Bot(Snake):
                 poll = PollData(**orjson.loads(poll_data))
 
                 guild_id, msg_id = [to_snowflake(k) for k in key.split("|")]
+                author = await self.cache.get_member(guild_id, poll.author_id)
+                poll.author_data = {
+                    "name": author.display_name,
+                    "avatar_url": author.avatar.url,
+                }
 
                 if not self.polls.get(guild_id):
                     self.polls[guild_id] = {}
@@ -194,10 +199,13 @@ class Bot(Snake):
         + def_options,
     )
     async def poll(self, ctx: InteractionContext, **kwargs):
+        await ctx.defer(ephemeral=True)
+
         poll = PollData.from_ctx(ctx)
 
         msg = await poll.send(await self.cache.get_channel(poll.channel_id))
         await self.set_poll(ctx.guild_id, msg.id, poll)
+        await ctx.send("To close the poll, react to it with 🔴")
 
     @slash_command(
         "poll_prefab",
@@ -207,18 +215,21 @@ class Bot(Snake):
         options=def_options,
     )
     async def boolean(self, ctx: InteractionContext, **kwargs):
+        await ctx.defer(ephemeral=True)
         if channel := kwargs.get("channel"):
             u_perms = await ctx.author.channel_permissions(channel)
             if Permissions.SEND_MESSAGES not in u_perms:
                 return await ctx.send(
                     f"You do not have permission to send messages in {channel.mention}"
                 )
+
         poll = PollData.from_ctx(ctx)
         poll.poll_options.append(PollOption("Yes", booleanEmoji[0]))
         poll.poll_options.append(PollOption("No", booleanEmoji[1]))
 
         msg = await poll.send(await self.cache.get_channel(poll.channel_id))
         await self.set_poll(ctx.guild_id, msg.id, poll)
+        await ctx.send("To close the poll, react to it with 🔴")
 
     @boolean.subcommand(
         sub_cmd_name="week",
@@ -226,6 +237,7 @@ class Bot(Snake):
         options=def_options,
     )
     async def week(self, ctx: InteractionContext, **kwargs):
+        await ctx.defer(ephemeral=True)
         poll = PollData.from_ctx(ctx)
         options = [
             "Monday",
@@ -238,9 +250,10 @@ class Bot(Snake):
         ]
         for opt in options:
             poll.add_option(opt)
-        msg = await poll.send(ctx)
 
+        msg = await poll.send(ctx)
         await self.set_poll(ctx.guild_id, msg.id, poll)
+        await ctx.send("To close the poll, react to it with 🔴")
 
     @slash_command(
         "edit_poll",
