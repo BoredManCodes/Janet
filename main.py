@@ -417,6 +417,8 @@ class Bot(Snake):
                     self.polls_to_update[ctx.guild_id] = set()
                 self.polls_to_update[ctx.guild_id].add(poll.message_id)
                 await self.set_poll(ctx.guild_id, ctx.message.id, poll)
+        else:
+            await ctx.send("That poll could not be edited 😕")
 
     @listen()
     async def on_message_reaction_add(self, event: MessageReactionAdd):
