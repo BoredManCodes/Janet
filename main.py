@@ -23,6 +23,8 @@ from dis_snek.models import (
     Permissions,
 )
 from dis_snek.models.events import MessageReactionAdd
+from dis_snek.tasks import Task
+from dis_snek.tasks.triggers import IntervalTrigger
 from thefuzz import fuzz
 
 from models.emoji import booleanEmoji
@@ -105,8 +107,8 @@ class Bot(Snake):
         await self.cache_polls()
         print(f"{self.total_polls} polls cached")
 
-        asyncio.create_task(self.close_poll_loop())
-        asyncio.create_task(self.update_poll_loop())
+        self.update_polls.start()
+        self.close_polls.start()
 
     @property
     def total_polls(self):
@@ -440,6 +442,7 @@ class Bot(Snake):
             ephemeral=True,
         )
 
+    @Task.create(IntervalTrigger(seconds=30))
     async def close_polls(self):
         polls = self.polls.copy()
         polls_to_close = {}
@@ -462,6 +465,7 @@ class Bot(Snake):
 
                     await self.delete_poll(k, poll.message_id)
 
+    @Task.create(IntervalTrigger(seconds=2))
     async def update_polls(self):
         polls = deepcopy(self.polls_to_update)
         if polls:
@@ -480,15 +484,6 @@ class Bot(Snake):
                                 )
                         self.polls_to_update[guild].remove(poll_id)
                     await asyncio.sleep(0)
-
-    async def close_poll_loop(self):
-        while not self.is_closed:
-            await asyncio.gather(asyncio.sleep(30), self.close_polls())
-
-    async def update_poll_loop(self):
-        while not self.is_closed:
-            await self.update_polls()
-            await asyncio.sleep(2)
 
 
 bot = Bot()
