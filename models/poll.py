@@ -150,10 +150,13 @@ class PollData:
         e.description = "\n".join(description)
 
         if self.author_data:
-            e.set_footer(
-                f'Asked by {self.author_data["name"]}',
-                icon_url=self.author_data["avatar_url"],
-            )
+            if "(" not in self.author_data["avatar_url"]:
+                e.set_footer(
+                    f'Asked by {self.author_data["name"]}',
+                    icon_url=self.author_data["avatar_url"],
+                )
+            else:
+                e.set_footer(f"Asked by {self.author_data['name']}")
 
         if self.expired:
             name = f' • Asked by {self.author_data["name"]}' if self.author_data else ""
@@ -223,6 +226,4 @@ class PollData:
             self.parse_message(msg)
             return msg
         except Exception as e:
-            print(self.embed)
-            print(self.components)
             raise
