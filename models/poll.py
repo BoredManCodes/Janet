@@ -216,8 +216,13 @@ class PollData:
         return new_cls
 
     async def send(self, target: Union[GuildText, InteractionContext]) -> Message:
-        msg = await target.send(
-            embeds=self.embed, components=[] if self.expired else self.components
-        )
-        self.parse_message(msg)
-        return msg
+        try:
+            msg = await target.send(
+                embeds=self.embed, components=[] if self.expired else self.components
+            )
+            self.parse_message(msg)
+            return msg
+        except Exception as e:
+            print(self.embed)
+            print(self.components)
+            raise

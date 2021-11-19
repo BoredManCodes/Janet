@@ -1,9 +1,11 @@
 import asyncio
+import logging
 from copy import deepcopy
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional
 
 import aioredis
+import dis_snek
 import orjson
 from dis_snek.client import Snake
 from dis_snek.const import MISSING
@@ -29,6 +31,12 @@ from thefuzz import fuzz
 
 from models.emoji import booleanEmoji
 from models.poll import PollData, PollOption
+
+logging.basicConfig()
+log = logging.getLogger("Inquiry")
+cls_log = logging.getLogger(dis_snek.const.logger_name)
+cls_log.setLevel(logging.DEBUG)
+log.setLevel(logging.DEBUG)
 
 colours = sorted(
     [MaterialColors(c).name.title() for c in MaterialColors]
@@ -93,19 +101,19 @@ class Bot(Snake):
 
     @listen()
     async def on_ready(self):
-        print("Connected to discord!")
-        print(f"Logged in as {self.user.username}")
-        print(f"Currently in {len(self.guilds)} guilds")
+        log.debug("Connected to discord!")
+        log.info(f"Logged in as {self.user.username}")
+        log.debug(f"Currently in {len(self.guilds)} guilds")
 
         try:
             await self.connect()
-            print("Connected to redis!") if await self.redis.ping() else exit()
+            log.info("Connected to redis!") if await self.redis.ping() else exit()
         except aioredis.exceptions.ConnectionError:
-            print("Failed to connect to redis, aborting login")
+            log.error("Failed to connect to redis, aborting login")
             return await self.stop()
 
         await self.cache_polls()
-        print(f"{self.total_polls} polls cached")
+        log.debug(f"{self.total_polls} polls cached")
 
         self.update_polls.start()
         self.close_polls.start()
@@ -182,7 +190,7 @@ class Bot(Snake):
         )
 
     async def delete_poll(self, guild_id: Snowflake_Type, msg_id: Snowflake_Type):
-        print(f"Deleting poll: {guild_id}|{msg_id}")
+        log.debug(f"Deleting poll: {guild_id}|{msg_id}")
         try:
             self.polls[guild_id].pop(msg_id)
         except:
@@ -450,7 +458,7 @@ class Bot(Snake):
         for guild in polls.keys():
             for poll in polls[guild].values():
                 if poll.expired:
-                    print("Poll needs closing")
+                    log.debug("Poll needs closing")
                     if guild not in polls_to_close:
                         polls_to_close[guild] = []
                     polls_to_close[guild].append(poll)
@@ -458,7 +466,7 @@ class Bot(Snake):
         for k, polls in polls_to_close.items():
             for poll in polls:
                 async with poll.lock:
-                    print(f"Closing poll: {poll.message_id}")
+                    log.debug(f"Closing poll: {poll.message_id}")
                     msg = await self.cache.get_message(poll.channel_id, poll.message_id)
                     if msg:
                         await msg.edit(embeds=poll.embed, components=[])
@@ -474,7 +482,7 @@ class Bot(Snake):
                     poll = await self.get_poll(guild, poll_id)
                     async with poll.lock:
                         if not poll.expired:
-                            print(f"updating {poll_id}")
+                            log.debug(f"updating {poll_id}")
                             msg = await self.cache.get_message(
                                 poll.channel_id, poll.message_id
                             )
