@@ -1,16 +1,9 @@
 import contextlib
 import io
-from datetime import datetime
-
-import aiohttp
-from dis_snek import listen, Embed, Webhook
-from dis_snek.client.errors import CommandCheckFailure
+from dis_snek import listen, Embed
 from dis_snek.models import (
     Scale,
-    message_command,
-    MessageContext,
-    check,
-    Context,
+    check
 )
 from dis_snek.models.discord import color
 
@@ -25,7 +18,7 @@ class MessageScale(Scale):
             await event.message.channel.send("pls go away")
 
         if ".com/channels" in event.message.content:
-            if event.message.guild and event.message.author != event.bot.user:  # check we aren't in DM's to avoid looping
+            if event.message.guild and event.message.author != event.bot.user:  # Check we aren't in DM's to avoid looping
                 await event.message.delete()
                 link = event.message.content.split('/')
                 server_id = int(link[4])
