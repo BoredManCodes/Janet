@@ -8,7 +8,7 @@ import aioredis
 import dis_snek
 import orjson
 from dis_snek.client import Snake
-from dis_snek.const import MISSING
+from dis_snek import MISSING, Intents
 from dis_snek.models import (
     slash_command,
     InteractionContext,
@@ -24,9 +24,9 @@ from dis_snek.models import (
     Timestamp,
     Permissions,
 )
-from dis_snek.models.events import MessageReactionAdd
-from dis_snek.tasks import Task
-from dis_snek.tasks.triggers import IntervalTrigger
+from dis_snek.api.events import MessageReactionAdd
+from dis_snek.ext.tasks import Task
+from dis_snek.ext.tasks.triggers import IntervalTrigger
 from thefuzz import fuzz
 
 from models.emoji import booleanEmoji
@@ -197,6 +197,15 @@ class Bot(Snake):
             breakpoint()
 
         await self.redis.delete(f"{guild_id}|{msg_id}")
+
+    @slash_command(
+        "reload",
+        "Reloads all scales on the snek"
+    )
+    async def reload(self, ctx: InteractionContext, **kwargs):
+        bot.regrow_scale("scales.message_events")
+        scales_list = str(bot.scales.keys()).strip('dict_keys([').replace("'", "").replace("]", "").replace(')', '')
+        await ctx.send(f"Reloaded Scales:\n```{scales_list}```")
 
     @slash_command(
         "poll",
@@ -494,8 +503,9 @@ class Bot(Snake):
                     await asyncio.sleep(0)
 
 
-bot = Bot()
+bot = Snake(intents=Intents.ALL)
 
 bot.grow_scale("scales.admin")
-
+bot.grow_scale("scales.message_events")
+bot.grow_scale("scales.debug")
 bot.start((Path(__file__).parent / "token.txt").read_text().strip())

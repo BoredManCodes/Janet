@@ -1,5 +1,5 @@
 import aiohttp
-from dis_snek.errors import CommandCheckFailure
+from dis_snek.client.errors import CommandCheckFailure
 from dis_snek.models import (
     Scale,
     message_command,
@@ -18,7 +18,7 @@ def is_owner():
     """
 
     async def check(ctx: Context) -> bool:
-        return ctx.author.id == 174918559539920897
+        return ctx.author.id == 324504908013240330
 
     return check
 

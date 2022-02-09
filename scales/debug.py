@@ -10,8 +10,8 @@ import traceback
 from collections import Counter
 from contextlib import redirect_stdout
 
-from dis_snek.const import __version__, __py_version__
-from dis_snek.errors import CommandCheckFailure
+from dis_snek import __version__, __py_version__
+from dis_snek.client.errors import CommandCheckFailure
 from dis_snek.models import (
     slash_command,
     InteractionContext,
@@ -22,9 +22,9 @@ from dis_snek.models import (
     MaterialColors,
     Timestamp,
 )
-from dis_snek.models.enums import Intents
-from dis_snek.models.scale import Scale
-from dis_snek.utils.cache import TTLCache
+from dis_snek.models import Intents
+from dis_snek.models import Scale
+from dis_snek.client.utils.cache import TTLCache
 
 
 def strf_delta(time_delta: datetime.timedelta, show_seconds=True) -> str:
@@ -51,7 +51,7 @@ def strf_delta(time_delta: datetime.timedelta, show_seconds=True) -> str:
 
 
 async def check_is_owner(ctx):
-    return ctx.author.id == 174918559539920897
+    return ctx.author.id == 324504908013240330
 
 
 class DebugScale(Scale):

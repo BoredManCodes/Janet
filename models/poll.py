@@ -3,7 +3,7 @@ import datetime
 from typing import Union
 
 import attr
-from dis_snek.const import MISSING
+from dis_snek import MISSING
 from dis_snek.models import (
     Snowflake_Type,
     Embed,
@@ -47,11 +47,11 @@ class PollOption:
             percentage = len(self.voters) / total_votes
             for i in range(progBarLength):
                 if round(percentage, 1) <= 1 / progBarLength * i:
-                    progBarStr += "░"
+                    progBarStr += "🔳"
                 else:
-                    progBarStr += "▓"
+                    progBarStr += "⬜"
         else:
-            progBarStr = "░" * progBarLength
+            progBarStr = "🔳" * progBarLength
         progBarStr = progBarStr + f" {round(percentage * 100)}%"
         return progBarStr
 
