@@ -71,7 +71,7 @@ class MessageScale(Scale):
         #             f"{result['censored-content']}",
         #             username=f"{message.author.display_name} in DM", avatar_url=message.author.avatar_url)
         if str(event.bot.user.id) in event.message.content:
-            reactions = ["<:dviperHiding:833427143094173736>"]
+            reactions = ["❓"]
             for reaction in reactions:
                 await event.message.add_reaction(reaction)
 

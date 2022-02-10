@@ -1,8 +1,4 @@
-import contextlib
-import io
-from datetime import datetime
 
-import aiohttp
 from dis_snek import listen, Embed, Webhook
 from dis_snek.client.errors import CommandCheckFailure
 from dis_snek.models import (

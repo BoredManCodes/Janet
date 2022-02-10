@@ -1,5 +1,7 @@
 import contextlib
 import io
+
+from dis_snek import Button, ButtonStyles
 from dis_snek.models import (
     Scale,
     message_command,
@@ -12,9 +14,10 @@ from scales.admin import is_owner
 
 
 class MessageCommandScale(Scale):
-    @message_command()
-    @check(is_owner())
-    async def eval(self, ctx: MessageContext, *, code):
+    @message_command("eval")
+    async def eval(self, ctx: MessageContext):
+        print("eval command ran")
+        code = ctx.message.content
         async with ctx.typing():
             str_obj = io.StringIO()  # Retrieves a stream of data
             try:
@@ -26,8 +29,12 @@ class MessageCommandScale(Scale):
             if len(output) < 1:
                 output = "There was no output"
             await ctx.send(f'```py\n{output}```')
-            
-            
-            
+
+    @message_command()
+    async def test_button(self, ctx: MessageContext):
+        print("test button")
+        await ctx.send("Danger Noodle!", components=Button(ButtonStyles.DANGER, "boop", custom_id="boop"))
+
+
 def setup(bot):
-    MessageCommandScale(bot)            
+    MessageCommandScale(bot)

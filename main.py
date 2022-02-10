@@ -90,10 +90,11 @@ class Bot(Snake):
     def __init__(self):
         super().__init__(
             sync_interactions=True,
-            asyncio_debug=True,
+            asyncio_debug=False,
             delete_unused_application_cmds=True,
             activity="Prism SMP",
-            default_prefix="$"
+            default_prefix="$",
+            debug_scope=891613945356492890
         )
         self.polls: dict[Snowflake_Type, dict[Snowflake_Type, PollData]] = {}
         self.polls_to_update: dict[Snowflake_Type, set[Snowflake_Type]] = {}
@@ -201,10 +202,12 @@ class Bot(Snake):
 
     @slash_command(
         "reload",
-        "Reloads all scales on the snek"
+        "Reloads all scales on the snek",
+        scopes=[891613945356492890]
     )
-    async def reload(self, ctx: InteractionContext, **kwargs):
-        bot.regrow_scale("scales.message_events")
+    async def reload(self, ctx: InteractionContext):
+        for scale in bot.scales:
+            bot.regrow_scale(scale)
         scales_list = str(bot.scales.keys()).strip('dict_keys([').replace("'", "").replace("]", "").replace(')', '')
         await ctx.send(f"Reloaded Scales:\n```{scales_list}```")
 
@@ -511,4 +514,5 @@ bot.grow_scale("scales.message_events")
 bot.grow_scale("scales.debug")
 bot.grow_scale("scales.other_events")
 bot.grow_scale("scales.message_commands")
+bot.grow_scale("scales.contexts")
 bot.start((Path(__file__).parent / "token.txt").read_text().strip())
