@@ -26,3 +26,8 @@ class MessageCommandScale(Scale):
             if len(output) < 1:
                 output = "There was no output"
             await ctx.send(f'```py\n{output}```')
+            
+            
+            
+def setup(bot):
+    MessageCommandScale(bot)            
