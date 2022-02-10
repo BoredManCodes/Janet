@@ -89,7 +89,7 @@ def_options = [
 class Bot(Snake):
     def __init__(self):
         super().__init__(
-            sync_interactions=False,
+            sync_interactions=True,
             asyncio_debug=True,
             delete_unused_application_cmds=True,
             activity="Prism SMP",
@@ -510,4 +510,5 @@ bot.grow_scale("scales.admin")
 bot.grow_scale("scales.message_events")
 bot.grow_scale("scales.debug")
 bot.grow_scale("scales.other_events")
+bot.grow_scale("scales.message_commands")
 bot.start((Path(__file__).parent / "token.txt").read_text().strip())
