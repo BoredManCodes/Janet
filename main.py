@@ -507,7 +507,7 @@ class Bot(Snake):
                     await asyncio.sleep(0)
 
 
-bot = Snake(intents=Intents.ALL)
+bot = Bot()
 
 bot.grow_scale("scales.admin")
 bot.grow_scale("scales.message_events")
