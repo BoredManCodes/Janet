@@ -27,8 +27,8 @@ class OtherScale(Scale):
             embed.add_field(name='Before', value=before.display_name)
             embed.add_field(name='After', value=after.display_name)
             embed.set_thumbnail(url=after.avatar_url)
-            channel = self.bot.get_channel(940919818561912872)
-            await channel.send(GuildText, "boop")
+            channel = before.bot.get_channel(940919818561912872)
+            await channel.send("boop")
 
 def setup(bot):
     OtherScale(bot)

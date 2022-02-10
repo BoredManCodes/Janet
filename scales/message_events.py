@@ -13,10 +13,6 @@ from scales.admin import is_owner
 class MessageScale(Scale):
     @listen()
     async def on_message_create(self, event):
-        if "pls test" in event.message.content:
-            print(f"message received: {event.message.content}")
-            await event.message.channel.send("pls go away")
-
         if ".com/channels" in event.message.content:
             if event.message.guild and event.message.author != event.bot.user:  # Check we aren't in DM's to avoid looping
                 await event.message.delete()
@@ -75,23 +71,9 @@ class MessageScale(Scale):
         #             f"{result['censored-content']}",
         #             username=f"{message.author.display_name} in DM", avatar_url=message.author.avatar_url)
         if str(event.bot.user.id) in event.message.content:
-            reactions = ["❌"]
+            reactions = ["<:dviperHiding:833427143094173736>"]
             for reaction in reactions:
                 await event.message.add_reaction(reaction)
-
-        check(is_owner())
-        if "$eval" in event.message.content:
-            stripped = event.message.content.split('$eval ')
-            str_obj = io.StringIO()  # Retrieves a stream of data
-            try:
-                with contextlib.redirect_stdout(str_obj):
-                    exec(stripped[1])
-            except Exception as e:
-                return await event.message.channel.send(f"```{e.__class__.__name__}: {e}```")
-            output = str_obj.getvalue()
-            if len(output) < 1:
-                output = "There was no output"
-            await event.message.channel.send(f'```py\n{output}```')
 
 
 def setup(bot):

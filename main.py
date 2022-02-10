@@ -92,7 +92,8 @@ class Bot(Snake):
             sync_interactions=False,
             asyncio_debug=True,
             delete_unused_application_cmds=True,
-            activity="with polls",
+            activity="Prism SMP",
+            default_prefix="$"
         )
         self.polls: dict[Snowflake_Type, dict[Snowflake_Type, PollData]] = {}
         self.polls_to_update: dict[Snowflake_Type, set[Snowflake_Type]] = {}
