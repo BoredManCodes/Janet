@@ -1,5 +1,5 @@
 
-from dis_snek import listen, Embed, Webhook
+from dis_snek import listen, Embed, Webhook, Color
 from dis_snek.client.errors import CommandCheckFailure
 from dis_snek.models import (
     Scale,
@@ -13,7 +13,13 @@ from dis_snek.models.discord import color
 from scales.admin import is_owner
 
 
-class OtherScale(Scale):
+class EventListener(Scale):
+    @listen
+    async def on_command_error(self, event, error):
+        embed = Embed(title=f"**Error in command: {event.command}**", description=f"```\n{error}\n```")
+        await event.send(embed=embed)
+        raise error
+
     @listen
     async def on_member_update(self, before, after):
         print("member updated")
@@ -27,4 +33,4 @@ class OtherScale(Scale):
             await channel.send("boop")
 
 def setup(bot):
-    OtherScale(bot)
+    EventListener(bot)

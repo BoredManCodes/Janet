@@ -19,11 +19,10 @@ def is_owner():
 
     async def check(ctx: Context) -> bool:
         return ctx.author.id == 324504908013240330
-
     return check
 
 
-class Admin(Scale):
+class AdminCommands(Scale):
     @message_command()
     @check(is_owner())
     async def set_avatar(self, ctx: MessageContext):
@@ -46,4 +45,4 @@ class Admin(Scale):
 
 
 def setup(bot):
-    Admin(bot)
+    AdminCommands(bot)

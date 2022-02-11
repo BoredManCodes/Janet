@@ -54,7 +54,7 @@ async def check_is_owner(ctx):
     return ctx.author.id == 324504908013240330
 
 
-class DebugScale(Scale):
+class DebugCommands(Scale):
     def D_Embed(self, title: str) -> Embed:
         e = Embed(
             f"Dis-Snek Debug: {title}",
@@ -221,4 +221,4 @@ class DebugScale(Scale):
 
 
 def setup(bot):
-    DebugScale(bot)
+    DebugCommands(bot)

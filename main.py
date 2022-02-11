@@ -1,14 +1,17 @@
 import asyncio
+import json
 import logging
+import os
+from configparser import ConfigParser
 from copy import deepcopy
+import time
 from pathlib import Path
 from typing import Optional
-
 import aioredis
 import dis_snek
 import orjson
 from dis_snek.client import Snake
-from dis_snek import MISSING, Intents
+from dis_snek import MISSING, Intents, check, AutoDefer
 from dis_snek.models import (
     slash_command,
     InteractionContext,
@@ -28,16 +31,22 @@ from dis_snek.api.events import MessageReactionAdd
 from dis_snek.ext.tasks import Task
 from dis_snek.ext.tasks.triggers import IntervalTrigger
 from thefuzz import fuzz
-
 from models.emoji import booleanEmoji
 from models.poll import PollData, PollOption
+from scales.admin import is_owner
 
 logging.basicConfig()
 log = logging.getLogger("Inquiry")
 cls_log = logging.getLogger(dis_snek.const.logger_name)
-cls_log.setLevel(logging.DEBUG)
-log.setLevel(logging.DEBUG)
-
+cls_log.setLevel(logging.INFO)
+log.setLevel(logging.INFO)
+if os.path.isfile("config.ini"):
+    log.info("Config found")
+else:
+    log.error("Config not found, generating one now. Please fill out config.ini in the bot's root")
+    exit(1)
+Config = ConfigParser()
+Config.read("config.ini")
 colours = sorted(
     [MaterialColors(c).name.title() for c in MaterialColors]
     + [
@@ -94,7 +103,9 @@ class Bot(Snake):
             delete_unused_application_cmds=True,
             activity="Prism SMP",
             default_prefix="$",
-            debug_scope=891613945356492890
+            debug_scope=891613945356492890,
+            intents=Intents.DEFAULT,
+            auto_defer=AutoDefer(enabled=True, time_until_defer=.1)
         )
         self.polls: dict[Snowflake_Type, dict[Snowflake_Type, PollData]] = {}
         self.polls_to_update: dict[Snowflake_Type, set[Snowflake_Type]] = {}
@@ -103,10 +114,23 @@ class Bot(Snake):
 
     @listen()
     async def on_ready(self):
-        log.debug("Connected to discord!")
+        log.info("Connected to discord!")
         log.info(f"Logged in as {self.user.username}")
-        log.debug(f"Currently in {len(self.guilds)} guilds")
-
+        log.info(f"Currently in {len(self.guilds)} guilds")
+        global RJD, roles_json
+        try:
+            roles_json = open(filename, "r+")
+        except:
+            roles_json = open(filename, "w+")
+            json.dump({"perms": [], "roles": []}, roles_json)
+            roles_json.seek(0)
+        RJD = json.load(roles_json)
+        roles_json.seek(0)
+        jsondump(RJD)
+        current_time = time.time()
+        for role in RJD["roles"]:
+            for member in RJD[role[0]]:
+                member[1] -= current_time
         try:
             await self.connect()
             log.info("Connected to redis!") if await self.redis.ping() else exit()
@@ -202,12 +226,16 @@ class Bot(Snake):
 
     @slash_command(
         "reload",
-        "Reloads all scales on the snek",
-        scopes=[891613945356492890]
+        "Reloads all scales on the snek"
     )
+    @check(is_owner())
     async def reload(self, ctx: InteractionContext):
-        for scale in bot.scales:
-            bot.regrow_scale(scale)
+        scale_names = []
+        for scale in list(bot.scales.values()):
+            name = str(scale).split('.')
+            scale_names.append(name)
+            # if scale != "Admin":
+            bot.regrow_scale(f"scales.{name[1]}")
         scales_list = str(bot.scales.keys()).strip('dict_keys([').replace("'", "").replace("]", "").replace(')', '')
         await ctx.send(f"Reloaded Scales:\n```{scales_list}```")
 

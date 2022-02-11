@@ -10,7 +10,7 @@ from dis_snek.models.discord import color
 from scales.admin import is_owner
 
 
-class MessageScale(Scale):
+class MessageEvents(Scale):
     @listen()
     async def on_message_create(self, event):
         if ".com/channels" in event.message.content:
@@ -77,4 +77,4 @@ class MessageScale(Scale):
 
 
 def setup(bot):
-    MessageScale(bot)
+    MessageEvents(bot)
