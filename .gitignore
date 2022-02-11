@@ -1,3 +1,6 @@
 
 token.txt
 config.ini
+*.pyc
+.idea/Inquiry.iml
+.idea/misc.xml

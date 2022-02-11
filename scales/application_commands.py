@@ -5,7 +5,8 @@ from dis_snek import Embed, Color, slash_command
 from dis_snek.models import (
     Scale
 )
-
+from base64 import urlsafe_b64encode
+from uuid import uuid4 as uuid
 
 class ApplicationCommands(Scale):
     async def has_perms(self, ctx):  # Check that a user has one of the roles to manage the bot
@@ -246,9 +247,13 @@ class ApplicationCommands(Scale):
             </body>
         </html>
         '''
-        with open(f"{ctx.channel.name}.html", mode='w', encoding='utf-8') as file:
+
+
+
+        with open(f"transcripts/{urlsafe_b64encode(uuid().bytes)[0:22]}.html", mode='w', encoding='utf-8') as file:
             print(io.StringIO(f).read(), file=file)
-            await ctx.reply("Transcript: LINKGOHERE")
+            await ctx.reply(f"Transcript: https://transcripts.boredman.net/{urlsafe_b64encode(uuid().bytes)[0:22]}")
+
 
 def setup(bot):
     ApplicationCommands(bot)
