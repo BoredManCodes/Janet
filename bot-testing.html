@@ -1,0 +1,3282 @@
+
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset=utf-8>
+                <meta name=viewport content="width=device-width">
+                <style>
+                    
+            body {
+            background-color: #36393e;
+            color: #dcddde;
+            }
+            a {
+                color: #0096cf;
+            }
+            .info {
+                display: flex;
+                max-width: 100%;
+                margin: 0 5px 10px;
+            }
+            .guild-icon-container {
+                flex: 0;
+            }
+            .guild-icon {
+                max-width: 88px;
+                max-height: 88px;
+            }
+            .metadata {
+                flex: 1;
+                margin-left: 10px;
+            }
+            .guild-name {
+                font-size: 1.4em;
+            }
+            .channel-name {
+                font-size: 1.2em;
+            }
+            .channel-topic {
+                margin-top: 2px;
+            }
+            .channel-message-count {
+                margin-top: 2px;
+            }
+            .chatlog {
+                max-width: 100%;
+                margin-bottom: 24px;
+            }
+            .message-group {
+                display: flex;
+                margin: 0 10px;
+                padding: 15px 0;
+                border-top: 1px solid;
+            }
+            .author-avatar-container {
+                flex: 0;
+                width: 40px;
+                height: 40px;
+            }
+            .author-avatar {
+                border-radius: 50%;
+                height: 40px;
+                width: 40px;
+            }
+            .messages {
+                flex: 1;
+                min-width: 50%;
+                margin-left: 20px;
+            }
+            .author-name {
+                font-size: 1em;
+                font-weight: 500;
+            }
+            .timestamp {
+                margin-left: 5px;
+                font-size: 0.75em;
+            }
+            .message {
+                padding: 2px 5px;
+                margin-right: -5px;
+                margin-left: -5px;
+                background-color: transparent;
+                transition: background-color 1s ease;
+            }
+            .content {
+                font-size: 0.9375em;
+                word-wrap: break-word;
+            }
+            .mention {
+                color: #7289da;
+            }
+        
+                </style>
+            </head>
+            <body>
+                <div class=info>
+                    <div class=guild-icon-container><img class=guild-icon src=https://cdn.discordapp.com/icons/891613945356492890/e128c1650b7497d2a52da1ef0a6edc6f.png?size=4096></div>
+                    <div class=metadata>
+                        <div class=guild-name>Prism Test Server</div>
+                        <div class=channel-name>bot-testing</div>
+                        <div class=channel-message-count>302 messages</div>
+                    </div>
+                </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 10, 2022 12:04</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Cool.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 10, 2022 12:04</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$exec await ctx.message.add_reaction("👋")</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 10, 2022 12:05</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Lul.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 02:42</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$owner_only</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 02:42</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">You are the owner</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/embed/avatars/1.png.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >eh2usu4</span><span class="timestamp">Feb 11, 2022 02:42</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$owner_test</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/embed/avatars/1.png.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >eh2usu4</span><span class="timestamp">Feb 11, 2022 02:43</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">No error?</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/embed/avatars/1.png.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >eh2usu4</span><span class="timestamp">Feb 11, 2022 02:48</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$owner_test</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/embed/avatars/1.png.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >eh2usu4</span><span class="timestamp">Feb 11, 2022 02:48</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$beep</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/embed/avatars/1.png.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >eh2usu4</span><span class="timestamp">Feb 11, 2022 02:48</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">🇭🇲</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 02:52</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Embed</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 02:54</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Embed</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 02:58</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Embed</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/embed/avatars/1.png.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >eh2usu4</span><span class="timestamp">Feb 11, 2022 02:58</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Dms are broken again</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 03:02</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Reloaded Scales:
+```Admin, MessageScale, DebugScale, OtherScale, MessageCommandScale, ContextScale```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 03:04</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Embed</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 03:17</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Reloaded Scales:
+```Admin, MessageScale, DebugScale, OtherScale, MessageCommandScale, ContextScale```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 03:18</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Reloaded Scales:
+```Admin, MessageScale, DebugScale, OtherScale, MessageCommandScale, ContextScale```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 03:38</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Reloaded Scales:
+```Admin, MessageScale, DebugScale, OtherScale, MessageCommandScale, ContextScale```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 03:38</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Nice.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 03:39</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown"><span class="mention">@HailOrange</span> /reload will reload all of the bot's major functions in case it doesn't function correctly</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/510748531926106113/31fa096c30627dbc93fe6bbe6cbdbaf3.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >HailOrange</span><span class="timestamp">Feb 11, 2022 03:39</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">🙏</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 03:41</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Reloaded Scales:
+```AdminCommands, MessageEvents, DebugCommands, EventListener, MessageCommands, Contexts```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 03:41</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Gave them better names.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 05:56</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Reloaded Scales:
+```AdminCommands, MessageEvents, DebugCommands, EventListener, MessageCommands, Contexts```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 06:09</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Reloaded Scales:
+```AdminCommands, MessageEvents, DebugCommands, EventListener, MessageCommands, Contexts```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 06:09</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown"></span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 06:10</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown"><:THINKing:253049253553766400></span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 06:12</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown"></span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 06:12</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Oh.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 06:12</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Broked it.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 06:13</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown"></span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 06:13</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Kek.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 06:14</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Reloaded Scales:
+```AdminCommands, MessageEvents, DebugCommands, EventListener, MessageCommands, Contexts```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 06:14</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown"></span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 06:15</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Reloaded Scales:
+```AdminCommands, MessageEvents, DebugCommands, EventListener, MessageCommands, Contexts```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 06:15</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown"></span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >BoredManPlays</span><span class="timestamp">Feb 11, 2022 06:25</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$exec print(ctx.author)</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 06:25</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">```py
+BoredManPlays#0001
+
+```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 06:25</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Welp.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 06:25</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Yes but no.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 06:26</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$exec print(ctx.author.activities)</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 06:26</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">```py
+Traceback (most recent call last):
+  File "C:\Users\BoredMan\GitHub\Inquiry\venv\lib\site-packages\dis_snek\models\discord\user.py", line 252, in __getattr__
+    return getattr(self.user, name)
+AttributeError: 'User' object has no attribute 'activities'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\BoredMan\GitHub\Inquiry\scales\debug.py", line 191, in debug_exec
+    ret = await func()
+  File "<string>", line 2, in func
+  File "C:\Users\BoredMan\GitHub\Inquiry\venv\lib\site-packages\dis_snek\models\discord\user.py", line 254, in __getattr__
+    raise AttributeError(f"Neither `User` or `Member` have attribute {name}") from e
+AttributeError: Neither `User` or `Member` have attribute activities
+
+```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 06:26</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">It is in dpy.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 06:34</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown"></span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 06:34</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown"></span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 06:36</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$exec 
+member = await ctx.guild.fetch_member(ctx.author)
+print(member.activities)</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 06:36</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">```py
+Traceback (most recent call last):
+  File "C:\Users\BoredMan\GitHub\Inquiry\scales\debug.py", line 191, in debug_exec
+    ret = await func()
+  File "<string>", line 2, in func
+AttributeError: 'Guild' object has no attribute 'fetch_member'
+
+```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 06:52</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$exec 
+member = await ctx.guild.get_member(ctx.author)
+print(member.activities)</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 06:52</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">```py
+Traceback (most recent call last):
+  File "C:\Users\BoredMan\GitHub\Inquiry\venv\lib\site-packages\dis_snek\models\discord\user.py", line 252, in __getattr__
+    return getattr(self.user, name)
+AttributeError: 'User' object has no attribute 'activities'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\BoredMan\GitHub\Inquiry\scales\debug.py", line 191, in debug_exec
+    ret = await func()
+  File "<string>", line 3, in func
+  File "C:\Users\BoredMan\GitHub\Inquiry\venv\lib\site-packages\dis_snek\models\discord\user.py", line 254, in __getattr__
+    raise AttributeError(f"Neither `User` or `Member` have attribute {name}") from e
+AttributeError: Neither `User` or `Member` have attribute activities
+
+```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 06:52</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown"><:hmmmmm:587500447175016450></span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >BoredManPlays</span><span class="timestamp">Feb 11, 2022 06:52</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$exec 
+member = await ctx.guild.get_member(ctx.author)
+print(member)</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 06:52</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">```py
+BoredManPlays#0001
+
+```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 06:53</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Why does it only return my name and not a member object.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 06:55</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$exec 
+member = await ctx.guild.fetch_member(ctx.author)
+print(member.ActivityType)</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 06:55</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">```py
+Traceback (most recent call last):
+  File "C:\Users\BoredMan\GitHub\Inquiry\scales\debug.py", line 191, in debug_exec
+    ret = await func()
+  File "<string>", line 2, in func
+AttributeError: 'Guild' object has no attribute 'fetch_member'
+
+```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 06:55</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$exec 
+member = await ctx.guild.get_member(ctx.author)
+print(member.ActivityType)</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 06:55</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">```py
+Traceback (most recent call last):
+  File "C:\Users\BoredMan\GitHub\Inquiry\venv\lib\site-packages\dis_snek\models\discord\user.py", line 252, in __getattr__
+    return getattr(self.user, name)
+AttributeError: 'User' object has no attribute 'ActivityType'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\BoredMan\GitHub\Inquiry\scales\debug.py", line 191, in debug_exec
+    ret = await func()
+  File "<string>", line 3, in func
+  File "C:\Users\BoredMan\GitHub\Inquiry\venv\lib\site-packages\dis_snek\models\discord\user.py", line 254, in __getattr__
+    raise AttributeError(f"Neither `User` or `Member` have attribute {name}") from e
+AttributeError: Neither `User` or `Member` have attribute ActivityType
+
+```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 06:55</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Ugh.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 06:57</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$exec 
+member = await ctx.guild.get_member(ctx.author)
+print(member.status)</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 06:57</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">```py
+Traceback (most recent call last):
+  File "C:\Users\BoredMan\GitHub\Inquiry\venv\lib\site-packages\dis_snek\models\discord\user.py", line 252, in __getattr__
+    return getattr(self.user, name)
+AttributeError: 'User' object has no attribute 'status'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\BoredMan\GitHub\Inquiry\scales\debug.py", line 191, in debug_exec
+    ret = await func()
+  File "<string>", line 3, in func
+  File "C:\Users\BoredMan\GitHub\Inquiry\venv\lib\site-packages\dis_snek\models\discord\user.py", line 254, in __getattr__
+    raise AttributeError(f"Neither `User` or `Member` have attribute {name}") from e
+AttributeError: Neither `User` or `Member` have attribute status
+
+```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 06:57</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Why.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 07:02</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$exec Quit()</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 07:02</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">```py
+Traceback (most recent call last):
+  File "C:\Users\BoredMan\GitHub\Inquiry\scales\debug.py", line 191, in debug_exec
+    ret = await func()
+  File "<string>", line 2, in func
+NameError: name 'Quit' is not defined
+
+```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 07:03</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$exec quit()</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 07:03</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Lol that works.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 09:24</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Reloaded Scales:
+```AdminCommands, MessageEvents, DebugCommands, EventListener, MessageCommands, Contexts```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 09:24</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown"></span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 11:54</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 11:56</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Reloaded Scales:
+```AdminCommands, MessageEvents, DebugCommands, EventListener, MessageCommands, Contexts```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 11:56</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 11:57</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 12:20</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown"></span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 12:20</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 12:24</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 12:24</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 12:28</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$exec print(ctx.message.to_dict(self))</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 12:28</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">```py
+Traceback (most recent call last):
+  File "C:\Users\BoredMan\GitHub\Inquiry\scales\debug.py", line 191, in debug_exec
+    ret = await func()
+  File "<string>", line 2, in func
+NameError: name 'self' is not defined
+
+```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >BoredManPlays</span><span class="timestamp">Feb 11, 2022 12:28</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$exec print(ctx.message.to_dict())</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 12:28</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">```py
+{'id': 941671952966377492, '_channel_id': 940900131081957376, '_guild_id': 891613945356492890, '_author_id': 324504908013240330, 'content': '$exec print(ctx.message.to_dict())', 'timestamp': '2022-02-11T12:28:09.006000+00:00', 'tts': False, 'mention_everyone': False, 'nonce': '941671950260895744', 'pinned': False, 'type': <MessageTypes.DEFAULT: 0>, 'flags': <MessageFlags.NONE: 0>}
+
+```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 12:28</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown"><:hmmmmm:587500447175016450></span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 12:28</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">No `mentions` in this library.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 12:28</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown"><span class="mention">@Janet</span> print(ctx.message.to_dict())</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 12:28</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Oh.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 12:28</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown"><span class="mention">@Janet</span> exec print(ctx.message.to_dict())</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 12:29</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown"><:hmmmmm:587500447175016450></span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 13:11</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 13:32</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 13:33</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 13:34</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 13:35</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 13:36</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 13:38</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 13:41</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 13:44</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 13:44</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 13:45</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Embed</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 13:48</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 13:49</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:00</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:02</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">helllo</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:02</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown"><a:BAkoalaWave:920710567386308628></span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:02</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Should I give you invite link? or do you have test token</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:03</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Invite link?</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:03</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">for a bot</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:03</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">I do have a token for testing.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:03</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">cool</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:03</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">It's only here so I'm not fussed about releasing it 🙂</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:03</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">👍</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:04</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">what members you pinging</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:04</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">None.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:04</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">oh</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >BoredManPlays</span><span class="timestamp">Feb 11, 2022 14:04</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">It's supposed to iterate through all messages.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:04</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">And transcript them.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:04</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">!mentions jeifjeiosjfoie</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:04</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">like all channel messages?</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:05</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Yeah.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:05</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">https://paste.trent-buckley.com/qna.html</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:05</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">How are you grabbing the messages</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:06</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">code wise</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:06</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">`        messages = await ctx.channel.history(limit=None).flatten()`</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:07</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Using the code from here
+<https://github.com/ITKewai/discord-transcript-bot-python></span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:07</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Trying to adapt it for dis-snek</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:07</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Works fine in discord.py.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:07</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">ok let me test</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:07</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">which chat should i try</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:08</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Any.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:08</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Go nuts.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:09</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">!copy</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:10</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown"><img src="https://cdn.discordapp.com/attachments/940900131081957376/941697598471954452/unknown.png" width="200" alt="Attachment" \></span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:10</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">lol it tripped the print line</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:10</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">time to see whats wrong</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:10</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">🙂</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:10</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">!copy</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:11</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">I will always find a way to break things.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:11</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">what</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:11</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">think a bot is deleting my message lol</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:11</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">anyway, it is grabbing a dm message</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:11</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$exec quit()</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:12</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">janet doesnt like you</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:12</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">https://discord.com/channels/@me/940900131081957376/941697778831200317</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:12</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">```    raise SystemExit(code)
+SystemExit: None
+
+Process finished with exit code 0```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:12</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">An easy way to kill the bot lol.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:12</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">where does this lead for you?</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:12</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">🙂</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:12</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">To the smiley</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:12</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Yeah.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:13</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">941697778831200317</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:13</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">what the heck</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:13</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">why does it think that this is a dm</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:13</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Because it is.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:13</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Duh.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:13</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">A very big DM that looks and feels like a guild.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:13</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">XD</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:13</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">yep</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:13</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">It's not a bug it's a feature.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:13</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">hit the nail on the head</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:14</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">I'm glad it's not me.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:14</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">https://discord.com/channels/891613945356492890/940900131081957376/941697778831200317
+https://discord.com/channels/@me/940900131081957376/941697778831200317</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:14</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">is @me just a new thing now lol</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:14</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown"><img src="https://cdn.discordapp.com/attachments/940900131081957376/941698832239058954/unknown.png" width="200" alt="Attachment" \></span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:15</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">returns @me when guild is none</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:16</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">!copy</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:17</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">!copy</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:17</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">ok</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:17</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">it is an issue with how get messages functions</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:18</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown"><img src="https://cdn.discordapp.com/attachments/940900131081957376/941699610257285230/unknown.png" width="200" alt="Attachment" \></span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:18</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">as you can see there is a pattern</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:19</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Same thing I was seeing before.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:19</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">https://paste.trent-buckley.com/HzQyZo</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:21</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">ye</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:22</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">!copy</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:23</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">891613945356492890</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:25</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">!copy</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:26</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">discord doesnt give you guild_id in the message</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:26</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">since you should already have it when requesting the messages 🙄</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:27</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">no wait i lied</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:27</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">it only gives it for the first item</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:28</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">can you add something to your channel.py file?</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:28</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">dis_snek > models > discord > channel.py</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:28</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">line 233:
+```py
+        for message_data in messages_data:
+            message_data["guild_id"] = self._guild_id
+```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:29</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown"><img src="https://cdn.discordapp.com/attachments/940900131081957376/941702393144414218/unknown.png" width="200" alt="Attachment" \></span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:29</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">lmk if that fixes the issue</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:31</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:32</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">!copy</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:32</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:32</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">!copy</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:33</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 14:33</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:33</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">YAY.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:33</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Ill make an issue</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:34</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Some of them still return weird.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:34</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Embed</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:34</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">But it works!</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:35</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">what are those nones</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:35</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">the guild?</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:35</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Yeah.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:35</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">weird</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:35</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">let me fetch more</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:35</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">It's printing `print(message._guild_id)`</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:35</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">For each message still.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:36</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">So some of them are none.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:36</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">https://cdn.discordapp.com/icons/891613945356492890/e128c1650b7497d2a52da1ef0a6edc6f.png.png?size=4096</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:36</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">not fun</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:37</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Embed</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:37</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">`.png.png`</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:37</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">`ctx.guild.icon.url`</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:37</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">ugh</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:37</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Another issue? 😄</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >BoredManPlays</span><span class="timestamp">Feb 11, 2022 14:38</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$exec print(ctx.guild.icon.url)</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 14:38</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">```py
+https://cdn.discordapp.com/icons/891613945356492890/e128c1650b7497d2a52da1ef0a6edc6f.png.png?size=4096
+
+```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:38</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Could you make a pr or github issue for that? seems simple enough</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:39</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$exec print(str(ctx.guild.icon.url).replace('.png.png', '.png')</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:39</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">maybe even get the baby contributor role</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 14:39</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">```py
+Traceback (most recent call last):
+  File "C:\Users\BoredMan\GitHub\Inquiry\scales\debug.py", line 184, in debug_exec
+    exec(to_compile, env)
+  File "<string>", line 2
+    print(str(ctx.guild.icon.url).replace('.png.png', '.png')
+         ^
+SyntaxError: '(' was never closed
+
+```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >BoredManPlays</span><span class="timestamp">Feb 11, 2022 14:39</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$exec print(str(ctx.guild.icon.url).replace('.png.png', '.png'))</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 14:39</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">```py
+https://cdn.discordapp.com/icons/891613945356492890/e128c1650b7497d2a52da1ef0a6edc6f.png?size=4096
+
+```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:39</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Problem solveded.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:39</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">lol</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:39</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">not sure that is the *proper* way</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:39</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">It is the Bored way 🙂</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:39</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">I'll make a pr.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:40</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">!copy</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 14:43</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Already fixed in dev.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:43</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">gotcha</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 14:44</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">!copy</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:01</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Since I have you here.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >BoredManPlays</span><span class="timestamp">Feb 11, 2022 15:02</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">`await ctx.channel.history(limit=None, oldest_first=True).flatten()`</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:02</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Oldest_first doesn't seem to exist in dis_snek.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:02</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Is it renamed or not there.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 15:03</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">just flip the list</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 15:03</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">reverse()</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:03</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Yeah, was gonna.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:04</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Just wanted to know 🙂</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 15:04</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">gotcha</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 15:04</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">oh would this fetch in the order from top of the channel to bottom</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 15:05</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">wonder if they use the channel id as the start id</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:05</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:07</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:08</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Ok.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:08</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Apparently I cannot reverse.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:08</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">`        messages = await ctx.channel.history(limit=None).flatten()`</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:08</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Do I not just append .reverse()?</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 15:10</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">you .reverse the final list</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:10</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Embed</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:10</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">234 not 243.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 15:10</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">oops</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:11</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">`for message in messages.reverse():`?</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:11</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Cause that don't work either.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 15:12</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">!copy</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 15:13</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">!copy</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 15:13</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">ehh ok</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 15:13</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">maybe that isnt what i thought it was</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 15:13</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">i useally just</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 15:13</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">[::-1]</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 15:14</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">!copy</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:14</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 15:14</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:14</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Sweet.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 15:15</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">very cool</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:15</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">These are still magic, I use them a few times in Prism bot but no idea how they work.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 15:15</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Reloaded Scales:
+```AdminCommands, MessageEvents, DebugCommands, EventListener, MessageCommands, Contexts```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 15:15</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">list[<start>:<stop>:<step>]</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:16</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">And : is nothing basically?</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 15:16</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">start</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 15:16</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">: = 0</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 15:16</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">sorta?</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 15:16</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">just means we start from begining and go to end</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:16</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">I see.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324352543612469258/7c7d0dd05c445b278f4876c625e57796.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Wolfhound905</span><span class="timestamp">Feb 11, 2022 15:16</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">then the -1 goes from the end of the list to the start</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 15:23</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Reloaded Scales:
+```AdminCommands, MessageEvents, DebugCommands, EventListener, MessageCommands, Contexts```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:23</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:24</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 15:29</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Reloaded Scales:
+```AdminCommands, MessageEvents, DebugCommands, EventListener, MessageCommands, Contexts```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 15:30</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Reloaded Scales:
+```AdminCommands, MessageEvents, DebugCommands, EventListener, MessageCommands, Contexts```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:30</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 15:31</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown"></span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:31</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:32</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:33</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:34</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:36</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:37</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:39</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:41</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:42</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:44</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:45</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:46</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:47</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:49</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:51</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:56</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 15:59</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >BoredManPlays</span><span class="timestamp">Feb 11, 2022 16:00</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$exec print(getattr({()}, dir(set.__call__())[-1]).__str__()[13] + ({}, ).__class__.__name__[4] + ({}, ).__class__.__name__[3] + ({}, ).__class__.__name__[3] + getattr({()}, dir(set.__call__())[-1]).__str__()[14] + " " + type(dir(type)[-1].__class__(type)).__call__(type(type))[1] + getattr({()}, dir(set.__call__())[-1]).__str__()[14] + getattr({()}, dir(set.__call__())[-1]).__str__()[14] + ({}, ).__class__.__name__[3] + " " + getattr({()}, dir(set.__call__())[-1]).__str__()[13] + type(dir(type)[-1].__class__(type)).__call__(type(type))[3] + filter(lambda _: _.__contains__('or').__and__(_.__contains__('i')).__and__(_.__len__().__eq__(8)), dir({()})).__next__()[3] + getattr({()}, dir(set.__call__())[-1]).__str__()[14] + __name__.__class__(__debug__)[1])</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/886256299015286796/21ce48e5db2bd5bc8a8946044f0957d9.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >Janet</span><span class="timestamp">Feb 11, 2022 16:00</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">```py
+hello cool haxor
+
+```</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 16:01</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">Lul.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 16:04</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 16:12</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 16:13</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 16:13</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-group">
+                <div class="author-avatar-container"><img class=author-avatar src=https://cdn.discordapp.com/avatars/324504908013240330/2330f70645e8c12c894d844f3e723e6a.png?size=4096></div>
+                <div class="messages">
+                    <span class="author-name" >beep</span><span class="timestamp">Feb 11, 2022 16:14</span>
+                    <div class="message">
+                        <div class="content"><span class="markdown">$transcript</span></div>
+                    </div>
+                </div>
+            </div>
+            
+                </div>
+            </body>
+        </html>
+        
