@@ -10,6 +10,7 @@ from typing import Optional
 import aioredis
 import dis_snek
 import orjson
+import motor.motor_asyncio
 from dis_snek.client import Snake
 from dis_snek import MISSING, Intents, check, AutoDefer
 from dis_snek.models import (
@@ -47,6 +48,22 @@ else:
     exit(1)
 Config = ConfigParser()
 Config.read("config.ini")
+
+
+def config(section):
+    dict1 = {}
+    options = Config.options(section)
+    for option in options:
+        try:
+            dict1[option] = Config.get(section, option)
+            if dict1[option] == -1:
+                log.debug("skip: %s" % option)
+        except:
+            log.error("exception on %s!" % option)
+            dict1[option] = None
+    return dict1
+
+
 colours = sorted(
     [MaterialColors(c).name.title() for c in MaterialColors]
     + [
@@ -117,20 +134,19 @@ class Bot(Snake):
         log.info("Connected to discord!")
         log.info(f"Logged in as {self.user.username}")
         log.info(f"Currently in {len(self.guilds)} guilds")
-        global RJD, roles_json
-        try:
-            roles_json = open(filename, "r+")
-        except:
-            roles_json = open(filename, "w+")
-            json.dump({"perms": [], "roles": []}, roles_json)
-            roles_json.seek(0)
-        RJD = json.load(roles_json)
-        roles_json.seek(0)
-        jsondump(RJD)
-        current_time = time.time()
-        for role in RJD["roles"]:
-            for member in RJD[role[0]]:
-                member[1] -= current_time
+
+        async def get_server_info():
+            # replace this with your MongoDB connection string
+            conn_str = config("DatabaseSettings")["MongoDB"]
+            # set a 5-second connection timeout
+            client = motor.motor_asyncio.AsyncIOMotorClient(conn_str, serverSelectionTimeoutMS=5000)
+            try:
+                print(await client.server_info())
+            except Exception:
+                print("Unable to connect to the server.")
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(get_server_info())
+
         try:
             await self.connect()
             log.info("Connected to redis!") if await self.redis.ping() else exit()
@@ -544,4 +560,10 @@ bot.grow_scale("scales.other_events")
 bot.grow_scale("scales.message_commands")
 bot.grow_scale("scales.contexts")
 bot.grow_scale("scales.application_commands")
+scale_names = []
+for scale in list(bot.scales.values()):
+    name = str(scale).split('.')
+    scale_names.append(name)
+scales_list = str(bot.scales.keys()).strip('dict_keys([').replace("'", "").replace("]", "").replace(')', '')
+log.info(f"Loaded Scales:\n{scales_list}")
 bot.start((Path(__file__).parent / "token.txt").read_text().strip())
