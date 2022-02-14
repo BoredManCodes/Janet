@@ -11,6 +11,7 @@ import orjson
 from dis_snek import Modal, ShortText, ParagraphText, IntervalTrigger, Task
 from dis_snek.api.events import MessageReactionAdd
 from dis_snek.client import Snake
+from dis_snek.client.errors import NotFound
 from dis_snek.models import (
     slash_command,
     InteractionContext,
@@ -139,11 +140,18 @@ class Bot(Snake):
                 poll = PollData(**orjson.loads(poll_data))
 
                 guild_id, msg_id = [to_snowflake(k) for k in key.split("|")]
-                author = await self.cache.fetch_member(guild_id, poll.author_id)
-                poll.author_data = {
-                    "name": author.display_name,
-                    "avatar_url": author.avatar.url,
-                }
+                try:
+                    author = await self.cache.fetch_member(guild_id, poll.author_id)
+                except NotFound:
+                    poll.author_data = {
+                        "name": "Unknown",
+                        "avatar_url": None,
+                    }
+                else:
+                    poll.author_data = {
+                        "name": author.display_name,
+                        "avatar_url": author.avatar.url,
+                    }
 
                 if not self.polls.get(guild_id):
                     self.polls[guild_id] = {}
