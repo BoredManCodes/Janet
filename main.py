@@ -485,13 +485,18 @@ class Bot(Snake):
             for poll in polls:
                 async with poll.lock:
                     log.debug(f"Closing poll: {poll.message_id}")
-                    msg = await self.cache.fetch_message(
-                        poll.channel_id, poll.message_id
-                    )
-                    if msg:
+                    try:
+                        msg = await self.cache.fetch_message(
+                            poll.channel_id, poll.message_id
+                        )
+                    except NotFound:
+                        log.warning(
+                            f"Could not find message with {poll.message_id}, removing from cache"
+                        )
+                    else:
                         await msg.edit(embeds=poll.embed, components=[])
-
-                    await self.delete_poll(k, poll.message_id)
+                    finally:
+                        await self.delete_poll(k, poll.message_id)
 
     @Task.create(IntervalTrigger(seconds=2))
     async def update_polls(self):
@@ -503,14 +508,20 @@ class Bot(Snake):
                     async with poll.lock:
                         if not poll.expired:
                             log.debug(f"updating {poll_id}")
-                            msg = await self.cache.fetch_message(
-                                poll.channel_id, poll.message_id
-                            )
-                            if msg:
+                            try:
+                                msg = await self.cache.fetch_message(
+                                    poll.channel_id, poll.message_id
+                                )
+                            except NotFound:
+                                log.warning(
+                                    f"Could not find message with {poll.message_id}, aborting updates for this poll"
+                                )
+                            else:
                                 await msg.edit(
                                     embeds=poll.embed, components=poll.components
                                 )
-                        self.polls_to_update[guild].remove(poll_id)
+                            finally:
+                                self.polls_to_update[guild].remove(poll_id)
                     await asyncio.sleep(0)
 
 
