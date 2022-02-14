@@ -309,7 +309,9 @@ class Bot(Snake):
 
         if poll := await self.process_poll_option(ctx, poll):
             if poll.author_id == ctx.author.id:
-                message = await self.cache.get_message(poll.channel_id, poll.message_id)
+                message = await self.cache.fetch_message(
+                    poll.channel_id, poll.message_id
+                )
                 if message:
                     async with poll.lock:
                         for i in range(len(poll.poll_options)):
@@ -355,7 +357,9 @@ class Bot(Snake):
         if poll := await self.process_poll_option(ctx, poll):
             if poll.author_id == ctx.author.id:
 
-                message = await self.cache.get_message(poll.channel_id, poll.message_id)
+                message = await self.cache.fetch_message(
+                    poll.channel_id, poll.message_id
+                )
                 if message:
                     async with poll.lock:
                         poll.add_option(option)
@@ -481,7 +485,9 @@ class Bot(Snake):
             for poll in polls:
                 async with poll.lock:
                     log.debug(f"Closing poll: {poll.message_id}")
-                    msg = await self.cache.get_message(poll.channel_id, poll.message_id)
+                    msg = await self.cache.fetch_message(
+                        poll.channel_id, poll.message_id
+                    )
                     if msg:
                         await msg.edit(embeds=poll.embed, components=[])
 
