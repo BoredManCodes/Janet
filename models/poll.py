@@ -3,7 +3,7 @@ import datetime
 from typing import Union
 
 import attr
-from dis_snek.const import MISSING
+from dis_snek import ModalContext, MISSING
 from dis_snek.models import (
     Snowflake_Type,
     Embed,
@@ -185,8 +185,10 @@ class PollData:
         self.message_id = msg.id
 
     @classmethod
-    def from_ctx(cls, ctx: InteractionContext):
+    def from_ctx(cls, ctx: InteractionContext, m_ctx: ModalContext | None = None):
         kwargs = ctx.kwargs
+        if m_ctx:
+            kwargs |= m_ctx.kwargs
         new_cls: "PollData" = cls(
             title=kwargs.get("title"),
             author_id=ctx.author.id,
@@ -201,8 +203,9 @@ class PollData:
         )
 
         if options := kwargs.get("options"):
-            for o in options.split(","):
-                new_cls.add_option(o)
+            for o in options.split("-"):
+                if o:
+                    new_cls.add_option(o.strip())
 
         if channel := kwargs.get("channel"):
             try:

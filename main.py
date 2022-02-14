@@ -1,14 +1,16 @@
 import asyncio
 import logging
 from copy import deepcopy
+from dataclasses import MISSING
 from pathlib import Path
 from typing import Optional
 
 import aioredis
 import dis_snek
 import orjson
+from dis_snek import Modal, ShortText, ParagraphText, IntervalTrigger, Task
+from dis_snek.api.events import MessageReactionAdd
 from dis_snek.client import Snake
-from dis_snek.const import MISSING
 from dis_snek.models import (
     slash_command,
     InteractionContext,
@@ -24,9 +26,6 @@ from dis_snek.models import (
     Timestamp,
     Permissions,
 )
-from dis_snek.models.events import MessageReactionAdd
-from dis_snek.tasks import Task
-from dis_snek.tasks.triggers import IntervalTrigger
 from thefuzz import fuzz
 
 from models.emoji import booleanEmoji
@@ -89,10 +88,11 @@ def_options = [
 class Bot(Snake):
     def __init__(self):
         super().__init__(
-            sync_interactions=False,
+            sync_interactions=True,
             asyncio_debug=True,
             delete_unused_application_cmds=True,
             activity="with polls",
+            debug_scope=707631108753195008,
         )
         self.polls: dict[Snowflake_Type, dict[Snowflake_Type, PollData]] = {}
         self.polls_to_update: dict[Snowflake_Type, set[Snowflake_Type]] = {}
@@ -139,7 +139,7 @@ class Bot(Snake):
                 poll = PollData(**orjson.loads(poll_data))
 
                 guild_id, msg_id = [to_snowflake(k) for k in key.split("|")]
-                author = await self.cache.get_member(guild_id, poll.author_id)
+                author = await self.cache.fetch_member(guild_id, poll.author_id)
                 poll.author_data = {
                     "name": author.display_name,
                     "avatar_url": author.avatar.url,
@@ -201,24 +201,30 @@ class Bot(Snake):
     @slash_command(
         "poll",
         "Create a poll",
-        options=[
-            SlashCommandOption(
-                "options",
-                OptionTypes.STRING,
-                "The options for your poll, seperated by commas",
-                required=True,
-            ),
-        ]
-        + def_options,
+        options=def_options,
     )
     async def poll(self, ctx: InteractionContext, **kwargs):
-        await ctx.defer(ephemeral=True)
+        modal = Modal(
+            "Create a poll!",
+            components=[
+                ParagraphText(
+                    "Options: ",
+                    placeholder="Start each option with a `-` ie: \n-Option 1\n-Option 2",
+                    custom_id="options",
+                )
+            ],
+        )
+        await ctx.send_modal(modal)
 
-        poll = PollData.from_ctx(ctx)
+        m_ctx = await self.wait_for_modal(modal, ctx.author)
+        if not m_ctx.kwargs["options"].strip():
+            return await m_ctx.send("You did not provide any options!", ephemeral=True)
 
-        msg = await poll.send(await self.cache.get_channel(poll.channel_id))
+        poll = PollData.from_ctx(ctx, m_ctx)
+
+        msg = await poll.send(await self.cache.fetch_channel(poll.channel_id))
         await self.set_poll(ctx.guild_id, msg.id, poll)
-        await ctx.send("To close the poll, react to it with 🔴")
+        await m_ctx.send("To close the poll, react to it with 🔴", ephemeral=True)
 
     @slash_command(
         "poll_prefab",
@@ -230,7 +236,7 @@ class Bot(Snake):
     async def boolean(self, ctx: InteractionContext, **kwargs):
         await ctx.defer(ephemeral=True)
         if channel := kwargs.get("channel"):
-            u_perms = await ctx.author.channel_permissions(channel)
+            u_perms = ctx.author.channel_permissions(channel)
             if Permissions.SEND_MESSAGES not in u_perms:
                 return await ctx.send(
                     f"You do not have permission to send messages in {channel.mention}"
@@ -240,7 +246,7 @@ class Bot(Snake):
         poll.poll_options.append(PollOption("Yes", booleanEmoji[0]))
         poll.poll_options.append(PollOption("No", booleanEmoji[1]))
 
-        msg = await poll.send(await self.cache.get_channel(poll.channel_id))
+        msg = await poll.send(await self.cache.fetch_channel(poll.channel_id))
         await self.set_poll(ctx.guild_id, msg.id, poll)
         await ctx.send("To close the poll, react to it with 🔴")
 
@@ -483,7 +489,7 @@ class Bot(Snake):
                     async with poll.lock:
                         if not poll.expired:
                             log.debug(f"updating {poll_id}")
-                            msg = await self.cache.get_message(
+                            msg = await self.cache.fetch_message(
                                 poll.channel_id, poll.message_id
                             )
                             if msg:
