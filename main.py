@@ -1,36 +1,33 @@
 import asyncio
 import logging
+import re
 from copy import deepcopy
 from dataclasses import MISSING
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
 import aioredis
 import dis_snek
 import orjson
-from dis_snek import Modal, ShortText, ParagraphText, IntervalTrigger, Task
+from dis_snek import (
+    IntervalTrigger,
+    Task,
+    Intents,
+)
 from dis_snek.api.events import MessageReactionAdd
 from dis_snek.client import Snake
 from dis_snek.client.errors import NotFound
 from dis_snek.models import (
     slash_command,
     InteractionContext,
-    OptionTypes,
     Snowflake_Type,
     ComponentContext,
     listen,
-    SlashCommandOption,
-    AutocompleteContext,
     to_snowflake,
-    SlashCommandChoice,
-    MaterialColors,
-    Timestamp,
-    Permissions,
 )
-from thefuzz import fuzz
 
-from models.emoji import booleanEmoji
-from models.poll import PollData, PollOption
+from models.poll import PollData
 
 logging.basicConfig()
 log = logging.getLogger("Inquiry")
@@ -38,67 +35,51 @@ cls_log = logging.getLogger(dis_snek.const.logger_name)
 cls_log.setLevel(logging.DEBUG)
 log.setLevel(logging.DEBUG)
 
-colours = sorted(
-    [MaterialColors(c).name.title() for c in MaterialColors]
-    + [
-        "Blurple",
-        "Fuchsia",
-        "White",
-        "Black",
-    ]
-)
 
-def_options = [
-    SlashCommandOption(
-        "title", OptionTypes.STRING, "The title for your poll", required=True
-    ),
-    SlashCommandOption(
-        "single_vote",
-        OptionTypes.BOOLEAN,
-        "Only allow a single vote per user (default False)",
-        required=False,
-    ),
-    SlashCommandOption(
-        "channel",
-        OptionTypes.CHANNEL,
-        "The channel to send your poll to, if not the current channel",
-        required=False,
-    ),
-    SlashCommandOption(
-        "duration",
-        OptionTypes.INTEGER,
-        "Automatically close the poll after this many minutes",
-        required=False,
-    ),
-    SlashCommandOption(
-        "inline",
-        OptionTypes.BOOLEAN,
-        "Make options appear inline, in the embed (default True)",
-        required=False,
-    ),
-    SlashCommandOption(
-        "colour",
-        OptionTypes.STRING,
-        "Choose the colour of the embed (default 'blurple')",
-        choices=[SlashCommandChoice(c.replace("_", " "), c) for c in colours],
-        required=False,
-    ),
-]
+time_pattern = re.compile(r"(\d+\.?\d?[s|m|h|d|w]{1})\s?", re.I)
+
+
+def process_duration(delay):
+    units = {"w": "weeks", "d": "days", "h": "hours", "m": "minutes", "s": "seconds"}
+    delta = {"weeks": 0, "days": 0, "hours": 0, "minutes": 0, "seconds": 0}
+    # delay: str = ctx.kwargs.get("duration")
+    if delay:
+        if times := time_pattern.findall(delay):
+            for t in times:
+                delta[units[t[-1]]] += float(t[:-1])
+        else:
+            # await ctx.send(
+            #     "Invalid time string, please follow example: `1w 3d 7h 5m 20s`",
+            #     ephemeral=True,
+            # )
+            return False
+
+        if not any(value for value in delta.items()):
+            # await ctx.send("At least one time period is required", ephemeral=True)
+            return False
+
+        remind_at = datetime.now() + timedelta(**delta)
+        return remind_at
+    return delay
 
 
 class Bot(Snake):
     def __init__(self):
         super().__init__(
+            intents=Intents.DEFAULT | Intents.GUILD_MEMBERS,
             sync_interactions=True,
             asyncio_debug=True,
             delete_unused_application_cmds=True,
             activity="with polls",
-            debug_scope=707631108753195008,
+            fetch_members=True,
         )
         self.polls: dict[Snowflake_Type, dict[Snowflake_Type, PollData]] = {}
         self.polls_to_update: dict[Snowflake_Type, set[Snowflake_Type]] = {}
 
         self.redis: aioredis.Redis = MISSING
+
+        self.load_extension("scales.create_poll")
+        self.load_extension("scales.edit_poll")
 
     @listen()
     async def on_ready(self):
@@ -133,31 +114,34 @@ class Bot(Snake):
         )
 
     async def cache_polls(self):
-        keys = await self.redis.keys("*")
-        for key in keys:
-            poll_data = await self.redis.get(key)
-            try:
-                poll = PollData(**orjson.loads(poll_data))
-
-                guild_id, msg_id = [to_snowflake(k) for k in key.split("|")]
+        async def _cache_poll(_key):
+            if _key:
                 try:
-                    author = await self.cache.fetch_member(guild_id, poll.author_id)
-                except NotFound:
-                    poll.author_data = {
-                        "name": "Unknown",
-                        "avatar_url": None,
-                    }
-                else:
-                    poll.author_data = {
-                        "name": author.display_name,
-                        "avatar_url": author.avatar.url,
-                    }
+                    poll_data = await self.redis.get(_key)
 
-                if not self.polls.get(guild_id):
-                    self.polls[guild_id] = {}
-                self.polls[guild_id][msg_id] = poll
-            except TypeError:
-                continue
+                    poll = PollData(**orjson.loads(poll_data))
+
+                    guild_id, msg_id = [to_snowflake(k) for k in _key.split("|")]
+                    try:
+                        author = await self.cache.fetch_member(guild_id, poll.author_id)
+                    except NotFound:
+                        poll.author_data = {
+                            "name": "Unknown",
+                            "avatar_url": None,
+                        }
+                    else:
+                        poll.author_data = {
+                            "name": author.display_name,
+                            "avatar_url": author.avatar.url,
+                        }
+
+                    if not self.polls.get(guild_id):
+                        self.polls[guild_id] = {}
+                    self.polls[guild_id][msg_id] = poll
+                except (TypeError, ValueError):
+                    return
+
+        await asyncio.gather(*[_cache_poll(k) for k in await self.redis.keys("*")])
 
     async def get_poll(
         self, guild_id: Snowflake_Type, msg_id: Snowflake_Type
@@ -205,216 +189,6 @@ class Bot(Snake):
             breakpoint()
 
         await self.redis.delete(f"{guild_id}|{msg_id}")
-
-    @slash_command(
-        "poll",
-        "Create a poll",
-        options=def_options,
-    )
-    async def poll(self, ctx: InteractionContext, **kwargs):
-        modal = Modal(
-            "Create a poll!",
-            components=[
-                ParagraphText(
-                    "Options: ",
-                    placeholder="Start each option with a `-` ie: \n-Option 1\n-Option 2",
-                    custom_id="options",
-                )
-            ],
-        )
-        await ctx.send_modal(modal)
-
-        m_ctx = await self.wait_for_modal(modal, ctx.author)
-        if not m_ctx.kwargs["options"].strip():
-            return await m_ctx.send("You did not provide any options!", ephemeral=True)
-
-        poll = PollData.from_ctx(ctx, m_ctx)
-
-        msg = await poll.send(await self.cache.fetch_channel(poll.channel_id))
-        await self.set_poll(ctx.guild_id, msg.id, poll)
-        await m_ctx.send("To close the poll, react to it with 🔴", ephemeral=True)
-
-    @slash_command(
-        "poll_prefab",
-        "Create a poll using pre-set options",
-        sub_cmd_name="boolean",
-        sub_cmd_description="A poll with yes and no options",
-        options=def_options,
-    )
-    async def boolean(self, ctx: InteractionContext, **kwargs):
-        await ctx.defer(ephemeral=True)
-        if channel := kwargs.get("channel"):
-            u_perms = ctx.author.channel_permissions(channel)
-            if Permissions.SEND_MESSAGES not in u_perms:
-                return await ctx.send(
-                    f"You do not have permission to send messages in {channel.mention}"
-                )
-
-        poll = PollData.from_ctx(ctx)
-        poll.poll_options.append(PollOption("Yes", booleanEmoji[0]))
-        poll.poll_options.append(PollOption("No", booleanEmoji[1]))
-
-        msg = await poll.send(await self.cache.fetch_channel(poll.channel_id))
-        await self.set_poll(ctx.guild_id, msg.id, poll)
-        await ctx.send("To close the poll, react to it with 🔴")
-
-    @boolean.subcommand(
-        sub_cmd_name="week",
-        sub_cmd_description="A poll with options for each day of the week",
-        options=def_options,
-    )
-    async def week(self, ctx: InteractionContext, **kwargs):
-        await ctx.defer(ephemeral=True)
-        poll = PollData.from_ctx(ctx)
-        options = [
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-            "Sunday",
-        ]
-        for opt in options:
-            poll.add_option(opt)
-
-        msg = await poll.send(ctx)
-        await self.set_poll(ctx.guild_id, msg.id, poll)
-        await ctx.send("To close the poll, react to it with 🔴")
-
-    @slash_command(
-        "edit_poll",
-        "edit a given poll",
-        sub_cmd_name="remove_option",
-        sub_cmd_description="Remove an option from the poll",
-        options=[
-            SlashCommandOption(
-                name="poll",
-                description="The poll to edit",
-                type=OptionTypes.STRING,
-                required=True,
-                autocomplete=True,
-            ),
-            SlashCommandOption(
-                name="option",
-                description="The option to remove",
-                type=OptionTypes.STRING,
-                required=True,
-                autocomplete=True,
-            ),
-        ],
-    )
-    async def edit_poll_remove(self, ctx: InteractionContext, poll, option):
-        await ctx.defer(ephemeral=True)
-
-        if poll := await self.process_poll_option(ctx, poll):
-            if poll.author_id == ctx.author.id:
-                message = await self.cache.fetch_message(
-                    poll.channel_id, poll.message_id
-                )
-                if message:
-                    async with poll.lock:
-                        for i in range(len(poll.poll_options)):
-                            if poll.poll_options[i].text == option.replace("_", " "):
-                                del poll.poll_options[i]
-                                await message.edit(
-                                    embeds=poll.embed, components=poll.components
-                                )
-                                await ctx.send(
-                                    f"Removed `{option}` from `{poll.title}`"
-                                )
-                                break
-                        else:
-                            await ctx.send(
-                                f"Failed to remove `{option}` from `{poll.title}`"
-                            )
-                    return
-            else:
-                return await ctx.send("Only the author of the poll can edit it!")
-
-    @edit_poll_remove.subcommand(
-        sub_cmd_name="add_option",
-        sub_cmd_description="Add an option to the poll",
-        options=[
-            SlashCommandOption(
-                name="poll",
-                description="The poll to edit",
-                type=OptionTypes.STRING,
-                required=True,
-                autocomplete=True,
-            ),
-            SlashCommandOption(
-                name="option",
-                description="The option to add",
-                type=OptionTypes.STRING,
-                required=True,
-            ),
-        ],
-    )
-    async def edit_poll_add(self, ctx: InteractionContext, poll, option):
-        await ctx.defer(ephemeral=True)
-
-        if poll := await self.process_poll_option(ctx, poll):
-            if poll.author_id == ctx.author.id:
-
-                message = await self.cache.fetch_message(
-                    poll.channel_id, poll.message_id
-                )
-                if message:
-                    async with poll.lock:
-                        poll.add_option(option)
-                        await message.edit(
-                            embeds=poll.embed, components=poll.components
-                        )
-                        await ctx.send(f"Added `{option}` to `{poll.title}`")
-                    return
-            else:
-                await ctx.send("Only the author of the poll can edit it!")
-
-    @edit_poll_remove.autocomplete("poll")
-    @edit_poll_add.autocomplete("poll")
-    async def poll_autocomplete(self, ctx: AutocompleteContext, **kwargs):
-        polls = self.polls.get(ctx.guild_id)
-        if polls:
-            polls = [
-                p
-                for p in polls.values()
-                if p.author_id == ctx.author.id and not p.expired
-            ]
-            polls = sorted(
-                polls,
-                key=lambda x: fuzz.partial_ratio(x.title, ctx.input_text),
-                reverse=True,
-            )[:25]
-
-            await ctx.send(
-                [
-                    {
-                        "name": f"{p.title} ({Timestamp.from_snowflake(p.message_id).ctime()})",
-                        "value": str(p.message_id),
-                    }
-                    for p in polls
-                ]
-            )
-
-        else:
-            await ctx.send([])
-
-    @edit_poll_remove.autocomplete("option")
-    async def option_autocomplete(self, ctx: AutocompleteContext, **kwargs):
-        poll = await self.get_poll(ctx.guild_id, to_snowflake(kwargs.get("poll")))
-        if poll:
-            p_options = list(poll.poll_options)
-            p_options = sorted(
-                p_options,
-                key=lambda x: fuzz.partial_ratio(x.text, ctx.input_text),
-                reverse=True,
-            )[:25]
-
-            await ctx.send([p.text for p in p_options])
-
-        else:
-            await ctx.send([])
 
     @listen()
     async def on_button(self, event):
@@ -521,7 +295,10 @@ class Bot(Snake):
                                     embeds=poll.embed, components=poll.components
                                 )
                             finally:
-                                self.polls_to_update[guild].remove(poll_id)
+                                try:
+                                    self.polls_to_update[guild].remove(poll_id)
+                                except KeyError:
+                                    pass
                     await asyncio.sleep(0)
 
 

@@ -1,6 +1,5 @@
 import asyncio
 import datetime
-from typing import Union
 
 import attr
 from dis_snek import ModalContext, MISSING
@@ -15,11 +14,9 @@ from dis_snek.models import (
     spread_to_rows,
     Message,
     InteractionContext,
-    to_snowflake,
-    GuildText,
 )
 
-from models.emoji import emoji
+from models.emoji import default_emoji
 
 
 def deserialize_datetime(date):
@@ -40,20 +37,20 @@ class PollOption:
         return f"{self.text[:15].strip()}" + ("..." if len(self.text) > 15 else "")
 
     def create_bar(self, total_votes) -> str:
-        progBarStr = ""
-        progBarLength = 10
+        prog_bar_str = ""
+        prog_bar_length = 10
         percentage = 0
         if total_votes != 0:
             percentage = len(self.voters) / total_votes
-            for i in range(progBarLength):
-                if round(percentage, 1) <= 1 / progBarLength * i:
-                    progBarStr += "░"
+            for i in range(prog_bar_length):
+                if round(percentage, 1) <= 1 / prog_bar_length * i:
+                    prog_bar_str += "░"
                 else:
-                    progBarStr += "▓"
+                    prog_bar_str += "▓"
         else:
-            progBarStr = "░" * progBarLength
-        progBarStr = progBarStr + f" {round(percentage * 100)}%"
-        return progBarStr
+            prog_bar_str = "░" * prog_bar_length
+        prog_bar_str = prog_bar_str + f" {round(percentage * 100)}%"
+        return prog_bar_str
 
     def vote(self, author_id: Snowflake_Type):
         if author_id not in self.voters:
@@ -82,6 +79,7 @@ class PollData:
     single_vote: bool = attr.ib(default=False)
     inline: bool = attr.ib(default=True)
     colour: str = attr.ib(default="BLURPLE", converter=lambda x: x.upper())
+    thread: bool = attr.ib(default=False)
 
     expire_time: datetime = attr.ib(default=MISSING, converter=deserialize_datetime)
     _expired: bool = attr.ib(default=False)
@@ -124,7 +122,7 @@ class PollData:
     @property
     def embed(self) -> Embed:
         e = Embed(
-            f"Poll: {self.title}" if self.title else None,
+            f"{self.title}" if self.title else "Poll:",
             "",
             color=self.get_colour() if not self.expired else MaterialColors.GREY,
         )
@@ -175,9 +173,9 @@ class PollData:
             )
         return spread_to_rows(*buttons)
 
-    def add_option(self, opt_name: str):
+    def add_option(self, opt_name: str, emoji: str | None = None):
         self.poll_options.append(
-            PollOption(opt_name.strip(), emoji[len(self.poll_options)])
+            PollOption(opt_name.strip(), emoji or default_emoji[len(self.poll_options)])
         )
 
     def parse_message(self, msg: Message):
@@ -195,6 +193,7 @@ class PollData:
             single_vote=kwargs.get("single_vote", False),
             inline=kwargs.get("inline", True),
             colour=kwargs.get("colour", "BLURPLE"),
+            thread=kwargs.get("thread", False),
             channel_id=ctx.channel.id,
             author_data={
                 "name": ctx.author.display_name,
@@ -207,12 +206,6 @@ class PollData:
                 if o:
                     new_cls.add_option(o.strip())
 
-        if channel := kwargs.get("channel"):
-            try:
-                new_cls.channel_id = to_snowflake(channel)
-            except:
-                pass
-
         if duration := kwargs.get("duration"):
             if duration > 0:
                 new_cls.expire_time = datetime.datetime.now() + datetime.timedelta(
@@ -221,12 +214,16 @@ class PollData:
 
         return new_cls
 
-    async def send(self, target: Union[GuildText, InteractionContext]) -> Message:
+    async def send(self, context: InteractionContext) -> Message:
         try:
-            msg = await target.send(
+            msg = await context.send(
                 embeds=self.embed, components=[] if self.expired else self.components
             )
             self.parse_message(msg)
+            if self.thread:
+                await msg.create_thread(
+                    self.title, reason=f"Poll created for {context.author.username}"
+                )
             return msg
         except Exception as e:
             raise
