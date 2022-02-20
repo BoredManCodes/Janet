@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import os
+import sys
 from configparser import ConfigParser
 from copy import deepcopy
 import time
@@ -10,9 +11,8 @@ from typing import Optional
 import aioredis
 import dis_snek
 import orjson
-import motor.motor_asyncio
 from dis_snek.client import Snake
-from dis_snek import MISSING, Intents, check, AutoDefer
+from dis_snek import MISSING, Intents, check, AutoDefer, Embed
 from dis_snek.models import (
     slash_command,
     InteractionContext,
@@ -31,6 +31,7 @@ from dis_snek.models import (
 from dis_snek.api.events import MessageReactionAdd
 from dis_snek.ext.tasks import Task
 from dis_snek.ext.tasks.triggers import IntervalTrigger
+from dis_snek.models.discord import color
 from thefuzz import fuzz
 from models.emoji import booleanEmoji
 from models.poll import PollData, PollOption
@@ -44,26 +45,10 @@ log.setLevel(logging.INFO)
 if os.path.isfile("config.ini"):
     log.info("Config found")
 else:
-    log.error("Config not found, generating one now. Please fill out config.ini in the bot's root")
+    log.error("Config not found")
     exit(1)
 Config = ConfigParser()
 Config.read("config.ini")
-
-
-def config(section):
-    dict1 = {}
-    options = Config.options(section)
-    for option in options:
-        try:
-            dict1[option] = Config.get(section, option)
-            if dict1[option] == -1:
-                log.debug("skip: %s" % option)
-        except:
-            log.error("exception on %s!" % option)
-            dict1[option] = None
-    return dict1
-
-
 colours = sorted(
     [MaterialColors(c).name.title() for c in MaterialColors]
     + [
@@ -117,11 +102,12 @@ class Bot(Snake):
         super().__init__(
             sync_interactions=True,
             asyncio_debug=False,
-            delete_unused_application_cmds=True,
+            delete_unused_application_cmds=False,
             activity="Prism SMP",
             default_prefix="$",
             debug_scope=891613945356492890,
-            intents=Intents.DEFAULT,
+            intents=Intents.DEFAULT | Intents.GUILD_MEMBERS,
+            fetch_members=True,
             auto_defer=AutoDefer(enabled=True, time_until_defer=.1)
         )
         self.polls: dict[Snowflake_Type, dict[Snowflake_Type, PollData]] = {}
@@ -134,26 +120,12 @@ class Bot(Snake):
         log.info("Connected to discord!")
         log.info(f"Logged in as {self.user.username}")
         log.info(f"Currently in {len(self.guilds)} guilds")
-
-        async def get_server_info():
-            # replace this with your MongoDB connection string
-            conn_str = config("DatabaseSettings")["MongoDB"]
-            # set a 5-second connection timeout
-            client = motor.motor_asyncio.AsyncIOMotorClient(conn_str, serverSelectionTimeoutMS=5000)
-            try:
-                print(await client.server_info())
-            except Exception:
-                print("Unable to connect to the server.")
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(get_server_info())
-
         try:
             await self.connect()
             log.info("Connected to redis!") if await self.redis.ping() else exit()
         except aioredis.exceptions.ConnectionError:
             log.error("Failed to connect to redis, aborting login")
             return await self.stop()
-
         await self.cache_polls()
         log.debug(f"{self.total_polls} polls cached")
 
@@ -194,7 +166,7 @@ class Bot(Snake):
                 continue
 
     async def get_poll(
-        self, guild_id: Snowflake_Type, msg_id: Snowflake_Type
+            self, guild_id: Snowflake_Type, msg_id: Snowflake_Type
     ) -> Optional[PollData]:
         try:
             return self.polls[guild_id][msg_id]
@@ -222,7 +194,7 @@ class Bot(Snake):
             return poll
 
     async def set_poll(
-        self, guild_id: Snowflake_Type, msg_id: Snowflake_Type, poll: PollData
+            self, guild_id: Snowflake_Type, msg_id: Snowflake_Type, poll: PollData
     ):
         if not self.polls.get(guild_id):
             self.polls[guild_id] = {}
@@ -240,33 +212,102 @@ class Bot(Snake):
 
         await self.redis.delete(f"{guild_id}|{msg_id}")
 
+    # @dis.slash_command(name="quiz_me", description="Are you smarter than a 5th grader?", scopes=[701347683591389185])
+    # async def quiz_me(ctx: dis.InteractionContext):
+    #     modal = dis.Modal(
+    #         title="Are you smarter than a 5th grader?",
+    #         components=[
+    #             dis.InputText(
+    #                 label="What’s 25 x 3?",
+    #                 custom_id="25x3",
+    #                 placeholder="Answer",
+    #                 style=dis.TextStyles.SHORT,
+    #             )
+    #         ],
+    #     )
+    #     await ctx.send_modal(modal)
+    #
+    #     # now we can wait for the modal
+    #     try:
+    #         modal_response = await bot.wait_for_modal(modal, timeout=500)
+    #
+    #         if modal_response.responses.get("25x3") == "75":  # reponses is a dict of all the modal feilds
+    #             await modal_response.send("Correct!")
+    #         else:
+    #             await modal_response.send("Incorrect!")
+    #
+    #     except asyncio.TimeoutError:  # since we have a timeout, we can assume the user closed the modal
+    #         return
+    #
+    # # ----------------------------------------------------------------------------------------------------------------------
+    #
+    # # -- Creating a button that summons modal ------------------------------------------------------------------------------
+    #
+    # @dis.slash_command(
+    #     name="suggestion_btn",
+    #     description="Creates a button that will summon a modal to listen for.",
+    #     scopes=[701347683591389185],
+    # )
+    # async def suggestion_btn(ctx: dis.InteractionContext):
+    #     await ctx.send(
+    #         "This is a button will create a modal",
+    #         components=dis.Button(label="Suggest", style=dis.ButtonStyles.BLUE, custom_id="suggestion_btn"),
+    #     )
+    #
+    # @dis.listen(dis.events.Button)
+    # async def on_button(event: dis.events.Button):
+    #     if event.context.custom_id == "suggestion_btn":
+    #         await event.context.send_modal(
+    #             dis.Modal(
+    #                 title="Suggestion",
+    #                 custom_id="suggestion_modal",
+    #                 components=[
+    #                     dis.InputText(
+    #                         label="What would you like to suggest?",
+    #                         placeholder="Please type your suggestion",
+    #                         custom_id="suggestion",
+    #                         style=dis.TextStyles.PARAGRAPH,
+    #                     )
+    #                 ],
+    #             )
+    #         )
+    #
+    # @listen(dis_snek.events.ModalResponse)
+    # async def on_modal_response(event: dis.events.ModalResponse):
+    #     if event.context.custom_id == "suggestion_modal":
+    #         await event.context.send(
+    #             f"Thanks for the suggestion! \n > {event.context.responses.get('suggestion')}", ephemeral=True
+    #         )
+
     @slash_command(
         "reload",
         "Reloads all scales on the snek"
     )
-    @check(is_owner())
     async def reload(self, ctx: InteractionContext):
-        scale_names = []
-        for scale in list(bot.scales.values()):
-            name = str(scale).split('.')
-            scale_names.append(name)
-            # if scale != "Admin":
-            bot.regrow_scale(f"scales.{name[1]}")
-        scales_list = str(bot.scales.keys()).strip('dict_keys([').replace("'", "").replace("]", "").replace(')', '')
-        await ctx.send(f"Reloaded Scales:\n```{scales_list}```")
+        if ctx.author.has_permission(Permissions.MANAGE_ROLES):
+            scale_names = []
+            for scale in list(bot.scales.values()):
+                name = str(scale).split('.')
+                scale_names.append(name)
+                # if scale != "Admin":
+                bot.regrow_scale(f"scales.{name[1]}")
+            scales_list = str(bot.scales.keys()).strip('dict_keys([').replace("'", "").replace("]", "").replace(')', '')
+            await ctx.send(f"Reloaded Scales:\n```{scales_list}```")
+        else:
+            await ctx.send("You are lacking permissions to manage roles and therefore cannot reload the bot")
 
     @slash_command(
         "poll",
         "Create a poll",
         options=[
-            SlashCommandOption(
-                "options",
-                OptionTypes.STRING,
-                "The options for your poll, seperated by commas",
-                required=True,
-            ),
-        ]
-        + def_options,
+                    SlashCommandOption(
+                        "options",
+                        OptionTypes.STRING,
+                        "The options for your poll, seperated by commas",
+                        required=True,
+                    ),
+                ]
+                + def_options,
     )
     async def poll(self, ctx: InteractionContext, **kwargs):
         await ctx.defer(ephemeral=True)
@@ -507,6 +548,20 @@ class Bot(Snake):
             ephemeral=True,
         )
 
+    @slash_command("about", "Want to learn more about the bot?")
+    async def about(self, ctx: InteractionContext):
+        embed = Embed(title="About me",
+                      color=color.FlatUIColors.AMETHYST,
+                      description="Hi there!\n\n" \
+                      "I'm Janet, an all-round utility / moderation bot.\n" \
+                      "I am based off [Inquiry](https://github.com/LordOfPolls/Inquiry) which is an amazing bot made using [Dis-Snek](https://github.com/Discord-Snake-Pit/Dis-Snek)\n\n" \
+
+                      "I'm the next generation of [Prism Bot](https://github.com/BoredManCodes/Prism-Bot) which started as a bot for only one guild, this version aims to be a public version\n\n" \
+
+                      "Welcome to The Good Place")
+        embed.set_image(url="https://cdn.discordapp.com/attachments/943106707381444678/943106731377037332/unknown.png")
+        await ctx.send(embeds=embed)
+
     @Task.create(IntervalTrigger(seconds=30))
     async def close_polls(self):
         polls = self.polls.copy()
@@ -553,6 +608,7 @@ class Bot(Snake):
 
 bot = Bot()
 
+bot.grow_scale("scales.database_management")
 bot.grow_scale("scales.admin")
 bot.grow_scale("scales.message_events")
 bot.grow_scale("scales.debug")
@@ -560,10 +616,6 @@ bot.grow_scale("scales.other_events")
 bot.grow_scale("scales.message_commands")
 bot.grow_scale("scales.contexts")
 bot.grow_scale("scales.application_commands")
-scale_names = []
-for scale in list(bot.scales.values()):
-    name = str(scale).split('.')
-    scale_names.append(name)
-scales_list = str(bot.scales.keys()).strip('dict_keys([').replace("'", "").replace("]", "").replace(')', '')
-log.info(f"Loaded Scales:\n{scales_list}")
+bot.grow_scale("scales.arrest_management")
+bot.grow_scale("scales.permission_management")
 bot.start((Path(__file__).parent / "token.txt").read_text().strip())

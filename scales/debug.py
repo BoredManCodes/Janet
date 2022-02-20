@@ -9,7 +9,6 @@ import textwrap
 import traceback
 from collections import Counter
 from contextlib import redirect_stdout
-
 from dis_snek import __version__, __py_version__
 from dis_snek.client.errors import CommandCheckFailure
 from dis_snek.models import (
@@ -22,6 +21,8 @@ from dis_snek.models import (
     MaterialColors,
     Timestamp,
 )
+from dis_snek.client.utils import misc_utils
+
 from dis_snek.models import Intents
 from dis_snek.models import Scale
 from dis_snek.client.utils.cache import TTLCache

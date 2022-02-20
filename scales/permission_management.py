@@ -3,10 +3,10 @@ from dis_snek.models import (
 )
 
 
-class Template(Scale):
+class PermissionManagement(Scale):
 
     print("Do stuff")
 
 
 def setup(bot):
-    Template(bot)
+    PermissionManagement(bot)
