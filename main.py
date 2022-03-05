@@ -3,16 +3,18 @@ import json
 import logging
 import os
 import sys
-from configparser import ConfigParser
+import traceback
+from configparser import RawConfigParser
 from copy import deepcopy
 import time
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 import aioredis
 import dis_snek
 import orjson
 from dis_snek.client import Snake
-from dis_snek import MISSING, Intents, check, AutoDefer, Embed
+from dis_snek import MISSING, Intents, check, AutoDefer, Embed, Context
 from dis_snek.models import (
     slash_command,
     InteractionContext,
@@ -35,7 +37,7 @@ from dis_snek.models.discord import color
 from thefuzz import fuzz
 from models.emoji import booleanEmoji
 from models.poll import PollData, PollOption
-from scales.admin import is_owner
+from pastypy import AsyncPaste as Paste
 
 logging.basicConfig()
 log = logging.getLogger("Inquiry")
@@ -47,7 +49,7 @@ if os.path.isfile("config.ini"):
 else:
     log.error("Config not found")
     exit(1)
-Config = ConfigParser()
+Config = RawConfigParser()
 Config.read("config.ini")
 colours = sorted(
     [MaterialColors(c).name.title() for c in MaterialColors]
@@ -58,7 +60,18 @@ colours = sorted(
         "Black",
     ]
 )
-
+def ConfigSectionMap(section):
+    dict1 = {}
+    options = Config.options(section)
+    for option in options:
+        try:
+            dict1[option] = Config.get(section, option)
+            if dict1[option] == -1:
+                log.info("skip: %s" % option)
+        except:
+            log.exception("exception on %s!" % option)
+            dict1[option] = None
+    return dict1
 def_options = [
     SlashCommandOption(
         "title", OptionTypes.STRING, "The title for your poll", required=True
@@ -95,6 +108,18 @@ def_options = [
         required=False,
     ),
 ]
+ERROR_MSG = """
+Command Information:
+  Name: {invoked_name}
+  Args:
+{arg_str}
+
+Callback:
+  Args:
+{callback_args}
+  Kwargs:
+{callback_kwargs}
+"""
 
 
 class Bot(Snake):
@@ -132,6 +157,49 @@ class Bot(Snake):
         self.update_polls.start()
         self.close_polls.start()
 
+    async def on_command_error(
+            self, ctx: Context, error: Exception, *args: list, **kwargs: dict
+    ) -> None:
+        """Lepton on_command_error override."""
+        guild = await self.fetch_guild(ConfigSectionMap("DiscordSettings")["errorGuildId"])
+        channel = await guild.fetch_channel(int(ConfigSectionMap("DiscordSettings")["errorChannelId"]))
+        error_time = datetime.utcnow().strftime("%d-%m-%Y %H:%M-%S.%f UTC")
+        timestamp = int(datetime.now().timestamp())
+        timestamp = f"<t:{timestamp}:T>"
+        arg_str = (
+            "\n".join(f"    {k}: {v}" for k, v in ctx.kwargs.items()) if ctx.kwargs else "    None"
+        )
+        callback_args = "\n".join(f"    - {i}" for i in args) if args else "    None"
+        callback_kwargs = (
+            "\n".join(f"    {k}: {v}" for k, v in kwargs.items()) if kwargs else "    None"
+        )
+        full_message = ERROR_MSG.format(
+            error_time=error_time,
+            invoked_name=ctx.invoked_name,
+            arg_str=arg_str,
+            callback_args=callback_args,
+            callback_kwargs=callback_kwargs,
+        )
+        if len(full_message) >= 1900:
+            error_message = "  ".join(traceback.format_exception(error))
+            full_message += "Exception: |\n  " + error_message
+            paste = Paste(content=full_message)
+            await paste.save(ConfigSectionMap("APISettings")["pastyURL"])
+
+            await channel.send(
+                f"JARVIS encountered an error at {timestamp}. Log too big to send over Discord."
+                f"\nPlease see log at {paste.url}"
+            )
+        else:
+            error_message = "".join(traceback.format_exception(error))
+            await channel.send(
+                f"JARVIS encountered an error at {timestamp}:"
+                f"\n```yaml\n{full_message}\n```"
+                f"\nException:\n```py\n{error_message}\n```"
+            )
+        await ctx.send("Whoops! Encountered an error. The error has been logged.", ephemeral=True)
+        return await super().on_command_error(ctx, error, *args, **kwargs)
+
     @property
     def total_polls(self):
         total = 0
@@ -142,7 +210,10 @@ class Bot(Snake):
 
     async def connect(self):
         self.redis = await aioredis.from_url(
-            "redis://localhost/5", decode_responses=True
+            ConfigSectionMap("DatabaseSettings")["host"],
+            username=ConfigSectionMap("DatabaseSettings")["username"],
+            password=ConfigSectionMap("DatabaseSettings")["password"],
+            decode_responses=True
         )
 
     async def cache_polls(self):
@@ -618,4 +689,4 @@ bot.grow_scale("scales.contexts")
 bot.grow_scale("scales.application_commands")
 bot.grow_scale("scales.arrest_management")
 bot.grow_scale("scales.permission_management")
-bot.start((Path(__file__).parent / "token.txt").read_text().strip())
+bot.start(ConfigSectionMap("DiscordSettings")["token"])
