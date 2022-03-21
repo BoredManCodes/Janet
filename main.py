@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 import json
 import logging
 import os
@@ -10,11 +11,13 @@ import time
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+
+import aiohttp
 import aioredis
 import dis_snek
 import orjson
 from dis_snek.client import Snake
-from dis_snek import MISSING, Intents, check, AutoDefer, Embed, Context
+from dis_snek import MISSING, Intents, check, AutoDefer, Embed, Context, Modal, MessageContext, CMD_BODY
 from dis_snek.models import (
     slash_command,
     InteractionContext,
@@ -22,7 +25,6 @@ from dis_snek.models import (
     Snowflake_Type,
     ComponentContext,
     listen,
-    SlashCommandOption,
     AutocompleteContext,
     to_snowflake,
     SlashCommandChoice,
@@ -30,9 +32,10 @@ from dis_snek.models import (
     Timestamp,
     Permissions,
 )
+from dis_snek.models.snek.application_commands import SlashCommandOption, slash_option
 from dis_snek.api.events import MessageReactionAdd
-from dis_snek.ext.tasks import Task
-from dis_snek.ext.tasks.triggers import IntervalTrigger
+from dis_snek import Task
+from dis_snek.models.snek.tasks.triggers import IntervalTrigger
 from dis_snek.models.discord import color
 from thefuzz import fuzz
 from models.emoji import booleanEmoji
@@ -60,6 +63,8 @@ colours = sorted(
         "Black",
     ]
 )
+
+
 def ConfigSectionMap(section):
     dict1 = {}
     options = Config.options(section)
@@ -128,7 +133,7 @@ class Bot(Snake):
             sync_interactions=True,
             asyncio_debug=False,
             delete_unused_application_cmds=False,
-            activity="Prism SMP",
+            activity="Development",
             default_prefix="$",
             debug_scope=891613945356492890,
             intents=Intents.DEFAULT | Intents.GUILD_MEMBERS,
@@ -137,8 +142,9 @@ class Bot(Snake):
         )
         self.polls: dict[Snowflake_Type, dict[Snowflake_Type, PollData]] = {}
         self.polls_to_update: dict[Snowflake_Type, set[Snowflake_Type]] = {}
-
         self.redis: aioredis.Redis = MISSING
+        self.available: asyncio.Event = asyncio.Event()
+        self.available.set()
 
     @listen()
     async def on_ready(self):
@@ -161,8 +167,8 @@ class Bot(Snake):
             self, ctx: Context, error: Exception, *args: list, **kwargs: dict
     ) -> None:
         """Lepton on_command_error override."""
-        guild = await self.fetch_guild(ConfigSectionMap("DiscordSettings")["errorGuildId"])
-        channel = await guild.fetch_channel(int(ConfigSectionMap("DiscordSettings")["errorChannelId"]))
+        guild = await self.fetch_guild(891613945356492890)
+        channel = await guild.fetch_channel(940919818561912872)
         error_time = datetime.utcnow().strftime("%d-%m-%Y %H:%M-%S.%f UTC")
         timestamp = int(datetime.now().timestamp())
         timestamp = f"<t:{timestamp}:T>"
@@ -184,16 +190,16 @@ class Bot(Snake):
             error_message = "  ".join(traceback.format_exception(error))
             full_message += "Exception: |\n  " + error_message
             paste = Paste(content=full_message)
-            await paste.save(ConfigSectionMap("APISettings")["pastyURL"])
+            await paste.save("https://paste.trent-buckley.com")
 
             await channel.send(
-                f"JARVIS encountered an error at {timestamp}. Log too big to send over Discord."
+                f"Janet encountered an error at {timestamp}. Log was too big to send over Discord."
                 f"\nPlease see log at {paste.url}"
             )
         else:
             error_message = "".join(traceback.format_exception(error))
             await channel.send(
-                f"JARVIS encountered an error at {timestamp}:"
+                f"Janet encountered an error at {timestamp}:"
                 f"\n```yaml\n{full_message}\n```"
                 f"\nException:\n```py\n{error_message}\n```"
             )
@@ -283,72 +289,36 @@ class Bot(Snake):
 
         await self.redis.delete(f"{guild_id}|{msg_id}")
 
-    # @dis.slash_command(name="quiz_me", description="Are you smarter than a 5th grader?", scopes=[701347683591389185])
-    # async def quiz_me(ctx: dis.InteractionContext):
-    #     modal = dis.Modal(
-    #         title="Are you smarter than a 5th grader?",
-    #         components=[
-    #             dis.InputText(
-    #                 label="What’s 25 x 3?",
-    #                 custom_id="25x3",
-    #                 placeholder="Answer",
-    #                 style=dis.TextStyles.SHORT,
-    #             )
-    #         ],
-    #     )
-    #     await ctx.send_modal(modal)
-    #
-    #     # now we can wait for the modal
-    #     try:
-    #         modal_response = await bot.wait_for_modal(modal, timeout=500)
-    #
-    #         if modal_response.responses.get("25x3") == "75":  # reponses is a dict of all the modal feilds
-    #             await modal_response.send("Correct!")
-    #         else:
-    #             await modal_response.send("Incorrect!")
-    #
-    #     except asyncio.TimeoutError:  # since we have a timeout, we can assume the user closed the modal
-    #         return
-    #
-    # # ----------------------------------------------------------------------------------------------------------------------
-    #
-    # # -- Creating a button that summons modal ------------------------------------------------------------------------------
-    #
-    # @dis.slash_command(
-    #     name="suggestion_btn",
-    #     description="Creates a button that will summon a modal to listen for.",
-    #     scopes=[701347683591389185],
-    # )
-    # async def suggestion_btn(ctx: dis.InteractionContext):
-    #     await ctx.send(
-    #         "This is a button will create a modal",
-    #         components=dis.Button(label="Suggest", style=dis.ButtonStyles.BLUE, custom_id="suggestion_btn"),
-    #     )
-    #
-    # @dis.listen(dis.events.Button)
-    # async def on_button(event: dis.events.Button):
-    #     if event.context.custom_id == "suggestion_btn":
-    #         await event.context.send_modal(
-    #             dis.Modal(
-    #                 title="Suggestion",
-    #                 custom_id="suggestion_modal",
-    #                 components=[
-    #                     dis.InputText(
-    #                         label="What would you like to suggest?",
-    #                         placeholder="Please type your suggestion",
-    #                         custom_id="suggestion",
-    #                         style=dis.TextStyles.PARAGRAPH,
-    #                     )
-    #                 ],
-    #             )
-    #         )
-    #
-    # @listen(dis_snek.events.ModalResponse)
-    # async def on_modal_response(event: dis.events.ModalResponse):
-    #     if event.context.custom_id == "suggestion_modal":
-    #         await event.context.send(
-    #             f"Thanks for the suggestion! \n > {event.context.responses.get('suggestion')}", ephemeral=True
-    #         )
+    @dis_snek.slash_command(name="quiz_me", description="Are you smarter than a 5th grader?", scopes=[891613945356492890])
+    async def quiz_me(self, ctx: dis_snek.InteractionContext):
+        modal = dis_snek.Modal(
+            title="Are you smarter than a 5th grader?",
+            components=[
+                dis_snek.InputText(
+                    label="What’s 25 x 3?",
+                    custom_id="25x3",
+                    placeholder="Answer",
+                    style=dis_snek.TextStyles.SHORT,
+                )
+            ],
+        )
+        await ctx.send_modal(modal)
+
+        # now we can wait for the modal
+        try:
+            modal_response = await bot.wait_for_modal(modal, timeout=500)
+
+            if modal_response.responses.get("25x3") == "75":  # reponses is a dict of all the modal feilds
+                await modal_response.send("Correct!")
+            else:
+                await modal_response.send("Incorrect!")
+
+        except asyncio.TimeoutError:  # since we have a timeout, we can assume the user closed the modal
+            return
+
+    # ----------------------------------------------------------------------------------------------------------------------
+
+
 
     @slash_command(
         "reload",
@@ -676,6 +646,81 @@ class Bot(Snake):
                         self.polls_to_update[guild].remove(poll_id)
                     await asyncio.sleep(0)
 
+    @dis_snek.message_command()
+    async def begin(self, ctx: MessageContext, arg: CMD_BODY):
+        if not self.available.is_set():
+            await ctx.send("Waiting for current tests to complete...")
+            await self.available.wait()
+
+        if ctx.guild.id == 891613945356492890:
+            if ctx.author.id != self.owner.id:
+                return await ctx.send(
+                    f"Only {self.owner.mention} can use the test suite"
+                )
+
+        self.available.clear()
+
+        source = await ctx.send(
+            "<a:loading:950666903540625418> Running dis_snek test suite..."
+        )
+        s = time.perf_counter()
+
+        methods = inspect.getmembers(self.scales["Tests"], inspect.ismethod)
+
+        for name, method in methods:
+            if name.startswith("test_"):
+                if arg:
+                    if arg.lower() not in name:
+                        continue
+                test_title = f"{method.__name__.removeprefix('test_')} Tests".title()
+
+                msg = await ctx.send(
+                    f"<a:loading:950666903540625418> {test_title}: Running!"
+                )
+                try:
+                    await method(ctx, msg)
+                except Exception as e:
+                    trace = "\n".join(traceback.format_exception(e))
+                    await msg.edit(f"❌ {test_title}: Failed \n```{trace}```")
+                else:
+                    await msg.edit(f"✅ {test_title}: Completed")
+
+        dur = time.perf_counter() - s
+
+        await source.edit("✅ Dis_snek Test Suite: Completed")
+
+        await ctx.send(f"Tests completed in {round(dur, 2)} seconds")
+
+        self.available.set()
+
+    @slash_command("twitch_avatar", "Get a user's Twitch avatar")
+    @slash_option("username", "The username to lookup", opt_type=OptionTypes.STRING, required=True)
+    async def twitch_avatar(self, ctx: InteractionContext, username: str):
+        '''Gives you the avatar that a specified Twitch.tv user has'''
+
+        # Set up your headers - in an actual application you'd
+        # want these to be in init or a config file
+        headers = {
+            'Authorization': '5c8ftpbbhbw6wmp03glcufpkrmqsng'  # This is a fake token
+        }
+
+        # URL is a constant each time, params will change every time the command is called
+        url = 'https://api.twitch.tv/helix/users'
+        params = {
+            'login': username
+        }
+
+        # Send the request - aiohttp is a non-blocking form of requests
+        # In an actual application, you may have a single ClientSession that you use through the
+        # whole cog, or perhaps the whole bot
+        # In this example I'm just making one every time the command is called
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, params=params, headers=headers) as r:
+                response = await r.json()  # Get a json response
+                print(response)
+        # Respond with their avatar
+        avatar = response['data'][0]['profile_image_url']
+        await ctx.send(avatar)
 
 bot = Bot()
 
@@ -689,4 +734,8 @@ bot.grow_scale("scales.contexts")
 bot.grow_scale("scales.application_commands")
 bot.grow_scale("scales.arrest_management")
 bot.grow_scale("scales.permission_management")
+bot.grow_scale("scales.utilities")
+bot.grow_scale("scales.tests")
+# bot.grow_scale("scales.twitch")
 bot.start(ConfigSectionMap("DiscordSettings")["token"])
+print(bot)

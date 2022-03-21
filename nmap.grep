@@ -1,0 +1,4 @@
+# Nmap 7.80 scan initiated Sat Feb 12 10:57:09 2022 as: nmap -oG nmap.grep 128.199.200.61
+Host: 128.199.200.61 ()	Status: Up
+Host: 128.199.200.61 ()	Ports: 22/open/tcp//ssh///, 80/open/tcp//http///, 3001/open/tcp//nessus///, 8002/open/tcp//teradataordbms///, 8080/open/tcp//http-proxy///	Ignored State: closed (995)
+# Nmap done at Sat Feb 12 10:57:12 2022 -- 1 IP address (1 host up) scanned in 2.79 seconds

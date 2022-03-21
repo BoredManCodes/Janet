@@ -186,6 +186,5 @@ class EventListener(Scale):
             embed.set_footer(text='ID: ' + str(event.member.id))
             await channel.send(embed=embed)
 
-
 def setup(bot):
     EventListener(bot)

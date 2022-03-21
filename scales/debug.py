@@ -1,7 +1,7 @@
 """
 This scale provides basic debug information about the current state of the bot.
 """
-
+import asyncio
 import datetime
 import io
 import platform
@@ -9,7 +9,9 @@ import textwrap
 import traceback
 from collections import Counter
 from contextlib import redirect_stdout
-from dis_snek import __version__, __py_version__
+
+import dis_snek
+from dis_snek import __version__, __py_version__, Modal
 from dis_snek.client.errors import CommandCheckFailure
 from dis_snek.models import (
     slash_command,
@@ -157,12 +159,89 @@ class DebugCommands(Scale):
 
         await ctx.send(embeds=[e])
 
+    @slash_command(
+        name="exec",
+        description="Run some test code"
+    )
+    async def exec(self, ctx: InteractionContext):
+        if ctx.author == self.bot.owner:
+            modal = Modal(
+                title="Please enter some code to test",
+                components=[
+                    dis_snek.InputText(
+                        label="Code you'd like to run",
+                        custom_id="code",
+                        style=dis_snek.TextStyles.PARAGRAPH,
+                    )
+                ],
+            )
+            await ctx.send_modal(modal)
+
+            # now we can wait for the modal
+            try:
+                modal_response = await self.bot.wait_for_modal(modal, timeout=500)
+                # body = ctx.message.content.removeprefix(
+                #     f"{await self.bot.generate_prefixes(self.bot, ctx.message)}{ctx.invoked_name} "
+                # )
+                body = modal_response.responses.get("code")
+                env = {
+                          "bot": self.bot,
+                          "ctx": ctx,
+                          "channel": ctx.channel,
+                          "author": ctx.author,
+                          "server": ctx.guild,
+                          "guild": ctx.guild,
+                          "message": ctx.message,
+                      } | globals()
+                if body.startswith("```") and body.endswith("```"):
+                    body = "\n".join(body.split("\n")[1:-1])
+                else:
+                    body = body.strip("` \n")
+
+                stdout = io.StringIO()
+
+                to_compile = "async def func():\n%s" % textwrap.indent(body, "  ")
+                try:
+                    exec(to_compile, env)
+                except SyntaxError as e:
+                    return await modal_response.send(f"Input:\n```py\n{body}```\nOutput:\n```py\n{traceback.format_exc()}\n```")
+
+                func = env["func"]
+                try:
+                    with redirect_stdout(stdout):
+                        ret = await func()
+                except Exception as e:
+                    value = stdout.getvalue()
+                    return await modal_response.send(f"Input:\n```py\n{body}```\nOutput:\n```py\n{value}{traceback.format_exc()}\n```")
+                else:
+                    value = stdout.getvalue()
+                    if ret is None:
+                        if value:
+                            try:
+                                await modal_response.send(f"Input:\n```py\n{body}```\nOutput:\n```py\n{value}\n```")
+                            except:
+                                await modal_response.send(f"Input:\n```py\n{body}```\nOutput:\n```py\n{value}\n```")
+                    else:
+                        try:
+                            await modal_response.send(f"Input:\n```py\n{body}```\nOutput:\n```py\n{value}{ret}%s\n```")
+                        except:
+                            await modal_response.send(f"Input:\n```py\n{body}```\nOutput:\n```py\n{value}{ret}%s\n```")
+            except asyncio.TimeoutError:  # since we have a timeout, we can assume the user closed the modal
+                return
+        else:
+            await ctx.send("<:error:943118535922679879> eyo? You aren't the bot owner. This command is only for the owner")
+    @message_command("error")
+    @check(check_is_owner)
+    async def error(self, ctx: MessageContext):
+        print(0/0)
+
+
     @message_command("exec")
     @check(check_is_owner)
     async def debug_exec(self, ctx: MessageContext):
         await ctx.channel.trigger_typing()
         body = ctx.message.content.removeprefix(
-            f"{await self.bot.get_prefix(ctx.message)}{ctx.invoked_name} "
+            f"{await self.bot.generate_prefixes(self.bot, ctx.message)}{ctx.invoked_name} "
         )
         env = {
             "bot": self.bot,
@@ -184,7 +263,7 @@ class DebugCommands(Scale):
         try:
             exec(to_compile, env)
         except SyntaxError as e:
-            return await ctx.send("```py\n{}\n```".format(traceback.format_exc()))
+            return await ctx.send(f"Input:\n```py\n{body}```\nOutput:\n```py\n{traceback.format_exc()}\n```")
 
         func = env["func"]
         try:
@@ -192,9 +271,7 @@ class DebugCommands(Scale):
                 ret = await func()
         except Exception as e:
             value = stdout.getvalue()
-            return await ctx.send(
-                "```py\n{}{}\n```".format(value, traceback.format_exc())
-            )
+            return await ctx.send(f"Input:\n```py\n{body}```\nOutput:\n```py\n{value}{traceback.format_exc()}\n```")
         else:
             value = stdout.getvalue()
             try:
@@ -205,19 +282,19 @@ class DebugCommands(Scale):
             if ret is None:
                 if value:
                     try:
-                        await ctx.message.reply("```py\n%s\n```" % value)
+                        await ctx.message.reply(f"Input:\n```py\n{body}```\nOutput:\n```py\n{value}\n```")
                     except:
-                        await ctx.send("```py\n%s\n```" % value)
+                        await ctx.send(f"Input:\n```py\n{body}```\nOutput:\n```py\n{value}\n```")
             else:
                 try:
-                    await ctx.message.reply("```py\n%s%s\n```" % (value, ret))
+                    await ctx.message.reply(f"Input:\n```py\n{body}```\nOutput:\n```py\n{value}{ret}%s\n```")
                 except:
-                    await ctx.send("```py\n%s%s\n```" % (value, ret))
+                    await ctx.send(f"Input:\n```py\n{body}```\nOutput:\n```py\n{value}{ret}%s\n```")
 
     @debug_exec.error
     async def exec_error(self, error, ctx):
         if isinstance(error, CommandCheckFailure):
-            return await ctx.send("You do not have permission to execute this command")
+            return await ctx.send("<:error:943118535922679879> eyo? You aren't the bot owner. This command is only for the owner")
         raise
 
 
