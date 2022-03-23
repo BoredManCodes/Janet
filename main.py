@@ -138,7 +138,7 @@ class Bot(Snake):
             debug_scope=891613945356492890,
             intents=Intents.DEFAULT | Intents.GUILD_MEMBERS,
             fetch_members=True,
-            auto_defer=AutoDefer(enabled=True, time_until_defer=.1)
+            auto_defer=AutoDefer(enabled=True, time_until_defer=.5)
         )
         self.polls: dict[Snowflake_Type, dict[Snowflake_Type, PollData]] = {}
         self.polls_to_update: dict[Snowflake_Type, set[Snowflake_Type]] = {}
@@ -693,34 +693,6 @@ class Bot(Snake):
 
         self.available.set()
 
-    @slash_command("twitch_avatar", "Get a user's Twitch avatar")
-    @slash_option("username", "The username to lookup", opt_type=OptionTypes.STRING, required=True)
-    async def twitch_avatar(self, ctx: InteractionContext, username: str):
-        '''Gives you the avatar that a specified Twitch.tv user has'''
-
-        # Set up your headers - in an actual application you'd
-        # want these to be in init or a config file
-        headers = {
-            'Authorization': '5c8ftpbbhbw6wmp03glcufpkrmqsng'  # This is a fake token
-        }
-
-        # URL is a constant each time, params will change every time the command is called
-        url = 'https://api.twitch.tv/helix/users'
-        params = {
-            'login': username
-        }
-
-        # Send the request - aiohttp is a non-blocking form of requests
-        # In an actual application, you may have a single ClientSession that you use through the
-        # whole cog, or perhaps the whole bot
-        # In this example I'm just making one every time the command is called
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params, headers=headers) as r:
-                response = await r.json()  # Get a json response
-                print(response)
-        # Respond with their avatar
-        avatar = response['data'][0]['profile_image_url']
-        await ctx.send(avatar)
 
 bot = Bot()
 
@@ -735,7 +707,8 @@ bot.grow_scale("scales.application_commands")
 bot.grow_scale("scales.arrest_management")
 bot.grow_scale("scales.permission_management")
 bot.grow_scale("scales.utilities")
-bot.grow_scale("scales.tests")
+# bot.grow_scale("scales.tests")
+bot.grow_scale("scales.reminders")
 # bot.grow_scale("scales.twitch")
 bot.start(ConfigSectionMap("DiscordSettings")["token"])
 print(bot)
