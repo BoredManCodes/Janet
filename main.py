@@ -138,7 +138,7 @@ class Bot(Snake):
             debug_scope=891613945356492890,
             intents=Intents.DEFAULT | Intents.GUILD_MEMBERS,
             fetch_members=True,
-            auto_defer=AutoDefer(enabled=True, time_until_defer=.5)
+            auto_defer=AutoDefer(enabled=True, time_until_defer=1)
         )
         self.polls: dict[Snowflake_Type, dict[Snowflake_Type, PollData]] = {}
         self.polls_to_update: dict[Snowflake_Type, set[Snowflake_Type]] = {}
@@ -162,6 +162,7 @@ class Bot(Snake):
 
         self.update_polls.start()
         self.close_polls.start()
+
 
     async def on_command_error(
             self, ctx: Context, error: Exception, *args: list, **kwargs: dict
@@ -541,33 +542,33 @@ class Bot(Snake):
     async def on_button(self, event):
         ctx: ComponentContext = event.context
         await ctx.defer(ephemeral=True)
+        if "poll_option|" in ctx.custom_id:
+            opt_index = int(ctx.custom_id.removeprefix("poll_option|"))
 
-        opt_index = int(ctx.custom_id.removeprefix("poll_option|"))
+            if poll := await self.get_poll(ctx.guild_id, ctx.message.id):
+                async with poll.lock:
+                    if not poll.expired:
+                        opt = poll.poll_options[opt_index]
+                        if poll.single_vote:
+                            for _o in poll.poll_options:
+                                if _o != opt:
+                                    if ctx.author.id in _o.voters:
+                                        _o.voters.remove(ctx.author.id)
+                        if opt.vote(ctx.author.id):
+                            await ctx.send(
+                                f"⬆️ Your vote for {opt.emoji}`{opt.inline_text}` has been added!"
+                            )
+                        else:
+                            await ctx.send(
+                                f"⬇️ Your vote for {opt.emoji}`{opt.inline_text}` has been removed!"
+                            )
 
-        if poll := await self.get_poll(ctx.guild_id, ctx.message.id):
-            async with poll.lock:
-                if not poll.expired:
-                    opt = poll.poll_options[opt_index]
-                    if poll.single_vote:
-                        for _o in poll.poll_options:
-                            if _o != opt:
-                                if ctx.author.id in _o.voters:
-                                    _o.voters.remove(ctx.author.id)
-                    if opt.vote(ctx.author.id):
-                        await ctx.send(
-                            f"⬆️ Your vote for {opt.emoji}`{opt.inline_text}` has been added!"
-                        )
-                    else:
-                        await ctx.send(
-                            f"⬇️ Your vote for {opt.emoji}`{opt.inline_text}` has been removed!"
-                        )
-
-                if ctx.guild_id not in self.polls_to_update:
-                    self.polls_to_update[ctx.guild_id] = set()
-                self.polls_to_update[ctx.guild_id].add(poll.message_id)
-                await self.set_poll(ctx.guild_id, ctx.message.id, poll)
-        else:
-            await ctx.send("That poll could not be edited 😕")
+                    if ctx.guild_id not in self.polls_to_update:
+                        self.polls_to_update[ctx.guild_id] = set()
+                    self.polls_to_update[ctx.guild_id].add(poll.message_id)
+                    await self.set_poll(ctx.guild_id, ctx.message.id, poll)
+            else:
+                await ctx.send("That poll could not be edited 😕")
 
     @listen()
     async def on_message_reaction_add(self, event: MessageReactionAdd):
@@ -704,8 +705,7 @@ bot.grow_scale("scales.other_events")
 bot.grow_scale("scales.message_commands")
 bot.grow_scale("scales.contexts")
 bot.grow_scale("scales.application_commands")
-bot.grow_scale("scales.arrest_management")
-bot.grow_scale("scales.permission_management")
+# bot.grow_scale("scales.permission_management")
 bot.grow_scale("scales.utilities")
 # bot.grow_scale("scales.tests")
 bot.grow_scale("scales.reminders")
