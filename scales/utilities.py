@@ -3,12 +3,14 @@ import ipaddress
 import json
 import os
 import subprocess
+from datetime import datetime
 from urllib import parse, request
 
 import dis_snek
+from dis_snek.api.events import GuildEmojisUpdate, GuildJoin, GuildLeft
 from dis_snek.models.discord import color
 from dis_snek.models.snek.application_commands import SlashCommandOption
-from dis_snek import slash_command, InteractionContext, OptionTypes, Embed, Color, Modal
+from dis_snek import slash_command, InteractionContext, OptionTypes, Embed, Color, Modal, listen
 from dis_snek.models import (
     Scale
 )
@@ -16,8 +18,59 @@ from pastypy import Paste
 
 
 class Utilities(Scale):
+    @listen(GuildJoin)
+    async def guild_join(self, event: GuildJoin):
+        # Log guild join
+        if self.bot.is_ready:
+            channel = self.bot.get_channel(940919818561912872)
+            embed = Embed(title="<:Announce:943113367424479232> Joined new guild!",
+                          color=color.FlatUIColors.CARROT)
+            if event.guild.icon is not None:
+                embed.set_thumbnail(event.guild.icon.url)
+            if event.guild.banner is not None:
+                embed.set_image(event.guild.banner)
+            embed.add_field("Name", event.guild.name, inline=True)
+            embed.add_field("Owner", event.guild.get_owner(), inline=True)
+            embed.add_field("Created", event.guild.created_at, inline=False)
+            if event.guild.description is not None:
+                embed.add_field("Description", event.guild.description, inline=False)
+            embed.add_field("Members", len(event.guild.members), inline=True)
+            embed.add_field("Premium tier", event.guild.premium_tier, inline=True)
+            embed.add_field("Premium boosters", len(event.guild.premium_subscribers), inline=True)
+            await channel.send(embeds=embed)
+
+    # @listen(GuildLeft)
+    # async def guild_left(self, event: GuildLeft):
+    #     # Log guild leave
+    #     print("boop")
+    # print(event.guild)
+    # channel = self.bot.get_channel(940919818561912872)
+    # embed = Embed(title="<:Announce:943113367424479232> Left a guild!",
+    #               color=color.MaterialColors.RED)
+    # if event.guild.icon is not None:
+    #     embed.set_thumbnail(event.guild.icon.url)
+    # if event.guild.banner is not None:
+    #     embed.set_image(event.guild.banner)
+    # embed.add_field("Name", event.guild.name, inline=True)
+    # embed.add_field("Owner", event.guild.get_owner(), inline=True)
+    # embed.add_field("Created", event.guild.created_at, inline=False)
+    # if event.guild.description is not None:
+    #     embed.add_field("Description", event.guild.description, inline=False)
+    # embed.add_field("Members", len(event.guild.members), inline=True)
+    # embed.add_field("Premium tier", event.guild.premium_tier, inline=True)
+    # embed.add_field("Premium boosters", len(event.guild.premium_subscribers), inline=True)
+    # await channel.send(embeds=embed)
+
+    @listen(GuildEmojisUpdate)
+    async def emojis(self, event):
+        if event.guild_id == 943106609897426965:
+            channel = self.bot.get_channel(957164093716971540)
+            await channel.purge(1000)
+            await channel.send(f"{len(event.after)} emojis")
+            for emoji in event.after:
+                await channel.send(f"{emoji} {emoji.name} ({emoji.id})")
+
     @slash_command(name="ip",
-                   scopes=[891613945356492890],
                    description="Displays information on the given IP",
                    options=[
                        SlashCommandOption(
@@ -29,7 +82,7 @@ class Utilities(Scale):
     async def ip(self, ctx: InteractionContext, address=None):
         if address is None:
             embed = Embed(title="We ran into an error", description="You forgot to add an IP",
-                                  color=Color.from_hex("ff0000"))
+                          color=Color.from_hex("ff0000"))
             embed.set_footer(text=f"Caused by {ctx.author.display_name}", icon_url=ctx.author.avatar_url)
             await ctx.send(embed=embed)
             return
@@ -74,7 +127,7 @@ class Utilities(Scale):
             response = request.urlopen(req)
             probe = json.loads(response.read().decode("utf-8"))
             embed = Embed(title="IP lookup", description=f"Lookup details for {address}",
-                                  color=Color.from_hex("ff0000"))
+                          color=Color.from_hex("ff0000"))
             embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.avatar_url)
             try:
                 embed.add_field(name="Location", value=f"{result['city']}\n{result['region']}, {result['country']}",
@@ -103,7 +156,7 @@ class Utilities(Scale):
             await message.edit(embed=embed, content="")
         except ValueError:
             embed = Embed(title="We ran into an error", description="That isn't a valid IP",
-                                  color=Color.from_hex("ff0000"))
+                          color=Color.from_hex("ff0000"))
             embed.set_footer(text=f"Caused by {ctx.author.display_name}", icon_url=ctx.author.avatar_url)
             await ctx.send(embed=embed)
 
@@ -184,11 +237,12 @@ class Utilities(Scale):
                 await message.add_reaction("<:upvote:954937757711605780>")
                 await message.add_reaction("<:downvote:954937757506109440>")
             except:
-                embed = Embed(title="<:error:943118535922679879> Something went wrong and I can't confirm your suggestion was saved",
-                              color=color.Color.from_hex("#FF0000"),
-                              description="Heyo! Thanks so much for your suggestion.\n"
-                                          "However, I'm not 100% sure it went through.\n"
-                                          "You could try again or use /msg-owner to contact the bot owner")
+                embed = Embed(
+                    title="<:error:943118535922679879> Something went wrong and I can't confirm your suggestion was saved",
+                    color=color.Color.from_hex("#FF0000"),
+                    description="Heyo! Thanks so much for your suggestion.\n"
+                                "However, I'm not 100% sure it went through.\n"
+                                "You could try again or use /msg-owner to contact the bot owner")
                 await modal_response.send(embeds=embed)
         except asyncio.TimeoutError:  # since we have a timeout, we can assume the user closed the modal
             return

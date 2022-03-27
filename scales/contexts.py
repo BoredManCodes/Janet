@@ -47,20 +47,7 @@ class Contexts(Scale):
         top_role = user.roles[-1]  # first element in roles is `@everyone` and last is top role
         embed = Embed(color=top_role.color, description=user.mention)
         embed.set_author(name=str(user), icon_url=user.avatar_url)
-        if str(user.id) == "709089341007200288":  # FT :POGGERS:
-            embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/861289278374150164/917731281503150090/"
-                                    "3ee9a6c54e15a2929d276cd9ba366442.gif")
-        elif str(user.id) == "510748531926106113":  # Orang
-            embed.set_thumbnail(url="https://c.tenor.com/aw-QZPYpGmkAAAAM/carrot-garden.gif")
-        elif str(user.id) == "103523893834166272":  # Apo
-            embed.set_thumbnail(url="https://thumbs.gfycat.com/FrayedUncommonGrosbeak-size_restricted.gif")
-        elif str(user.id) == "690864077861421066":  # Alina
-            embed.set_thumbnail(url="https://media4.giphy.com/media/QsTGfN7bYXUm4/200.gif")
-        elif str(user.id) == "324504908013240330":  # ME!!!!!!!!111!!
-            embed.set_thumbnail(url="https://64.media.tumblr.com/e12f4de9050b40e88d76d396bd848c08/"
-                                    "tumblr_oi94oaK9Wl1rcqnnxo1_r1_400.gifv")
-        else:
-            embed.set_thumbnail(url=user.avatar_url)
+        embed.set_thumbnail(url=user.avatar_url)
         embed.add_field(name="Current Status", value=f"{statusemoji} | {status}", inline=False)
         if has_activity:
             try:

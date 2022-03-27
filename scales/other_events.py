@@ -33,12 +33,12 @@ class EventListener(Scale):
     @listen()
     async def on_member_update(self, event: events.MemberUpdate):
         if event.guild_id == 891613945356492890 and event.before.display_name != event.after.display_name and event.before.display_name is not None:
-            embed = Embed(title=f"Name Change Detected:")
+            embed = Embed(title=f"<:shield:957169280934363156> Name Change Detected")
             embed.add_field(name='Before', value=event.before.display_name)
             embed.add_field(name='After', value=event.after.display_name)
             embed.set_footer(f"ID: {event.after.id}")
             embed.set_thumbnail(url=event.after.avatar.url)
-            channel = await event.bot.get_channel(940919818561912872)
+            channel = event.bot.get_channel(940919818561912872)
             await channel.send(embed=embed)
 
     @listen()
@@ -52,7 +52,7 @@ class EventListener(Scale):
             if event.member.bot:  # Bloody bots
                 return
             else:
-                mod_log = await self.bot.get_channel(940919818561912872)
+                mod_log = self.bot.get_channel(940919818561912872)
                 if time.time() - event.member.created_at.timestamp() < 2592000:
                     # Send a message to the mods
                     title = f"{event.member.display_name} is potentially suspicious"
@@ -74,7 +74,7 @@ class EventListener(Scale):
                     embed.add_field(name="Joined Discord", value=event.member.created_at.strftime(date_format), inline=False)
                     await mod_log.send(embed=embed)
                 # Send the welcome banner
-                channel = await self.bot.get_channel(891613945356492893)
+                channel = self.bot.get_channel(891613945356492893)
                 messages = [
                     f"Welcome {event.member.display_name}\nIf you need anything from staff or simply have questions, ping a <@&858547638719086613>",
                     f"Hi {event.member.display_name}!\nIf you need anything from staff or simply have questions, ping a <@&858547638719086613>",
@@ -171,9 +171,9 @@ class EventListener(Scale):
                 f"{event.member.display_name} left\nSo long, and thanks for all the fish!",
                 f"{event.member.display_name} left\nGoodbye, Vietnam! That’s right, I’m history, I’m outta here, "
             ]
-            general = await self.bot.get_channel(891613945356492893)
+            general = self.bot.get_channel(891613945356492893)
             await general.send(random.choice(messages))
-            channel = await self.bot.get_channel(940919818561912872)
+            channel = self.bot.get_channel(940919818561912872)
             title = f"{event.member.display_name} left the server"
             embed = Embed(title=title, color=color.BrandColours.RED)
             embed.set_footer(text=f"Discord name: {event.member.display_name}\nDiscord ID: {event.member.id}",

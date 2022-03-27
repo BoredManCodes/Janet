@@ -47,13 +47,6 @@ log = logging.getLogger("Inquiry")
 cls_log = logging.getLogger(dis_snek.const.logger_name)
 cls_log.setLevel(logging.INFO)
 log.setLevel(logging.INFO)
-if os.path.isfile("config.ini"):
-    log.info("Config found")
-else:
-    log.error("Config not found")
-    exit(1)
-Config = RawConfigParser()
-Config.read("config.ini")
 colours = sorted(
     [MaterialColors(c).name.title() for c in MaterialColors]
     + [
@@ -63,6 +56,14 @@ colours = sorted(
         "Black",
     ]
 )
+
+if os.path.isfile("config.ini"):
+    log.info("Config found")
+else:
+    log.error("Config not found")
+    exit(1)
+Config = RawConfigParser()
+Config.read("config.ini")
 
 
 def ConfigSectionMap(section):
@@ -77,6 +78,8 @@ def ConfigSectionMap(section):
             log.exception("exception on %s!" % option)
             dict1[option] = None
     return dict1
+
+
 def_options = [
     SlashCommandOption(
         "title", OptionTypes.STRING, "The title for your poll", required=True
@@ -132,13 +135,13 @@ class Bot(Snake):
         super().__init__(
             sync_interactions=True,
             asyncio_debug=False,
-            delete_unused_application_cmds=False,
+            delete_unused_application_cmds=True,
             activity="Development",
-            default_prefix="$",
-            debug_scope=891613945356492890,
-            intents=Intents.DEFAULT | Intents.GUILD_MEMBERS,
-            fetch_members=True,
-            auto_defer=AutoDefer(enabled=True, time_until_defer=1)
+            default_prefix="dev$",
+            intents=Intents.DEFAULT | Intents.GUILD_MEMBERS | Intents.PRIVILEGED | Intents.ALL | Intents.MESSAGES,
+            # fetch_members=True,
+            auto_defer=AutoDefer(enabled=True, time_until_defer=3),
+
         )
         self.polls: dict[Snowflake_Type, dict[Snowflake_Type, PollData]] = {}
         self.polls_to_update: dict[Snowflake_Type, set[Snowflake_Type]] = {}
@@ -290,34 +293,34 @@ class Bot(Snake):
 
         await self.redis.delete(f"{guild_id}|{msg_id}")
 
-    @dis_snek.slash_command(name="quiz_me", description="Are you smarter than a 5th grader?", scopes=[891613945356492890])
-    async def quiz_me(self, ctx: dis_snek.InteractionContext):
-        modal = dis_snek.Modal(
-            title="Are you smarter than a 5th grader?",
-            components=[
-                dis_snek.InputText(
-                    label="What’s 25 x 3?",
-                    custom_id="25x3",
-                    placeholder="Answer",
-                    style=dis_snek.TextStyles.SHORT,
-                )
-            ],
-        )
-        await ctx.send_modal(modal)
-
-        # now we can wait for the modal
-        try:
-            modal_response = await bot.wait_for_modal(modal, timeout=500)
-
-            if modal_response.responses.get("25x3") == "75":  # reponses is a dict of all the modal feilds
-                await modal_response.send("Correct!")
-            else:
-                await modal_response.send("Incorrect!")
-
-        except asyncio.TimeoutError:  # since we have a timeout, we can assume the user closed the modal
-            return
-
-    # ----------------------------------------------------------------------------------------------------------------------
+    # @dis_snek.slash_command(name="quiz_me", description="Are you smarter than a 5th grader?", scopes=[891613945356492890])
+    # async def quiz_me(self, ctx: dis_snek.InteractionContext):
+    #     modal = dis_snek.Modal(
+    #         title="Are you smarter than a 5th grader?",
+    #         components=[
+    #             dis_snek.InputText(
+    #                 label="What’s 25 x 3?",
+    #                 custom_id="25x3",
+    #                 placeholder="Answer",
+    #                 style=dis_snek.TextStyles.SHORT,
+    #             )
+    #         ],
+    #     )
+    #     await ctx.send_modal(modal)
+    #
+    #     # now we can wait for the modal
+    #     try:
+    #         modal_response = await bot.wait_for_modal(modal, timeout=500)
+    #
+    #         if modal_response.responses.get("25x3") == "75":  # reponses is a dict of all the modal feilds
+    #             await modal_response.send("Correct!")
+    #         else:
+    #             await modal_response.send("Incorrect!")
+    #
+    #     except asyncio.TimeoutError:  # since we have a timeout, we can assume the user closed the modal
+    #         return
+    #
+    # # ----------------------------------------------------------------------------------------------------------------------
 
 
 
@@ -326,7 +329,7 @@ class Bot(Snake):
         "Reloads all scales on the snek"
     )
     async def reload(self, ctx: InteractionContext):
-        if ctx.author.has_permission(Permissions.MANAGE_ROLES):
+        if ctx.author == bot.owner:
             scale_names = []
             for scale in list(bot.scales.values()):
                 name = str(scale).split('.')
@@ -336,7 +339,7 @@ class Bot(Snake):
             scales_list = str(bot.scales.keys()).strip('dict_keys([').replace("'", "").replace("]", "").replace(')', '')
             await ctx.send(f"Reloaded Scales:\n```{scales_list}```")
         else:
-            await ctx.send("You are lacking permissions to manage roles and therefore cannot reload the bot")
+            await ctx.send("You are not the bot owner and therefore cannot reload the bot")
 
     @slash_command(
         "poll",
@@ -356,7 +359,7 @@ class Bot(Snake):
 
         poll = PollData.from_ctx(ctx)
 
-        msg = await poll.send(await self.cache.get_channel(poll.channel_id))
+        msg = await poll.send(self.cache.get_channel(poll.channel_id))
         await self.set_poll(ctx.guild_id, msg.id, poll)
         await ctx.send("To close the poll, react to it with 🔴")
 
@@ -380,7 +383,7 @@ class Bot(Snake):
         poll.poll_options.append(PollOption("Yes", booleanEmoji[0]))
         poll.poll_options.append(PollOption("No", booleanEmoji[1]))
 
-        msg = await poll.send(await self.cache.get_channel(poll.channel_id))
+        msg = await poll.send(self.cache.get_channel(poll.channel_id))
         await self.set_poll(ctx.guild_id, msg.id, poll)
         await ctx.send("To close the poll, react to it with 🔴")
 
@@ -435,7 +438,7 @@ class Bot(Snake):
 
         if poll := await self.process_poll_option(ctx, poll):
             if poll.author_id == ctx.author.id:
-                message = await self.cache.get_message(poll.channel_id, poll.message_id)
+                message = self.cache.get_message(poll.channel_id, poll.message_id)
                 if message:
                     async with poll.lock:
                         for i in range(len(poll.poll_options)):
@@ -481,7 +484,7 @@ class Bot(Snake):
         if poll := await self.process_poll_option(ctx, poll):
             if poll.author_id == ctx.author.id:
 
-                message = await self.cache.get_message(poll.channel_id, poll.message_id)
+                message = self.cache.get_message(poll.channel_id, poll.message_id)
                 if message:
                     async with poll.lock:
                         poll.add_option(option)
@@ -583,7 +586,7 @@ class Bot(Snake):
                             event.message._guild_id, event.message.id
                         )
 
-    @slash_command("invite", "Invite Inquiry to your server!")
+    @slash_command("invite", "Invite Janet to your server!")
     async def invite(self, ctx: InteractionContext):
         await ctx.send(
             f"https://discord.com/oauth2/authorize?client_id={self.user.id}&scope=applications.commands%20bot",
@@ -621,7 +624,7 @@ class Bot(Snake):
             for poll in polls:
                 async with poll.lock:
                     log.debug(f"Closing poll: {poll.message_id}")
-                    msg = await self.cache.get_message(poll.channel_id, poll.message_id)
+                    msg = self.cache.get_message(poll.channel_id, poll.message_id)
                     if msg:
                         await msg.edit(embeds=poll.embed, components=[])
 
@@ -637,7 +640,7 @@ class Bot(Snake):
                     async with poll.lock:
                         if not poll.expired:
                             log.debug(f"updating {poll_id}")
-                            msg = await self.cache.get_message(
+                            msg = self.cache.get_message(
                                 poll.channel_id, poll.message_id
                             )
                             if msg:
@@ -653,16 +656,15 @@ class Bot(Snake):
             await ctx.send("Waiting for current tests to complete...")
             await self.available.wait()
 
-        if ctx.guild.id == 891613945356492890:
-            if ctx.author.id != self.owner.id:
-                return await ctx.send(
-                    f"Only {self.owner.mention} can use the test suite"
-                )
+        if ctx.author.id != self.owner.id:
+            return await ctx.send(
+                f"Only {self.owner.mention} can use the test suite"
+            )
 
         self.available.clear()
 
         source = await ctx.send(
-            "<a:loading:950666903540625418> Running dis_snek test suite..."
+            "<a:loadinghmmm:957250458739675156> Running dis_snek test suite..."
         )
         s = time.perf_counter()
 
@@ -676,7 +678,7 @@ class Bot(Snake):
                 test_title = f"{method.__name__.removeprefix('test_')} Tests".title()
 
                 msg = await ctx.send(
-                    f"<a:loading:950666903540625418> {test_title}: Running!"
+                    f"<a:loadinghmmm:957250458739675156> {test_title}: Running!"
                 )
                 try:
                     await method(ctx, msg)
@@ -705,9 +707,9 @@ bot.grow_scale("scales.other_events")
 bot.grow_scale("scales.message_commands")
 bot.grow_scale("scales.contexts")
 bot.grow_scale("scales.application_commands")
-# bot.grow_scale("scales.permission_management")
+bot.grow_scale("scales.reaction_roles")
 bot.grow_scale("scales.utilities")
-# bot.grow_scale("scales.tests")
+bot.grow_scale("scales.tests")
 bot.grow_scale("scales.reminders")
 # bot.grow_scale("scales.twitch")
 bot.start(ConfigSectionMap("DiscordSettings")["token"])
