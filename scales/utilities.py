@@ -4,6 +4,7 @@ import json
 import os
 import subprocess
 from datetime import datetime
+from pathlib import Path
 from urllib import parse, request
 
 import dis_snek
@@ -14,7 +15,10 @@ from dis_snek import slash_command, InteractionContext, OptionTypes, Embed, Colo
 from dis_snek.models import (
     Scale
 )
+from motor import motor_asyncio
 from pastypy import Paste
+
+mongoConnectionString = (Path(__file__).parent.parent / "mongo.txt").read_text().strip()
 
 
 class Utilities(Scale):
@@ -38,6 +42,28 @@ class Utilities(Scale):
             embed.add_field("Premium tier", event.guild.premium_tier, inline=True)
             embed.add_field("Premium boosters", len(event.guild.premium_subscribers), inline=True)
             await channel.send(embeds=embed)
+            client = motor_asyncio.AsyncIOMotorClient(
+                mongoConnectionString,
+                serverSelectionTimeoutMS=5000
+            )
+            await client.guilds.settings.insert_one({
+                'guild_name': event.guild.name,
+                'guild_id': event.guild.id,
+                'auto_quote': True,
+                'modlog_enabled': False,
+                'modlog_channel': None,
+                'member_logging': False,
+                'nickname_logging': False,
+                'whitelist_role': None,
+                'welcome_enabled': True,
+                'welcome_channel': None,
+                'welcome_messages': None,
+                'leave_enabled': True,
+                'leave_channel': None,
+                'leave_messages': None,
+                'moderator_roles': None,
+                'dm_on_warns': True,
+            })
 
     # @listen(GuildLeft)
     # async def guild_left(self, event: GuildLeft):

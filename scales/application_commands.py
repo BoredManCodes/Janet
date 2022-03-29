@@ -1,7 +1,7 @@
 import io
 
 import dis_snek
-from dis_snek import Embed, Color, slash_command, InteractionContext
+from dis_snek import Embed, Color, slash_command, InteractionContext, ChannelTypes
 from dis_snek.models import (
     Scale
 )

@@ -8,6 +8,7 @@ import platform
 import textwrap
 import traceback
 from collections import Counter
+from configparser import RawConfigParser
 from contextlib import redirect_stdout
 
 import dis_snek
@@ -28,6 +29,24 @@ from dis_snek.client.utils import misc_utils
 from dis_snek.models import Intents
 from dis_snek.models import Scale
 from dis_snek.client.utils.cache import TTLCache
+
+
+Config = RawConfigParser()
+Config.read("config.ini")
+
+
+def ConfigSectionMap(section):
+    dict1 = {}
+    options = Config.options(section)
+    for option in options:
+        try:
+            dict1[option] = Config.get(section, option)
+            if dict1[option] == -1:
+                print("skip: %s" % option)
+        except:
+            print("exception on %s!" % option)
+            dict1[option] = None
+    return dict1
 
 
 def strf_delta(time_delta: datetime.timedelta, show_seconds=True) -> str:

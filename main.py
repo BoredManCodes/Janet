@@ -544,8 +544,9 @@ class Bot(Snake):
     @listen()
     async def on_button(self, event):
         ctx: ComponentContext = event.context
-        await ctx.defer(ephemeral=True)
         if "poll_option|" in ctx.custom_id:
+            await ctx.defer(ephemeral=True)
+
             opt_index = int(ctx.custom_id.removeprefix("poll_option|"))
 
             if poll := await self.get_poll(ctx.guild_id, ctx.message.id):
@@ -711,6 +712,10 @@ bot.grow_scale("scales.reaction_roles")
 bot.grow_scale("scales.utilities")
 bot.grow_scale("scales.tests")
 bot.grow_scale("scales.reminders")
+bot.grow_scale("scales.setup")
+bot.grow_scale("scales.updating_channels")
+bot.grow_scale("scales.credits")
+bot.grow_scale("scales.github_messages")
 # bot.grow_scale("scales.twitch")
 bot.start(ConfigSectionMap("DiscordSettings")["token"])
 print(bot)

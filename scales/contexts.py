@@ -10,57 +10,57 @@ from dis_snek.models import (
 class Contexts(Scale):
     @context_menu(name="User Info", context_type=CommandTypes.USER)
     async def user_context_menu(self, ctx: InteractionContext):
-        user = await self.bot.get_user(ctx.target_id)
-        if user.activities:  # check if the user has an activity
-            if str(user.activities[0].type) == "ActivityType.playing":
-                activity = "Playing:"
-            elif str(user.activities[0].type) == "ActivityType.streaming":
-                activity = "Streaming:"
-            elif str(user.activities[0].type) == "ActivityType.listening":
-                activity = "Listening to:"
-            elif str(user.activities[0].type) == "ActivityType.watching":
-                activity = "Watching"
-            elif str(user.activities[0].type) == "ActivityType.custom":
-                activity = ""
-            elif str(user.activities[0].type) == "ActivityType.competing":
-                activity = "Competing in:"
-            else:
-                activity = "Funkiness"
-            has_activity = True
-        else:  # if they don't we can't reference it
-            has_activity = False
-        if user.status.name == "online":
-            statusemoji = "\N{LARGE GREEN CIRCLE}"
-            status = "Online"
-        elif user.status.name == "offline":
-            statusemoji = "\N{MEDIUM WHITE CIRCLE}\N{VARIATION SELECTOR-16}"
-            status = "Offline"
-        elif user.status.name == "dnd":
-            statusemoji = "\N{LARGE RED CIRCLE}"
-            status = "Do not disturb"
-        elif user.status.name == "idle":
-            statusemoji = "\N{LARGE ORANGE CIRCLE}"
-            status = "Idling"
-        else:  # just in case some funky shit is going on
-            statusemoji = "\N{LARGE PURPLE CIRCLE}"
-            status = ""
+        user = self.bot.get_member(ctx.target_id, ctx.guild_id)
+        # if user.activities:  # check if the user has an activity
+        #     if str(user.activities[0].type) == "ActivityType.playing":
+        #         activity = "Playing:"
+        #     elif str(user.activities[0].type) == "ActivityType.streaming":
+        #         activity = "Streaming:"
+        #     elif str(user.activities[0].type) == "ActivityType.listening":
+        #         activity = "Listening to:"
+        #     elif str(user.activities[0].type) == "ActivityType.watching":
+        #         activity = "Watching"
+        #     elif str(user.activities[0].type) == "ActivityType.custom":
+        #         activity = ""
+        #     elif str(user.activities[0].type) == "ActivityType.competing":
+        #         activity = "Competing in:"
+        #     else:
+        #         activity = "Funkiness"
+        #     has_activity = True
+        # else:  # if they don't we can't reference it
+        #     has_activity = False
+        # if user.status.name == "online":
+        #     statusemoji = "\N{LARGE GREEN CIRCLE}"
+        #     status = "Online"
+        # elif user.status.name == "offline":
+        #     statusemoji = "\N{MEDIUM WHITE CIRCLE}\N{VARIATION SELECTOR-16}"
+        #     status = "Offline"
+        # elif user.status.name == "dnd":
+        #     statusemoji = "\N{LARGE RED CIRCLE}"
+        #     status = "Do not disturb"
+        # elif user.status.name == "idle":
+        #     statusemoji = "\N{LARGE ORANGE CIRCLE}"
+        #     status = "Idling"
+        # else:  # just in case some funky shit is going on
+        #     statusemoji = "\N{LARGE PURPLE CIRCLE}"
+        #     status = ""
         top_role = user.roles[-1]  # first element in roles is `@everyone` and last is top role
         embed = Embed(color=top_role.color, description=user.mention)
-        embed.set_author(name=str(user), icon_url=user.avatar_url)
-        embed.set_thumbnail(url=user.avatar_url)
-        embed.add_field(name="Current Status", value=f"{statusemoji} | {status}", inline=False)
-        if has_activity:
-            try:
-                if str(user.activities[0].details) == "None":
-                    embed.add_field(name="Current Activity",
-                                    value=f"{activity} {user.activities[0].name}", inline=False)
-                else:
-                    embed.add_field(name="Current Activity",
-                                    value=f"{activity} {user.activities[0].name} | {user.activities[0].details}",
-                                    inline=False)
-            except:
-                embed.add_field(name="Current Activity",
-                                value=f"{activity} {user.activities[0].name}", inline=False)
+        embed.set_author(name=str(user), icon_url=user.display_avatar.url)
+        embed.set_thumbnail(url=user.display_avatar.url)
+        # embed.add_field(name="Current Status", value=f"{statusemoji} | {status}", inline=False)
+        # if has_activity:
+        #     try:
+        #         if str(user.activities[0].details) == "None":
+        #             embed.add_field(name="Current Activity",
+        #                             value=f"{activity} {user.activities[0].name}", inline=False)
+        #         else:
+        #             embed.add_field(name="Current Activity",
+        #                             value=f"{activity} {user.activities[0].name} | {user.activities[0].details}",
+        #                             inline=False)
+        #     except:
+        #         embed.add_field(name="Current Activity",
+        #                         value=f"{activity} {user.activities[0].name}", inline=False)
         joined_time = str((user.joined_at - datetime(1970, 1, 1)).total_seconds()).split('.')
         discord_joined_time = str((user.created_at - datetime(1970, 1, 1)).total_seconds()).split('.')
         embed.add_field(name="Discord Name", value=f"{user.name}#{user.discriminator}")

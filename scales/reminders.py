@@ -96,6 +96,7 @@ class Reminders(Scale):
                     'content': what,
                     'done': False,
                     'uuid': str(uuid.uuid4()),
+                    'dm': False
                 })
             else:
                 await db.all_reminders.insert_one({
@@ -104,6 +105,7 @@ class Reminders(Scale):
                     'content': what,
                     'done': False,
                     'uuid': str(uuid.uuid4()),
+                    'dm': True
                 })
             embed = Embed(title="<a:reminder:956707969318412348> Reminder added",
                           color=color.FlatUIColors.CARROT,
@@ -167,22 +169,16 @@ class Reminders(Scale):
         reminders = await reminders.to_list(length=None)
         for reminder in reminders:
             if now >= reminder['time']:
-                if reminder['channel_id'] is not None:
+                if not reminder['dm']:
                     channel = self.bot.get_channel(reminder['channel_id'])
-                    await channel.send(f"<@{reminder['user_id']}>,")
-                    embed = Embed(title="<a:reminder:956707969318412348> Here's your reminder",
-                                  color=color.FlatUIColors.CARROT,
-                                  description=f"You asked me to remind you <t:{reminder['time']}:R>\nAbout: {reminder['content']}")
-                    await channel.send(embeds=embed)
-                    await db.all_reminders.delete_one({'uuid': reminder['uuid']})
                 else:
                     channel = self.bot.get_user(reminder['user_id'])
-                    embed = Embed(title="<a:reminder:956707969318412348> Here's your reminder",
-                                  color=color.FlatUIColors.CARROT,
-                                  description=f"You asked me to remind you <t:{reminder['time']}:R>\nAbout: {reminder['content']}")
-                    await channel.send(embeds=embed)
-                    await db.all_reminders.delete_one({'uuid': reminder['uuid']})
-
+                await channel.send(f"<@{reminder['user_id']}>,")
+                embed = Embed(title="<a:reminder:956707969318412348> Here's your reminder",
+                              color=color.FlatUIColors.CARROT,
+                              description=f"You asked me to remind you <t:{reminder['time']}:R>\nAbout: {reminder['content']}")
+                await channel.send(embeds=embed)
+                await db.all_reminders.delete_one({'uuid': reminder['uuid']})
 
 def setup(bot):
     Reminders(bot)
