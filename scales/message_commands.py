@@ -4,7 +4,7 @@ import sys
 from base64 import urlsafe_b64encode
 from uuid import uuid4 as uuid
 import dis_snek
-from dis_snek import Button, ButtonStyles, File
+from dis_snek import Button, ButtonStyles, File, Embed
 from dis_snek.models import (
     Scale,
     message_command,
@@ -14,9 +14,84 @@ from dis_snek.models import (
 )
 
 from scales.admin import is_owner
+from scales.moderation import calcEpochSec
 
 
 class MessageCommands(Scale):
+    @message_command(name="userinfo")
+    async def userinfo(self, ctx: MessageContext, user: dis_snek.Member):
+        # if user.activities:  # check if the user has an activity
+        #     if str(user.activities[0].type) == "ActivityType.playing":
+        #         activity = "Playing:"
+        #     elif str(user.activities[0].type) == "ActivityType.streaming":
+        #         activity = "Streaming:"
+        #     elif str(user.activities[0].type) == "ActivityType.listening":
+        #         activity = "Listening to:"
+        #     elif str(user.activities[0].type) == "ActivityType.watching":
+        #         activity = "Watching"
+        #     elif str(user.activities[0].type) == "ActivityType.custom":
+        #         activity = ""
+        #     elif str(user.activities[0].type) == "ActivityType.competing":
+        #         activity = "Competing in:"
+        #     else:
+        #         activity = "Funkiness"
+        #     has_activity = True
+        # else:  # if they don't we can't reference it
+        #     has_activity = False
+        # if user.status.name == "online":
+        #     statusemoji = "\N{LARGE GREEN CIRCLE}"
+        #     status = "Online"
+        # elif user.status.name == "offline":
+        #     statusemoji = "\N{MEDIUM WHITE CIRCLE}\N{VARIATION SELECTOR-16}"
+        #     status = "Offline"
+        # elif user.status.name == "dnd":
+        #     statusemoji = "\N{LARGE RED CIRCLE}"
+        #     status = "Do not disturb"
+        # elif user.status.name == "idle":
+        #     statusemoji = "\N{LARGE ORANGE CIRCLE}"
+        #     status = "Idling"
+        # else:  # just in case some funky shit is going on
+        #     statusemoji = "\N{LARGE PURPLE CIRCLE}"
+        #     status = ""
+        try:
+            top_role = user.roles[-1]  # first element in roles is `@everyone` and last is top role
+            embed = Embed(color=top_role.color, description=user.mention)
+        except Exception as e:
+            embed = Embed(description=user.mention)
+            print(e)
+        embed.set_author(name=str(user), icon_url=user.display_avatar.url)
+        embed.set_thumbnail(url=user.display_avatar.url)
+        # embed.add_field(name="Current Status", value=f"{statusemoji} | {status}", inline=False)
+        # if has_activity:
+        #     try:
+        #         if str(user.activities[0].details) == "None":
+        #             embed.add_field(name="Current Activity",
+        #                             value=f"{activity} {user.activities[0].name}", inline=False)
+        #         else:
+        #             embed.add_field(name="Current Activity",
+        #                             value=f"{activity} {user.activities[0].name} | {user.activities[0].details}",
+        #                             inline=False)
+        #     except:
+        #         embed.add_field(name="Current Activity",
+        #                         value=f"{activity} {user.activities[0].name}", inline=False)
+        dt = user.joined_at
+        joined = calcEpochSec(dt)
+        joined_time = str(joined).split('.')
+        dt = user.created_at
+        created = calcEpochSec(dt)
+        discord_joined_time = str(created).split('.')
+        embed.add_field(name="Discord Name", value=f"{user.user.username}#{user.discriminator}")
+        embed.add_field(name="Joined Server", value=f"<t:{joined_time[0]}:R>", inline=False)
+        members = sorted(ctx.guild.members, key=lambda m: m.joined_at)
+        embed.add_field(name="Join Position", value=str(members.index(user) + 1), inline=False)
+        embed.add_field(name="Joined Discord", value=f"<t:{discord_joined_time[0]}:R>", inline=False)
+        if len(user.roles) > 1:
+            res = user.roles[::-1]
+            role_string = ' '.join([r.mention for r in res][:-1])
+            embed.add_field(name="Roles [{}]".format(len(user.roles) - 1), value=role_string, inline=False)
+        embed.set_footer(text=f"ID: {user.id}")
+        await ctx.send(embed=embed)
+
     @message_command()
     @check(is_owner())
     async def owner_only(self, ctx: MessageContext):

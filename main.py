@@ -43,7 +43,7 @@ from models.poll import PollData, PollOption
 from pastypy import AsyncPaste as Paste
 
 logging.basicConfig()
-log = logging.getLogger("Inquiry")
+log = logging.getLogger("Janet")
 cls_log = logging.getLogger(dis_snek.const.logger_name)
 cls_log.setLevel(logging.INFO)
 log.setLevel(logging.INFO)
@@ -132,17 +132,28 @@ Callback:
 
 class Bot(Snake):
     def __init__(self):
-        super().__init__(
-            sync_interactions=True,
-            asyncio_debug=False,
-            delete_unused_application_cmds=True,
-            activity="Development",
-            default_prefix="dev$",
-            intents=Intents.DEFAULT | Intents.GUILD_MEMBERS | Intents.PRIVILEGED | Intents.ALL | Intents.MESSAGES,
-            # fetch_members=True,
-            auto_defer=AutoDefer(enabled=True, time_until_defer=3),
+        if "nt" not in os.name:
+            super().__init__(
+                sync_interactions=True,
+                asyncio_debug=False,
+                delete_unused_application_cmds=True,
+                activity="Development",
+                intents=Intents.DEFAULT | Intents.GUILD_MEMBERS | Intents.PRIVILEGED | Intents.ALL | Intents.MESSAGES,
+                default_prefix="$",
+                auto_defer=AutoDefer(enabled=True, time_until_defer=3),
+            )
+        if "nt" in os.name:
+            super().__init__(
+                sync_interactions=True,
+                asyncio_debug=False,
+                delete_unused_application_cmds=True,
+                debug_scope=891613945356492890,
+                activity="Development",
+                intents=Intents.DEFAULT | Intents.GUILD_MEMBERS | Intents.PRIVILEGED | Intents.ALL | Intents.MESSAGES,
+                default_prefix="dev$",
+                auto_defer=AutoDefer(enabled=True, time_until_defer=3),
 
-        )
+            )
         self.polls: dict[Snowflake_Type, dict[Snowflake_Type, PollData]] = {}
         self.polls_to_update: dict[Snowflake_Type, set[Snowflake_Type]] = {}
         self.redis: aioredis.Redis = MISSING
@@ -156,10 +167,17 @@ class Bot(Snake):
         log.info(f"Currently in {len(self.guilds)} guilds")
         try:
             await self.connect()
-            log.info("Connected to redis!") if await self.redis.ping() else exit()
+            if await self.redis.ping():
+                log.info("Connected to redis!")
+            else:
+                log.error("Couldn't connect to redis")
+                if "nt" not in os.name:
+                    exit()
         except aioredis.exceptions.ConnectionError:
-            log.error("Failed to connect to redis, aborting login")
-            return await self.stop()
+            log.error("Couldn't connect to redis")
+            if "nt" not in os.name:
+                log.error("Failed to connect to redis, aborting login")
+                return await self.stop()
         await self.cache_polls()
         log.debug(f"{self.total_polls} polls cached")
 
@@ -190,11 +208,12 @@ class Bot(Snake):
             callback_args=callback_args,
             callback_kwargs=callback_kwargs,
         )
+        message = ""
         if len(full_message) >= 1900:
             error_message = "  ".join(traceback.format_exception(error))
             full_message += "Exception: |\n  " + error_message
-            paste = Paste(content=full_message)
-            await paste.save("https://paste.trent-buckley.com")
+            paste = Paste(content=full_message, site="https://paste.trent-buckley.com")
+            key = await paste.save()
 
             await channel.send(
                 f"Janet encountered an error at {timestamp}. Log was too big to send over Discord."
@@ -202,8 +221,13 @@ class Bot(Snake):
             )
         else:
             error_message = "".join(traceback.format_exception(error))
+            message += full_message + "\n" + "Exception: |\n  " + error_message
+            paste = Paste(content=message, site="https://paste.trent-buckley.com")
+            key = await paste.save()
+
             await channel.send(
                 f"Janet encountered an error at {timestamp}:"
+                f"\nPlease see log at <{paste.url}>"
                 f"\n```yaml\n{full_message}\n```"
                 f"\nException:\n```py\n{error_message}\n```"
             )
@@ -293,37 +317,6 @@ class Bot(Snake):
 
         await self.redis.delete(f"{guild_id}|{msg_id}")
 
-    # @dis_snek.slash_command(name="quiz_me", description="Are you smarter than a 5th grader?", scopes=[891613945356492890])
-    # async def quiz_me(self, ctx: dis_snek.InteractionContext):
-    #     modal = dis_snek.Modal(
-    #         title="Are you smarter than a 5th grader?",
-    #         components=[
-    #             dis_snek.InputText(
-    #                 label="What’s 25 x 3?",
-    #                 custom_id="25x3",
-    #                 placeholder="Answer",
-    #                 style=dis_snek.TextStyles.SHORT,
-    #             )
-    #         ],
-    #     )
-    #     await ctx.send_modal(modal)
-    #
-    #     # now we can wait for the modal
-    #     try:
-    #         modal_response = await bot.wait_for_modal(modal, timeout=500)
-    #
-    #         if modal_response.responses.get("25x3") == "75":  # reponses is a dict of all the modal feilds
-    #             await modal_response.send("Correct!")
-    #         else:
-    #             await modal_response.send("Incorrect!")
-    #
-    #     except asyncio.TimeoutError:  # since we have a timeout, we can assume the user closed the modal
-    #         return
-    #
-    # # ----------------------------------------------------------------------------------------------------------------------
-
-
-
     @slash_command(
         "reload",
         "Reloads all scales on the snek"
@@ -339,7 +332,7 @@ class Bot(Snake):
             scales_list = str(bot.scales.keys()).strip('dict_keys([').replace("'", "").replace("]", "").replace(')', '')
             await ctx.send(f"Reloaded Scales:\n```{scales_list}```")
         else:
-            await ctx.send("You are not the bot owner and therefore cannot reload the bot")
+            await ctx.send("<:error:943118535922679879> You are not the bot owner and therefore cannot reload the bot")
 
     @slash_command(
         "poll",
@@ -590,7 +583,7 @@ class Bot(Snake):
     @slash_command("invite", "Invite Janet to your server!")
     async def invite(self, ctx: InteractionContext):
         await ctx.send(
-            f"https://discord.com/oauth2/authorize?client_id={self.user.id}&scope=applications.commands%20bot",
+            f"https://discord.com/oauth2/authorize?client_id={self.user.id}&permissions=1635308269047&scope=applications.commands%20bot",
             ephemeral=True,
         )
 
@@ -704,7 +697,7 @@ bot.grow_scale("scales.database_management")
 bot.grow_scale("scales.admin")
 bot.grow_scale("scales.message_events")
 bot.grow_scale("scales.debug")
-bot.grow_scale("scales.other_events")
+# bot.grow_scale("scales.other_events")
 bot.grow_scale("scales.message_commands")
 bot.grow_scale("scales.contexts")
 bot.grow_scale("scales.application_commands")
@@ -716,6 +709,6 @@ bot.grow_scale("scales.setup")
 bot.grow_scale("scales.updating_channels")
 bot.grow_scale("scales.credits")
 bot.grow_scale("scales.github_messages")
+bot.grow_scale("scales.moderation")
 # bot.grow_scale("scales.twitch")
 bot.start(ConfigSectionMap("DiscordSettings")["token"])
-print(bot)

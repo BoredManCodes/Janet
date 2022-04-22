@@ -1,17 +1,111 @@
 import io
-
+import ipaddress
+import json
+import os
+import subprocess
+import aiohttp
 import dis_snek
-from dis_snek import Embed, Color, slash_command, InteractionContext, ChannelTypes
-from dis_snek.models import (
-    Scale
-)
-from base64 import urlsafe_b64encode
-from uuid import uuid4 as uuid
-
+from dis_snek import Embed, Color, slash_command, InteractionContext
+from dis_snek.models import Scale
 from dis_snek.models.snek.application_commands import SlashCommandOption, OptionTypes
+from pastypy import Paste
 
 
 class ApplicationCommands(Scale):
+    @slash_command(name="ip",
+                   description="Displays information on the given IP",
+                   options=[
+                       SlashCommandOption(
+                           name="address",
+                           description="The IP address you want to check",
+                           type=OptionTypes.STRING,
+                           required=True
+                       )])
+    async def ip(self, ctx: InteractionContext, address=None):
+        params = {
+            'user-id': "BoredManSwears",
+            'api-key': "ghwsjEpDP31gv0tzrz732ShPNBVIf2KZ9bFGkJkw4IERSsxA",
+            'ip': address,
+            'reverse-lookup': True
+        }
+        if address is None:
+            embed = Embed(title="We ran into an error", description="You forgot to add an IP",
+                          color=Color.from_hex("ff0000"))
+            embed.set_footer(text=f"Caused by {ctx.author.display_name}", icon_url=ctx.author.avatar_url)
+            await ctx.send(embed=embed)
+            return
+
+        try:
+            # This will return an error if it's not a valid IP. Saves me doing input validation
+            ipaddress.ip_address(address)
+        except ValueError:
+            embed = Embed(title="We ran into an error", description="That isn't a valid IP",
+                          color=Color.from_hex("ff0000"))
+            embed.set_footer(text=f"Caused by {ctx.author.display_name}", icon_url=ctx.author.avatar.url)
+            await ctx.send(embed=embed)
+        await ctx.defer(ephemeral=True)
+        # os.system(f"ping -c 1  {address}")
+        try:
+            try:
+                ping = subprocess.check_output(["ping", "-c", "1", address]).decode('utf-8')
+            except subprocess.CalledProcessError:
+                ping = "Host appears down, or not answering ping requests"
+            os.system(f"nmap  {address} -oG nmap.grep")
+            process = subprocess.Popen(['./nmap.sh'],
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE)
+            stdout, stderr = process.communicate()
+            three = stdout.decode('utf-8').replace('///', '')
+            two = three.replace('//', ' ')
+            one = two.replace('/', ' ').replace('      1 ', '')
+            async with aiohttp.ClientSession() as session:
+                async with session.get('https://neutrinoapi.net/ip-info', data=params) as req:
+                    print(req.status)
+                    req = await req.text()
+            result = json.loads(req)
+            # probe for info
+            async with aiohttp.ClientSession() as session:
+                async with session.get('https://neutrinoapi.net/ip-probe', data=params) as req:
+                    print(req.status)
+                    req = await req.text()
+            probe = json.loads(req)
+            embed = Embed(title="IP lookup", description=f"Lookup details for {address}",
+                          color=Color.from_hex("ff0000"))
+            embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.avatar.url)
+            try:
+                embed.add_field(name="Location", value=f"{result['city']}\n{result['region']}, {result['country']}",
+                                inline=True)
+            except:
+                print(probe)
+            if not result['hostname'] == '':
+                embed.add_field(name="Hostname", value=str(result['hostname']), inline=True)
+            if not result['host-domain'] == '':
+                embed.add_field(name="Host Domain", value=str(result['host-domain']), inline=True)
+            embed.add_field(name="Maps Link",
+                            value=f"https://maps.google.com/?q={result['latitude']},{result['longitude']}", inline=True)
+            embed.add_field(name="Provider", value=f"{probe['provider-description']}", inline=True)
+            if probe['is-vpn']:
+                embed.add_field(name="Is VPN?", value=f"Yes {probe['vpn-domain']}", inline=True)
+            elif not probe['is-vpn']:
+                embed.add_field(name="Is VPN?", value=f"No", inline=True)
+            if probe['is-hosting']:
+                embed.add_field(name="Is Hosting?", value=f"Yes {probe['vpn-domain']}", inline=True)
+            elif not probe['is-hosting']:
+                embed.add_field(name="Is Hosting?", value=f"No", inline=True)
+            if len(one) < 3:
+                one = None
+            embed.add_field(name="Nmap Results", value=f"```py\n{one}\n```", inline=False)
+            embed.add_field(name="Ping Results", value=f"```\n{ping}\n```", inline=True)
+            await ctx.send(embed=embed, content="")
+        except Exception as e:
+            paste = Paste(content=str(e))
+            paste.save("https://paste.trent-buckley.com")
+            embed = Embed(title="We encountered an error",
+                          description=f"Something went wrong, for more info please see the [log]({paste.url}.md)",
+                          color=Color.from_hex("ff0000"))
+            embed.set_footer(text=f"Caused by {ctx.author.display_name}", icon_url=ctx.author.avatar.url)
+            await ctx.send(embeds=embed)
+
     @slash_command(name="count-members",
                    description="Counts all members with a certain role",
                    options=[
@@ -23,242 +117,19 @@ class ApplicationCommands(Scale):
                        )
                    ])
     async def count_members(self, ctx: InteractionContext, role: dis_snek.Role):
-        count = 0
-        for m in role.members:
-            print("boop")
-            count += 1
-        if count == 1:
-            title = f"**{count} member with the {role.mention} role**"
-        else:
-            title = f"**{count} members with the {role.mention} role**"
-        embed = Embed(description=f"{title}", color=role.color)
-        embed.set_footer(text=f"Issued by {ctx.author.display_name}", icon_url=ctx.author.avatar.url)
-        await ctx.send(embed=embed)
-    #
-    #
-    # @slash_command(
-    #     "transcript",
-    #     "Create a link to a transcript of this channel"
-    # )
-    # async def transcript(self, ctx):
-    #     css = '''
-    #         body {
-    #         background-color: #36393e;
-    #         color: #dcddde;
-    #         }
-    #         a {
-    #             color: #0096cf;
-    #         }
-    #         .info {
-    #             display: flex;
-    #             max-width: 100%;
-    #             margin: 0 5px 10px;
-    #         }
-    #         .guild-icon-container {
-    #             flex: 0;
-    #         }
-    #         .guild-icon {
-    #             max-width: 88px;
-    #             max-height: 88px;
-    #         }
-    #         .metadata {
-    #             flex: 1;
-    #             margin-left: 10px;
-    #         }
-    #         .guild-name {
-    #             font-size: 1.4em;
-    #         }
-    #         .channel-name {
-    #             font-size: 1.2em;
-    #         }
-    #         .channel-topic {
-    #             margin-top: 2px;
-    #         }
-    #         .channel-message-count {
-    #             margin-top: 2px;
-    #         }
-    #         .chatlog {
-    #             max-width: 100%;
-    #             margin-bottom: 24px;
-    #         }
-    #         .message-group {
-    #             display: flex;
-    #             margin: 0 10px;
-    #             padding: 15px 0;
-    #             border-top: 1px solid;
-    #         }
-    #         .author-avatar-container {
-    #             flex: 0;
-    #             width: 40px;
-    #             height: 40px;
-    #         }
-    #         .author-avatar {
-    #             border-radius: 50%;
-    #             height: 40px;
-    #             width: 40px;
-    #         }
-    #         .messages {
-    #             flex: 1;
-    #             min-width: 50%;
-    #             margin-left: 20px;
-    #         }
-    #         .author-name {
-    #             font-size: 1em;
-    #             font-weight: 500;
-    #         }
-    #         .timestamp {
-    #             margin-left: 5px;
-    #             font-size: 0.75em;
-    #         }
-    #         .message {
-    #             padding: 2px 5px;
-    #             margin-right: -5px;
-    #             margin-left: -5px;
-    #             background-color: transparent;
-    #             transition: background-color 1s ease;
-    #         }
-    #         .content {
-    #             font-size: 0.9375em;
-    #             word-wrap: break-word;
-    #         }
-    #         .mention {
-    #             color: #7289da;
-    #         }
-    #     '''
-    #
-    #     async def check_message_mention(msgs: dis_snek.Message):
-    #         user_mentions = []
-    #         if msgs.mention_users is not None:
-    #             async for member in msgs.mention_users:
-    #                 user_mentions.append(member)
-    #         role_mentions = []
-    #         if msgs.mention_roles:
-    #             async for role in msgs.mention_roles:
-    #                 role_mentions.append(role)
-    #         channel_mentions = []
-    #         if msgs.mention_channels:
-    #             for channel in msgs.mention_channels:
-    #                 channel_mentions.append(channel)
-    #         user_mentions: list = user_mentions
-    #         role_mentions: list = role_mentions
-    #         channel_mentions: list = channel_mentions
-    #         total_mentions = user_mentions + role_mentions + channel_mentions
-    #         m: str = msgs.content
-    #         for mentions in total_mentions:
-    #             if mentions in user_mentions:
-    #                 for mention in user_mentions:
-    #                     m = m.replace(str(f"<@{mention.id}>"),
-    #                                   f"<span class=\"mention\">@{mention.display_name}</span>")
-    #                     m = m.replace(str(f"<@!{mention.id}>"),
-    #                                   f"<span class=\"mention\">@{mention.display_name}</span>")
-    #             elif mentions in role_mentions:
-    #                 for mention in role_mentions:
-    #                     m = m.replace(str(f"<@&{mention.id}>"),
-    #                                   f"<span class=\"mention\">@{mention.name}</span>")
-    #             elif mentions in channel_mentions:
-    #                 for mention in channel_mentions:
-    #                     m = m.replace(str(f"<#{mention.id}>"),
-    #                                   f"<span class=\"mention\">#{mention.name}</span>")
-    #             else:
-    #                 pass
-    #         return m
-    #
-    #     messages = await ctx.channel.history(limit=None).flatten()
-    #
-    #     f = f'''
-    #         <!DOCTYPE html>
-    #         <html>
-    #         <head>
-    #             <meta charset=utf-8>
-    #             <meta name=viewport content="width=device-width">
-    #             <style>
-    #                 {css}
-    #             </style>
-    #         </head>
-    #         <body>
-    #             <div class=info>
-    #                 <div class=guild-icon-container><img class=guild-icon src={str(ctx.guild.icon.url).replace('.png.png', '.png')}></div>
-    #                 <div class=metadata>
-    #                     <div class=guild-name>{ctx.guild.name}</div>
-    #                     <div class=channel-name>{ctx.channel.name}</div>
-    #                     <div class=channel-message-count>{len(messages)} messages</div>
-    #                 </div>
-    #             </div>
-    #         '''
-    #
-    #     for message in messages[::-1]:
-    #         if message.embeds:
-    #             content = 'Embed'
-    #
-    #         elif message.attachments:
-    #             # IS AN IMAGE:
-    #             if message.attachments[0].url.endswith(('jpg', 'png', 'gif', 'bmp')):
-    #                 if message.content:
-    #                     content = check_message_mention(
-    #                         message) + '<br>' + f"<img src=\"{message.attachments[0].url}\" width=\"200\" alt=\"Attachment\" \\>"
-    #                 else:
-    #                     content = f"<img src=\"{message.attachments[0].url}\" width=\"200\" alt=\"Attachment\" \\>"
-    #
-    #             # IS A VIDEO
-    #             elif message.attachments[0].url.endswith(('mp4', 'ogg', 'flv', 'mov', 'avi')):
-    #                 if message.content:
-    #                     content = check_message_mention(message) + '<br>' + f'''
-    #                     <video width="320" height="240" controls>
-    #                       <source src="{message.attachments[0].url}" type="video/{message.attachments[0].url[-3:]}">
-    #                     Your browser does not support the video.
-    #                     </video>
-    #                     '''
-    #                 else:
-    #                     content = f'''
-    #                     <video width="320" height="240" controls>
-    #                       <source src="{message.attachments[0].url}" type="video/{message.attachments[0].url[-3:]}">
-    #                     Your browser does not support the video.
-    #                     </video>
-    #                     '''
-    #             elif message.attachments[0].url.endswith(('mp3', 'boh')):
-    #                 if message.content:
-    #                     content = check_message_mention(message) + '<br>' + f'''
-    #                     <audio controls>
-    #                       <source src="{message.attachments[0].url}" type="audio/{message.attachments[0].url[-3:]}">
-    #                     Your browser does not support the audio element.
-    #                     </audio>
-    #                     '''
-    #                 else:
-    #                     content = f'''
-    #                     <audio controls>
-    #                       <source src="{message.attachments[0].url}" type="audio/{message.attachments[0].url[-3:]}">
-    #                     Your browser does not support the audio element.
-    #                     </audio>
-    #                     '''
-    #             # OTHER TYPE OF FILES
-    #             else:
-    #                 # add things
-    #                 pass
-    #         else:
-    #             content = await check_message_mention(message)
-    #
-    #         f += f'''
-    #         <div class="message-group">
-    #             <div class="author-avatar-container"><img class=author-avatar src={message.author.avatar.url}></div>
-    #             <div class="messages">
-    #                 <span class="author-name" >{message.author.display_name}</span><span class="timestamp">{message.created_at.strftime("%b %d, %Y %H:%M")}</span>
-    #                 <div class="message">
-    #                     <div class="content"><span class="markdown">{content}</span></div>
-    #                 </div>
-    #             </div>
-    #         </div>
-    #         '''
-    #     f += '''
-    #             </div>
-    #         </body>
-    #     </html>
-    #     '''
-    #
-    #
-    #
-    #     with open(f"transcripts/{urlsafe_b64encode(uuid().bytes)[0:22]}.html", mode='w', encoding='utf-8') as file:
-    #         print(io.StringIO(f).read(), file=file)
-    #         await ctx.reply(f"Transcript: https://transcripts.boredman.net/{urlsafe_b64encode(uuid().bytes)[0:22]}")
+        try:
+            count = len(role.members)
+            if role.id == ctx.guild_id:
+                count = ctx.guild.member_count
+            if count == 1:
+                title = f"**{count} member with the {role.mention} role**"
+            else:
+                title = f"**{count} members with the {role.mention} role**"
+            embed = Embed(description=f"{title}", color=role.color)
+            embed.set_footer(text=f"Issued by {ctx.author.display_name}", icon_url=ctx.author.avatar.url)
+            await ctx.send(embed=embed)
+        except Exception as e:
+            await ctx.send(str(e))
 
 
 def setup(bot):

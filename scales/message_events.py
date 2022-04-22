@@ -1,7 +1,10 @@
 import contextlib
 import io
+import json
+import re
 import uuid
-
+from millify import millify
+import aiohttp
 import dis_snek
 from dis_snek import listen, Embed, ActionRow, Button, ButtonStyles
 from dis_snek.api.events import MessageCreate
@@ -14,52 +17,49 @@ from pytube import YouTube
 from scales.admin import is_owner
 
 
+def create_bar(self, likes) -> str:
+    progBarStr = ""
+    progBarLength = 10
+    percentage = 0
+    if likes != 0:
+        percentage = likes / 5
+        for i in range(progBarLength):
+            if round(percentage, 1) <= 1 / progBarLength * i:
+                progBarStr += "□"
+            else:
+                progBarStr += "■"
+    else:
+        progBarStr = "□" * progBarLength
+    progBarStr = progBarStr + f" {round(percentage * 100)}%"
+    return progBarStr
+
 class MessageEvents(Scale):
     @listen(MessageCreate)
     async def on_message_create(self, event: MessageCreate):
-        # Fix YouTube embeds for mobile users
-        if "https://www.youtube.com/watch?v=" in event.message.content:
+        # Regex yoinked from https://stackoverflow.com/a/37704433/5616971
+        youtube_regex = re.compile(r"^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube(-nocookie)?\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$")
+        results = youtube_regex.search(event.message.content)
+        if results is not None:
             try:
-                word_array = event.message.content.split(" ")
-                for word in word_array:
-                    if "https://www.youtube.com/watch?v=" in word:
-                        print("Detected youtube video. attempting download")
-                        await event.message.suppress_embeds()
-                        await event.message.add_reaction("<:youtube:957437121545793616>")
-                        yt = YouTube(word)
-                        embed = Embed(title=yt.title, description=yt.description[:250], url=yt.watch_url)
-                        embed.add_field("Author", yt.author, inline=True)
-                        embed.add_field("Views", yt.views, inline=True)
-                        embed.add_field("Uploaded", yt.publish_date, inline=False)
-                        embed.add_field("Age restricted?", yt.age_restricted, inline=True)
-                        embed.set_thumbnail(yt.thumbnail_url)
-
-                        components: list[ActionRow] = [
-                            ActionRow(
-                                Button(
-                                    style=ButtonStyles.BLURPLE,
-                                    label="⏯",
-                                )
-                            )
-                        ]
-                        filename = f"{str(uuid.uuid4())}.mp4"
-                        message = await event.message.channel.send(embeds=embed, components=components)
-                        video = yt.streams.filter(progressive=True, file_extension='mp4').order_by(
-                            'resolution').asc().first().download(output_path="/home/user/ShareX-Upload-Server/src/server/uploads", filename=filename)
-                        # print(video)
-                        try:
-                            # you need to pass the component you want to listen for here
-                            # you can also pass an ActionRow, or a list of ActionRows. Then a press on any component in there will be listened for
-                            used_component = await self.bot.wait_for_component(components=components,
-                                                                               timeout=30)
-                        except TimeoutError:
-                            components[0].components[0].disabled = True
-                            await message.edit(components=components)
-                        else:
-                            components[0].components[0].disabled = True
-                            await message.edit(components=components)
-                            content = f"https://share.boredman.net/{filename}"
-                            await used_component.context.send(content, ephemeral=False)
+                await event.message.add_reaction("<:youtube:957437121545793616>")
+                yt = YouTube(str(results))
+                embed = Embed(title=yt.title, description=yt.description[:250], url=yt.watch_url)
+                embed.add_field("Author", yt.author, inline=True)
+                embed.add_field("Views", millify(yt.views), inline=True)
+                embed.add_field("Uploaded", yt.publish_date.date(), inline=False)
+                embed.add_field("Age restricted?", yt.age_restricted, inline=False)
+                embed.set_thumbnail(yt.thumbnail_url)
+                # https://www.returnyoutubedislike.com
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(f"https://returnyoutubedislikeapi.com/Votes?videoId={yt.video_id}") as resp:
+                        if resp.status != 200:
+                            return
+                        print(await resp.text())
+                        likes = json.loads(await resp.text())
+                embed.add_field(name="Likes", value=millify(likes["likes"]), inline=True)
+                embed.add_field(name="Dislikes", value=millify(likes["dislikes"]), inline=True)
+                embed.add_field(name="Rating", value=create_bar(self, likes=likes['rating']), inline=True)
+                await event.message.channel.send(embeds=embed)
 
             except BaseException as e:
                 print(e)
@@ -68,7 +68,6 @@ class MessageEvents(Scale):
             if event.message.channel.id != 907718985343197194:  # don't do shit if the messages were in the logs channel
                 if ".com/channels" in event.message.content:
                     if event.message.guild and event.message.author != event.bot.user:  # Check we aren't in DM's to avoid looping
-                        await event.message.delete()
                         link = event.message.content.split('/')
                         server_id = int(link[4])
                         channel_id = int(link[5])
@@ -94,16 +93,21 @@ class MessageEvents(Scale):
                                 return
                         else:
                             embed = Embed(description=f"**{quoted.content}**\n\nSent: {quoted.created_at}")
-                        embed.color = color.MaterialColors.DEEP_PURPLE
+
                         if "#0000" in str(quoted.author): # user is a webhook and will throw a bunch of errors
-                            embed.set_author(name=f"Webhook in #{quoted.channel.name}",
+                            webhook_name = str(quoted.author).split("#")[0]
+                            embed.set_author(name=f"{webhook_name} in #{quoted.channel.name}",
+                                             url=quoted.jump_url)
+                        elif quoted_author is None:
+                            embed.set_author(name=f"Deleted User in #{quoted.channel.name}",
                                              url=quoted.jump_url)
                         else:
                             embed.set_author(name=f"{quoted_author.display_name} in #{quoted.channel.name}",
                                              icon_url=quoted_author.display_avatar.url,
                                              url=quoted.jump_url)
                         embed.set_footer(text=f"Quoted by {event.message.author.display_name}", icon_url=event.message.author.avatar._url)
-                        await event.message.channel.send(embed=embed)
+                        embed.color = color.MaterialColors.DEEP_PURPLE
+                        await event.message.reply(embed=embed)
 
                         try:
                             if not quoted.author.bot:

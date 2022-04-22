@@ -8,10 +8,13 @@ from pathlib import Path
 from urllib import parse, request
 
 import dis_snek
+import motor
+import pymongo
 from dis_snek.api.events import GuildEmojisUpdate, GuildJoin, GuildLeft
 from dis_snek.models.discord import color
 from dis_snek.models.snek.application_commands import SlashCommandOption
-from dis_snek import slash_command, InteractionContext, OptionTypes, Embed, Color, Modal, listen
+from dis_snek import slash_command, InteractionContext, OptionTypes, Embed, Color, Modal, listen, Task, IntervalTrigger, \
+    message_command, MessageContext
 from dis_snek.models import (
     Scale
 )
@@ -23,23 +26,41 @@ mongoConnectionString = (Path(__file__).parent.parent / "mongo.txt").read_text()
 
 class Utilities(Scale):
     @listen(GuildJoin)
-    async def guild_join(self, event: GuildJoin):
-        # Log guild join
+    async def on_guild_join(self, event: GuildJoin):
         if self.bot.is_ready:
+            # Send message to server owner
+            # try:
+            #     embed = Embed("Hi there!", "Thanks for inviting me.\nI am still in active development and as such am not a \"finished\" product.\n"
+            #                                "I may not function exactly how I'm intended to, but I sure will try my best.\n"
+            #                                "\nYou may use /setup in your server to configure me to your liking.")
+            #     owner = await event.guild.fetch_owner()
+            #     await owner.send(embeds=embed)
+            # except:
+            #     pass
+            # Log guild join
             channel = self.bot.get_channel(940919818561912872)
-            embed = Embed(title="<:Announce:943113367424479232> Joined new guild!",
+            embed = Embed(title="<:RightArrow:943113486983110666> Joined new guild!",
                           color=color.FlatUIColors.CARROT)
-            if event.guild.icon is not None:
-                embed.set_thumbnail(event.guild.icon.url)
-            if event.guild.banner is not None:
-                embed.set_image(event.guild.banner)
+            # if event.guild.icon is not None:
+            #     try:
+            #         embed.set_thumbnail(event.guild.icon.url)
+            #     except Exception as e:
+            #         print(e)
+            # else:
+            #     try:
+            #         embed.set_thumbnail("https://share.boredman.net/LHHPDwim.png")
+            #     except Exception as e:
+            #         print(e)
+            # if event.guild.banner is not None:
+            #     embed.set_image(event.guild.banner)
             embed.add_field("Name", event.guild.name, inline=True)
             embed.add_field("Owner", event.guild.get_owner(), inline=True)
             embed.add_field("Created", event.guild.created_at, inline=False)
             if event.guild.description is not None:
                 embed.add_field("Description", event.guild.description, inline=False)
-            embed.add_field("Members", len(event.guild.members), inline=True)
-            embed.add_field("Premium tier", event.guild.premium_tier, inline=True)
+            embed.add_field("Members", len([m for m in event.guild.members if not m.bot]), inline=True)
+            embed.add_field("Bots", len([m for m in event.guild.members if m.bot]), inline=True)
+            embed.add_field("Premium tier", event.guild.premium_tier, inline=False)
             embed.add_field("Premium boosters", len(event.guild.premium_subscribers), inline=True)
             await channel.send(embeds=embed)
             client = motor_asyncio.AsyncIOMotorClient(
@@ -65,27 +86,39 @@ class Utilities(Scale):
                 'dm_on_warns': True,
             })
 
-    # @listen(GuildLeft)
-    # async def guild_left(self, event: GuildLeft):
-    #     # Log guild leave
-    #     print("boop")
-    # print(event.guild)
-    # channel = self.bot.get_channel(940919818561912872)
-    # embed = Embed(title="<:Announce:943113367424479232> Left a guild!",
-    #               color=color.MaterialColors.RED)
-    # if event.guild.icon is not None:
-    #     embed.set_thumbnail(event.guild.icon.url)
-    # if event.guild.banner is not None:
-    #     embed.set_image(event.guild.banner)
-    # embed.add_field("Name", event.guild.name, inline=True)
-    # embed.add_field("Owner", event.guild.get_owner(), inline=True)
-    # embed.add_field("Created", event.guild.created_at, inline=False)
-    # if event.guild.description is not None:
-    #     embed.add_field("Description", event.guild.description, inline=False)
-    # embed.add_field("Members", len(event.guild.members), inline=True)
-    # embed.add_field("Premium tier", event.guild.premium_tier, inline=True)
-    # embed.add_field("Premium boosters", len(event.guild.premium_subscribers), inline=True)
-    # await channel.send(embeds=embed)
+    @listen(GuildLeft)
+    async def on_guild_left(self, event: GuildLeft):
+        channel = self.bot.get_channel(940919818561912872)
+        embed = Embed(title="<:LeftArrow:943113444813594706> Left a guild!",
+                      color=color.MaterialColors.RED)
+        guild_names = []
+        for guild in self.bot.guilds:
+            guild_names.append(guild.name)
+        embed.add_field(name="Guild name", value=str(set(self.guilds).difference(guild_names)).strip("{").strip("}").strip('"'))
+        if event.guild.icon is not None:
+            try:
+                embed.set_thumbnail(event.guild.icon.url)
+            except Exception as e:
+                print(e)
+        if event.guild.banner is not None:
+            try:
+                embed.set_image(event.guild.banner)
+            except Exception as e:
+                print(e)
+        await channel.send(embeds=embed)
+
+    @listen()
+    async def on_ready(self):
+        self.current_guilds.start()
+        self.guilds = []
+        for guild in self.bot.guilds:
+            self.guilds.append(guild.name)
+
+    @Task.create(IntervalTrigger(minutes=1))
+    async def current_guilds(self):
+        self.guilds = []
+        for guild in self.bot.guilds:
+            self.guilds.append(guild.name)
 
     @listen(GuildEmojisUpdate)
     async def emojis(self, event):
@@ -95,96 +128,6 @@ class Utilities(Scale):
             await channel.send(f"{len(event.after)} emojis")
             for emoji in event.after:
                 await channel.send(f"{emoji} {emoji.name} ({emoji.id})")
-
-    @slash_command(name="ip",
-                   description="Displays information on the given IP",
-                   options=[
-                       SlashCommandOption(
-                           name="address",
-                           description="The IP address you want to check",
-                           type=OptionTypes.STRING,
-                           required=True
-                       )])
-    async def ip(self, ctx: InteractionContext, address=None):
-        if address is None:
-            embed = Embed(title="We ran into an error", description="You forgot to add an IP",
-                          color=Color.from_hex("ff0000"))
-            embed.set_footer(text=f"Caused by {ctx.author.display_name}", icon_url=ctx.author.avatar_url)
-            await ctx.send(embed=embed)
-            return
-
-        try:
-            # This will return an error if it's not a valid IP. Saves me doing input validation
-            ipaddress.ip_address(address)
-            message = await ctx.send("https://cdn.discordapp.com/emojis/783447587940073522.gif")
-            # os.system(f"ping -c 1  {address}")
-            try:
-                ping = subprocess.check_output(["ping", "-c", "1", address]).decode('utf-8')
-            except subprocess.CalledProcessError:
-                ping = "Host appears down, or not answering ping requests"
-            os.system(f"nmap  {address} -oG nmap.grep")
-            process = subprocess.Popen(['./nmap.sh'],
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE)
-            stdout, stderr = process.communicate()
-            three = stdout.decode('utf-8').replace('///', '')
-            two = three.replace('//', ' ')
-            one = two.replace('/', ' ').replace('      1 ', '')
-            url = 'https://neutrinoapi.net/ip-info'
-            params = {
-                'user-id': "BoredManSwears",
-                'api-key': "ghwsjEpDP31gv0tzrz732ShPNBVIf2KZ9bFGkJkw4IERSsxA",
-                'ip': address,
-                'reverse-lookup': True
-            }
-            postdata = parse.urlencode(params).encode()
-            req = request.Request(url, data=postdata)
-            response = request.urlopen(req)
-            result = json.loads(response.read().decode("utf-8"))
-            url = 'https://neutrinoapi.net/ip-probe'
-            params = {
-                'user-id': "BoredManSwears",
-                'api-key': "ghwsjEpDP31gv0tzrz732ShPNBVIf2KZ9bFGkJkw4IERSsxA",
-                'ip': address,
-                'reverse-lookup': True
-            }
-            postdata = parse.urlencode(params).encode()
-            req = request.Request(url, data=postdata)
-            response = request.urlopen(req)
-            probe = json.loads(response.read().decode("utf-8"))
-            embed = Embed(title="IP lookup", description=f"Lookup details for {address}",
-                          color=Color.from_hex("ff0000"))
-            embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.avatar_url)
-            try:
-                embed.add_field(name="Location", value=f"{result['city']}\n{result['region']}, {result['country']}",
-                                inline=True)
-            except:
-                print(probe)
-            if not result['hostname'] == '':
-                embed.add_field(name="Hostname", value=str(result['hostname']), inline=True)
-            if not result['host-domain'] == '':
-                embed.add_field(name="Host Domain", value=str(result['host-domain']), inline=True)
-            embed.add_field(name="Maps Link",
-                            value=f"https://maps.google.com/?q={result['latitude']},{result['longitude']}", inline=True)
-            embed.add_field(name="Provider", value=f"{probe['provider-description']}", inline=True)
-            if probe['is-vpn']:
-                embed.add_field(name="Is VPN?", value=f"Yes {probe['vpn-domain']}", inline=True)
-            elif not probe['is-vpn']:
-                embed.add_field(name="Is VPN?", value=f"No", inline=True)
-            if probe['is-hosting']:
-                embed.add_field(name="Is Hosting?", value=f"Yes {probe['vpn-domain']}", inline=True)
-            elif not probe['is-hosting']:
-                embed.add_field(name="Is Hosting?", value=f"No", inline=True)
-            if len(one) < 3:
-                one = None
-            embed.add_field(name="Nmap Results", value=f"```py\n{one}\n```", inline=False)
-            embed.add_field(name="Ping Results", value=f"```\n{ping}\n```", inline=True)
-            await message.edit(embed=embed, content="")
-        except ValueError:
-            embed = Embed(title="We ran into an error", description="That isn't a valid IP",
-                          color=Color.from_hex("ff0000"))
-            embed.set_footer(text=f"Caused by {ctx.author.display_name}", icon_url=ctx.author.avatar_url)
-            await ctx.send(embed=embed)
 
     @slash_command(
         name="msg-owner",
@@ -199,15 +142,42 @@ class Utilities(Scale):
         ]
     )
     async def msg_owner(self, ctx: InteractionContext, message):
-        await ctx.send("Message sent. Thanks.\nRemember abuse of this feature will get you blacklisted from it",
-                       ephemeral=True)
-        if ctx.guild:
-            full_message = f"{ctx.author.user} in {ctx.guild.name} #{ctx.channel.name} sent\n\n{message}"
+        client = motor.motor_asyncio.AsyncIOMotorClient(
+            mongoConnectionString,
+            serverSelectionTimeoutMS=5000)
+        blacklist = client.blacklist.blacklist.find({'user_id': ctx.author.id})
+        blacklist = await blacklist.to_list(None)
+        if blacklist:
+            await ctx.send("You are blacklisted from this command for abusing it", ephemeral=True)
         else:
-            full_message = f"{ctx.author.user} DM sent\n\n{message}"
-        paste = Paste(content=full_message)
-        paste.save("https://paste.trent-buckley.com")
-        await self.bot.owner.send(f"{paste.url}.md")
+            await ctx.send("Message sent. Thanks.\nRemember abuse of this feature will get you blacklisted from it",
+                           ephemeral=True)
+            if ctx.guild:
+                full_message = f"{ctx.author.user}({ctx.author.user.id}) in {ctx.guild.name} #{ctx.channel.name} sent\n\n{message}"
+            else:
+                full_message = f"{ctx.author.user}({ctx.author.id}) DM sent\n\n{message}"
+            paste = Paste(content=full_message)
+            paste.save("https://paste.trent-buckley.com")
+            await self.bot.owner.send(f"{paste.url}.md")
+
+    @message_command(name="blacklist")
+    async def blacklist(self, ctx: MessageContext, user: int):
+        if ctx.author == self.bot.owner:
+            user = await self.bot.fetch_user(user)
+            client = motor.motor_asyncio.AsyncIOMotorClient(
+                mongoConnectionString,
+                serverSelectionTimeoutMS=5000)
+            blacklist = client.blacklist.blacklist.find({'user_id': user.id})
+            blacklist = await blacklist.to_list(None)
+            if blacklist:
+                await ctx.send(f"{user.username} is already blacklisted\n\nRemoving them from it now")
+                await client.blacklist.blacklist.delete_one({'user_id': user.id})
+
+            else:
+                await client.blacklist.blacklist.insert_one({
+                    'user_id': user.id,
+                })
+                await ctx.send(f"Added {user.username} to the blacklist")
 
     @slash_command(
         name="suggestions",

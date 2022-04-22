@@ -6,8 +6,19 @@ from dis_snek.models import (
     Scale
 )
 
+import datetime
+
+# https://stackoverflow.com/a/50358747/5616971
+def calcEpochSec(dt):
+    epochZero = datetime.datetime(1970, 1, 1, tzinfo=dt.tzinfo)
+    return (dt - epochZero).total_seconds()
+
 
 class Contexts(Scale):
+    # @context_menu(name="Mute User", context_type=CommandTypes.USER)
+    # async def mute_context_menu(self, ctx: InteractionContext):
+    #     await ctx.send(f"Muted {ctx.target.name}")
+
     @context_menu(name="User Info", context_type=CommandTypes.USER)
     async def user_context_menu(self, ctx: InteractionContext):
         user = self.bot.get_member(ctx.target_id, ctx.guild_id)
@@ -44,8 +55,12 @@ class Contexts(Scale):
         # else:  # just in case some funky shit is going on
         #     statusemoji = "\N{LARGE PURPLE CIRCLE}"
         #     status = ""
-        top_role = user.roles[-1]  # first element in roles is `@everyone` and last is top role
-        embed = Embed(color=top_role.color, description=user.mention)
+        try:
+            top_role = user.roles[-1]  # first element in roles is `@everyone` and last is top role
+            embed = Embed(color=top_role.color, description=user.mention)
+        except Exception as e:
+            embed = Embed(description=user.mention)
+            print(e)
         embed.set_author(name=str(user), icon_url=user.display_avatar.url)
         embed.set_thumbnail(url=user.display_avatar.url)
         # embed.add_field(name="Current Status", value=f"{statusemoji} | {status}", inline=False)
@@ -61,9 +76,13 @@ class Contexts(Scale):
         #     except:
         #         embed.add_field(name="Current Activity",
         #                         value=f"{activity} {user.activities[0].name}", inline=False)
-        joined_time = str((user.joined_at - datetime(1970, 1, 1)).total_seconds()).split('.')
-        discord_joined_time = str((user.created_at - datetime(1970, 1, 1)).total_seconds()).split('.')
-        embed.add_field(name="Discord Name", value=f"{user.name}#{user.discriminator}")
+        dt = user.joined_at
+        joined = calcEpochSec(dt)
+        joined_time = str(joined).split('.')
+        dt = user.created_at
+        created = calcEpochSec(dt)
+        discord_joined_time = str(created).split('.')
+        embed.add_field(name="Discord Name", value=f"{user.user.username}#{user.discriminator}")
         embed.add_field(name="Joined Server", value=f"<t:{joined_time[0]}:R>", inline=False)
         members = sorted(ctx.guild.members, key=lambda m: m.joined_at)
         embed.add_field(name="Join Position", value=str(members.index(user) + 1), inline=False)
@@ -72,8 +91,8 @@ class Contexts(Scale):
             res = user.roles[::-1]
             role_string = ' '.join([r.mention for r in res][:-1])
             embed.add_field(name="Roles [{}]".format(len(user.roles) - 1), value=role_string, inline=False)
-        embed.set_footer(text='ID: ' + str(user.id))
-        await ctx.send(embed=embed)
+        embed.set_footer(text=f"ID: {user.id}")
+        await ctx.send(embed=embed, ephemeral=True)
         # # Game stuffs
         # IP = config("GAME_IP")
         # url = f"http://{IP}/players/{user.display_name}/stats"

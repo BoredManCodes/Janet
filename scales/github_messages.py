@@ -9,8 +9,9 @@ import re
 import textwrap
 import traceback
 from pathlib import Path
-
+from lxml import html
 import aiohttp
+import bs4
 import github.GithubException
 import requests
 from dis_snek import (
@@ -29,7 +30,8 @@ from github import Github
 snippet_regex = re.compile(
     r"github\.com/([\w\-_]+)/([\w\-_]+)/blob/([\w\-_]+)/([\w\-_/.]+)(#L[\d]+(-L[\d]+)?)?"
 )
-
+commit_regex = re.compile(r"github\.com(?:/[^/]+)*/commit/[0-9a-f]{40}"
+)
 
 class GithubMessages(Scale):
     def __init__(self, bot):
@@ -62,6 +64,37 @@ class GithubMessages(Scale):
             **kwargs,
             components=[Button(ButtonStyles.RED, emoji="🗑️", custom_id="delete")],
         )
+
+    async def get_commit(self, message: Message):
+        results = commit_regex.findall(message.content)[0]
+        results = "github.com/Discord-Snake-Pit/Dis-Snek/commit/f5b815a5d9b98d8d71edfe8091537903fa9f762a"
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"https://{results}") as resp:
+                if resp.status != 200:
+                    return
+
+                # file_data = await resp.text()
+                # source = bs4.BeautifulSoup(file_data, "html.parser")
+                tree = html.fromstring(resp.text)
+                commit_data = tree.xpath('/html/body/div[5]/div/main/div[2]/div/div[4]/div[3]/div/div[2]/div/table')
+                commit_info = tree.xpath('/html/body/div[5]/div/main/div[2]/div/div[2]/div[4]/div[2]')
+                print(commit_info)
+                print(commit_data)
+
+
+
+                # page = source.("tbody")
+                # print(source)
+                #
+                #
+                # embed = Embed(
+                #     title=f"{user}/{repo}",
+                #     description=f"```{extension}\n{textwrap.dedent(file_data)}```",
+                # )
+                #
+                # await self.reply(message, embeds=embed)
+
+
 
     async def get_pull(self, repo, pr_id: int):
         try:
@@ -202,16 +235,16 @@ class GithubMessages(Scale):
 
             data = None
             try:
-
-                if "github.com/" in in_data and "#l" in in_data:
+                if "github.com/" in in_data and "commit" in in_data:
+                    print("commit detected")
+                    return await self.get_commit(message)
+                elif "github.com/" in in_data and "#l" in in_data:
                     print("searching for link")
                     return await self.send_snippet(message)
                 elif data := re.search(r"(?:\s|^)#(\d{1,3})(?:\s|$)", in_data):
                     issue = await self.get_issue(self.repo, int(data.group(1)))
                     if not issue:
                         return
-
-
                     return await self.send_issue(message, issue)
             except github.UnknownObjectException:
                 print(f"No git object with id: {data.group().split('#')[-1]}")

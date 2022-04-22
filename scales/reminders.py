@@ -4,6 +4,7 @@ from configparser import RawConfigParser
 from datetime import datetime, timedelta
 from pathlib import Path
 
+import dis_snek.client.errors
 import pymongo
 from bson import ObjectId
 from dis_snek.client.errors import NotFound
@@ -138,7 +139,7 @@ class Reminders(Scale):
             paginator = Paginator.create_from_embeds(self.bot, *embeds, timeout=300)
             paginator.wrong_user_message = "<:error:943118535922679879> These aren't your reminders"
             paginator.callback_button_emoji = "<:garbagebin:957162939201224744>"
-            paginator.show_callback_button = True
+            paginator.show_callback_button = False
             if len(reminders) > 1:
                 await paginator.send(ctx)
             elif len(reminders) == 1:
@@ -169,16 +170,47 @@ class Reminders(Scale):
         reminders = await reminders.to_list(length=None)
         for reminder in reminders:
             if now >= reminder['time']:
-                if not reminder['dm']:
-                    channel = self.bot.get_channel(reminder['channel_id'])
-                else:
-                    channel = self.bot.get_user(reminder['user_id'])
-                await channel.send(f"<@{reminder['user_id']}>,")
-                embed = Embed(title="<a:reminder:956707969318412348> Here's your reminder",
-                              color=color.FlatUIColors.CARROT,
-                              description=f"You asked me to remind you <t:{reminder['time']}:R>\nAbout: {reminder['content']}")
-                await channel.send(embeds=embed)
-                await db.all_reminders.delete_one({'uuid': reminder['uuid']})
+                try:
+                    if not reminder['dm']:
+                        channel = await self.bot.fetch_channel(reminder['channel_id'])
+                    else:
+                        channel = await self.bot.fetch_user(reminder['user_id'])
+                    await channel.send(f"<@{reminder['user_id']}>,")
+                    embed = Embed(title="<a:reminder:956707969318412348> Here's your reminder",
+                                  color=color.FlatUIColors.CARROT,
+                                  description=f"You asked me to remind you <t:{reminder['time']}:R>\nAbout: {reminder['content']}")
+                    await channel.send(embeds=embed)
+                    await db.all_reminders.delete_one({'uuid': reminder['uuid']})
+                except BaseException:  # if channel doesn't exist
+                    try:
+                        print("Channel not found\nAttempting to DM the user")
+                        channel = await self.bot.fetch_user(reminder['user_id'])
+                        await channel.send(f"<@{reminder['user_id']}>, I couldn't find or send a message in the original channel you asked in\n"
+                                           f"so here's a DM \:D")
+                        embed = Embed(title="<a:reminder:956707969318412348> Here's your reminder",
+                                      color=color.FlatUIColors.CARROT,
+                                      description=f"You asked me to remind you <t:{reminder['time']}:R>\nAbout: {reminder['content']}")
+                        await channel.send(embeds=embed)
+                        await db.all_reminders.delete_one({'uuid': reminder['uuid']})
+                    except BaseException as e:
+                        print(e)
+                        for guild in self.bot.guilds:
+                            try:
+                                user = await guild.fetch_member(reminder['user_id'])
+                                if user is not None:
+                                    await guild.system_channel.send(f"<@{reminder['user_id']}>, I couldn't find the channel you asked for this in, and your DMs are closed\n"
+                                                                    f"So I've sent this message to a guild you're in")
+                                    embed = Embed(title="<a:reminder:956707969318412348> Here's your reminder",
+                                                  color=color.FlatUIColors.CARROT,
+                                                  description=f"You asked me to remind you <t:{reminder['time']}:R>\nAbout: {reminder['content']}")
+                                    await guild.system_channel.send(embeds=embed)
+                                    await db.all_reminders.delete_one({'uuid': reminder['uuid']})
+                            except NotFound:
+                                continue
+                            except AttributeError:
+                                print("I'm out of ideas :), I've tried everything to send a reminder but was unable")
+                                await db.all_reminders.delete_one({'uuid': reminder['uuid']})
 
+                        pass
 def setup(bot):
     Reminders(bot)
