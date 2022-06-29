@@ -124,7 +124,7 @@ class Bot(Client):
                     guild_id, msg_id = [to_snowflake(k) for k in _key.split("|")]
                     try:
                         author = await self.cache.fetch_member(guild_id, poll.author_id)
-                    except NotFound:
+                    except Exception:
                         poll.author_data = {
                             "name": "Unknown",
                             "avatar_url": None,
