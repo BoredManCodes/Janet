@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
-from dis_snek import (
-    Scale,
+from naff import (
+    Extension,
     slash_command,
     InteractionContext,
     SlashCommandOption,
@@ -34,7 +34,7 @@ OPT_find_option = SlashCommandOption(
 )
 
 
-class EditPolls(Scale):
+class EditPolls(Extension):
     bot: "Bot"
 
     async def process_poll_option(self, ctx: InteractionContext, poll: str):
@@ -48,7 +48,7 @@ class EditPolls(Scale):
                 return None
             return poll
 
-    @slash_command("edit_poll", "Edit a given poll")
+    @slash_command("edit_poll", description="Edit a given poll")
     async def edit_poll(self, ctx: InteractionContext) -> None:
         """A dummy method for creating subcommands from"""
         ...

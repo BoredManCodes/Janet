@@ -8,17 +8,17 @@ from pathlib import Path
 from typing import Optional
 
 import aioredis
-import dis_snek
+import naff
 import orjson
-from dis_snek import (
+from naff import (
     IntervalTrigger,
     Task,
     Intents,
 )
-from dis_snek.api.events import MessageReactionAdd
-from dis_snek.client import Snake
-from dis_snek.client.errors import NotFound
-from dis_snek.models import (
+from naff.api.events import MessageReactionAdd
+from naff.client import Client
+from naff.client.errors import NotFound
+from naff.models import (
     slash_command,
     InteractionContext,
     Snowflake_Type,
@@ -31,7 +31,7 @@ from models.poll import PollData
 
 logging.basicConfig()
 log = logging.getLogger("Inquiry")
-cls_log = logging.getLogger(dis_snek.const.logger_name)
+cls_log = logging.getLogger(naff.const.logger_name)
 cls_log.setLevel(logging.DEBUG)
 log.setLevel(logging.DEBUG)
 
@@ -63,7 +63,7 @@ def process_duration(delay):
     return delay
 
 
-class Bot(Snake):
+class Bot(Client):
     def __init__(self):
         super().__init__(
             intents=Intents.DEFAULT | Intents.GUILD_MEMBERS,
@@ -78,8 +78,8 @@ class Bot(Snake):
 
         self.redis: aioredis.Redis = MISSING
 
-        self.load_extension("scales.create_poll")
-        self.load_extension("scales.edit_poll")
+        self.load_extension("extensions.create_poll")
+        self.load_extension("extensions.edit_poll")
 
     @listen()
     async def on_ready(self):
@@ -235,7 +235,7 @@ class Bot(Snake):
                             event.message._guild_id, event.message.id
                         )
 
-    @slash_command("invite", "Invite Inquiry to your server!")
+    @slash_command("invite", description="Invite Inquiry to your server!")
     async def invite(self, ctx: InteractionContext):
         await ctx.send(
             f"https://discord.com/oauth2/authorize?client_id={self.user.id}&scope=applications.commands%20bot",
@@ -304,6 +304,6 @@ class Bot(Snake):
 
 bot = Bot()
 
-bot.grow_scale("scales.admin")
+bot.load_extension("extensions.admin")
 
 bot.start((Path(__file__).parent / "token.txt").read_text().strip())

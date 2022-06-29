@@ -2,8 +2,8 @@ import asyncio
 import datetime
 
 import attr
-from dis_snek import ModalContext, MISSING
-from dis_snek.models import (
+from naff import ModalContext, MISSING
+from naff.models import (
     Snowflake_Type,
     Embed,
     BrandColors,

@@ -1,4 +1,4 @@
-git+https://github.com/Discord-Snake-Pit/Dis-Snek@dev
+naff
 thefuzz[speedup]
 aioredis[hiredis]
 orjson

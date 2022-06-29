@@ -1,11 +1,11 @@
 from typing import TYPE_CHECKING
 
-from dis_snek import (
+from naff import (
     SlashCommandOption,
     OptionTypes,
     SlashCommandChoice,
     MaterialColors,
-    Scale,
+    Extension,
     slash_command,
     InteractionContext,
     Modal,
@@ -65,12 +65,12 @@ def_options = [
 ]
 
 
-class CreatePolls(Scale):
+class CreatePolls(Extension):
     bot: "Bot"
 
     @slash_command(
         "poll",
-        "Create a poll",
+        description="Create a poll",
         options=def_options,
     )
     async def poll(self, ctx: InteractionContext):
