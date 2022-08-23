@@ -109,8 +109,13 @@ class ExtensionBase(Extension):
 
         polls = await self.bot.poll_cache.get_polls_by_guild(ctx.guild_id)
         if polls:
-            results = process.extract(ctx.input_text, {p.message_id: p.title for p in polls if predicate(p)}, limit=25)
-            results = [await self.bot.poll_cache.get_poll_by_message(p[2]) for p in results if p[1] > 50]
+            if not ctx.input_text:
+                results = polls[:25]
+            else:
+                results = process.extract(
+                    ctx.input_text, {p.message_id: p.title for p in polls if predicate(p)}, limit=25
+                )
+                results = [await self.bot.poll_cache.get_poll_by_message(p[2]) for p in results if p[1] > 50]
 
             await ctx.send(
                 [
