@@ -83,8 +83,6 @@ class Bot(Client):
                 if ctx.guild.id not in self.polls_to_update:
                     self.polls_to_update[ctx.guild.id] = set()
                 self.polls_to_update[ctx.guild.id].add(int(message_id))
-
-                await self.poll_cache.store_poll(ctx.guild_id, message_id, poll)
             return await ctx.send(f"Added {ctx.responses['new_option']} to the poll")
         return await ctx.send("That poll could not be edited")
 
