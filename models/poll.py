@@ -225,7 +225,7 @@ class PollData:
         if options := kwargs.get("options"):
             for o in options.split("\n-"):
                 if o:
-                    new_cls.add_option(o.strip())
+                    new_cls.add_option(o.strip().removeprefix("-"))
 
         if duration := kwargs.get("duration"):
             new_cls.expire_time = process_duration(duration)
