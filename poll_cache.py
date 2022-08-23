@@ -27,10 +27,14 @@ class PollCache:
 
     @classmethod
     async def initialize(cls, bot):
-        redis = await aioredis.from_url("redis://localhost/5", decode_responses=True)
-        instance = cls(bot, redis)
-        asyncio.create_task(instance.load_all_from_redis())
-        return instance
+        try:
+            redis = await aioredis.from_url("redis://localhost/5", decode_responses=True)
+            instance = cls(bot, redis)
+            asyncio.create_task(instance.load_all_from_redis())
+            return instance
+        except Exception as e:
+            log.critical(f"Failed to initialize cache", exc_info=e)
+            exit()
 
     @property
     def total_polls(self) -> int:
