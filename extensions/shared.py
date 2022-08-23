@@ -130,7 +130,7 @@ class ExtensionBase(Extension):
             await ctx.send([])
 
     async def option_autocomplete(self, ctx: AutocompleteContext, **kwargs) -> None:
-        poll = await self.bot.get_poll(ctx.guild_id, to_snowflake(kwargs.get("poll")))
+        poll = await self.bot.poll_cache.get_poll(ctx.guild_id, to_snowflake(kwargs.get("poll")))
         if poll:
             p_options = list(poll.poll_options)
             p_options = sorted(
