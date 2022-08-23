@@ -53,10 +53,16 @@ class PollCache:
                 except Exception as e:
                     log.error(f"Failed to fetch author for {poll.author_id}")
                 else:
-                    poll.author_data = {
-                        "name": author.display_name,
-                        "avatar_url": author.avatar_url,
-                    }
+                    if author:
+                        poll.author_data = {
+                            "name": author.display_name,
+                            "avatar_url": author.avatar_url,
+                        }
+                    else:
+                        poll.author_data = {
+                            "name": "Unknown",
+                            "avatar_url": "https://cdn.discordapp.com/embed/avatars/0.png",
+                        }
 
             # legacy poll support
             if not poll.guild_id:
