@@ -4,6 +4,7 @@ Inquiry is a bot that makes polls. Nothing more nothing less. Featuring extensiv
 
 [Powered by NAFF](https://github.com/NAFTeam/NAFF)
 
+![image](https://user-images.githubusercontent.com/22540825/186192310-653dee1e-972f-4e9e-a24a-ecd946f5d5c4.png)
 
 ## So how do you use Inquiry?
 Simply type `/poll` and name your poll. From here you can customise the poll to your needs.
