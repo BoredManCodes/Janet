@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  inquiry:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - inquiry-network
+    restart:
+      always
+
+networks:
+  inquiry-network:

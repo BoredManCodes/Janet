@@ -8,8 +8,10 @@ from naff import (
     Context,
 )
 
+__all__ = ("is_owner", "setup", "Admin")
 
-def is_owner():
+
+def is_owner() -> bool:
     """
     Is the author the owner of the bot.
 
@@ -26,11 +28,9 @@ def is_owner():
 class Admin(Extension):
     @prefixed_command()
     @check(is_owner())
-    async def set_avatar(self, ctx: PrefixedContext):
+    async def set_avatar(self, ctx: PrefixedContext) -> None:
         if not ctx.message.attachments:
-            return await ctx.send(
-                "There was no image to use! Try using that command again with an image"
-            )
+            return await ctx.send("There was no image to use! Try using that command again with an image")
         async with aiohttp.ClientSession() as session:
             async with session.get(ctx.message.attachments[0].url) as r:
                 if r.status == 200:
@@ -40,10 +40,10 @@ class Admin(Extension):
         await ctx.send("Failed to set avatar 😔")
 
     @set_avatar.error
-    async def avatar_error(self, error, ctx):
+    async def avatar_error(self, error, ctx) -> None:
         if isinstance(error, CommandCheckFailure):
             await ctx.send("You do not have permission to use this command!")
 
 
-def setup(bot):
+def setup(bot) -> None:
     Admin(bot)

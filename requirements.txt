@@ -1,4 +1,5 @@
-naff
-thefuzz[speedup]
 aioredis[hiredis]
+naff
 orjson
+python-dotenv
+thefuzz[speedup]

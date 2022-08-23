@@ -1,10 +1,6 @@
 from typing import TYPE_CHECKING
 
 from naff import (
-    SlashCommandOption,
-    OptionTypes,
-    SlashCommandChoice,
-    MaterialColors,
     Extension,
     slash_command,
     InteractionContext,
@@ -12,68 +8,27 @@ from naff import (
     ParagraphText,
 )
 
-from models.poll import PollData, PollOption
+from extensions.shared import def_options
+from models.poll import PollData
 
 if TYPE_CHECKING:
     from main import Bot
 
-colours = sorted(
-    [MaterialColors(c).name.title() for c in MaterialColors]
-    + [
-        "Blurple",
-        "Fuchsia",
-        "White",
-        "Black",
-    ]
-)
-
-def_options = [
-    SlashCommandOption(
-        "title", OptionTypes.STRING, "The title for your poll", required=True
-    ),
-    SlashCommandOption(
-        "colour",
-        OptionTypes.STRING,
-        "Choose the colour of the embed (default 'blurple')",
-        choices=[SlashCommandChoice(c.replace("_", " "), c) for c in colours],
-        required=False,
-    ),
-    SlashCommandOption(
-        "duration",
-        OptionTypes.INTEGER,
-        "Automatically close the poll after this many minutes",
-        required=False,
-    ),
-    SlashCommandOption(
-        "single_vote",
-        OptionTypes.BOOLEAN,
-        "Only allow a single vote per user (default False)",
-        required=False,
-    ),
-    SlashCommandOption(
-        "thread",
-        OptionTypes.BOOLEAN,
-        "Create a thread attached to this poll.",
-        required=False,
-    ),
-    SlashCommandOption(
-        "inline",
-        OptionTypes.BOOLEAN,
-        "Make options appear inline, in the embed (default True)",
-        required=False,
-    ),
-]
+__all__ = ("setup", "CreatePolls")
 
 
 class CreatePolls(Extension):
-    bot: "Bot"
+    def __init__(self, bot: "Bot") -> None:
+        self.bot: "Bot" = bot
+
+        self.set_extension_error(self.on_error)
 
     @slash_command(
         "poll",
         description="Create a poll",
         options=def_options,
     )
-    async def poll(self, ctx: InteractionContext):
+    async def poll(self, ctx: InteractionContext) -> None:
         modal = Modal(
             "Create a poll!",
             components=[
@@ -106,9 +61,7 @@ class CreatePolls(Extension):
         sub_cmd_description="A poll with yes and no options",
         options=def_options,
     )
-    async def prefab_boolean(self, ctx: InteractionContext):
-        await ctx.defer()
-
+    async def prefab_boolean(self, ctx: InteractionContext) -> None:
         poll = PollData.from_ctx(ctx)
         poll.add_option("Yes", "✅")
         poll.add_option("No", "❌")
@@ -121,9 +74,7 @@ class CreatePolls(Extension):
         sub_cmd_description="A poll with options for each day of the week",
         options=def_options,
     )
-    async def prefab_week(self, ctx: InteractionContext):
-        await ctx.defer()
-
+    async def prefab_week(self, ctx: InteractionContext) -> None:
         poll = PollData.from_ctx(ctx)
 
         options = [
@@ -146,9 +97,7 @@ class CreatePolls(Extension):
         sub_cmd_description="A poll with agree, neutral, and disagree options",
         options=def_options,
     )
-    async def prefab_opinion(self, ctx: InteractionContext):
-        await ctx.defer()
-
+    async def prefab_opinion(self, ctx: InteractionContext) -> None:
         poll = PollData.from_ctx(ctx)
         poll.add_option("Agree", "✅")
         poll.add_option("Neutral", "➖")
@@ -157,6 +106,9 @@ class CreatePolls(Extension):
         msg = await poll.send(ctx)
         await self.bot.set_poll(ctx.guild_id, msg.id, poll)
 
+    async def on_error(self, error: Exception, ctx: InteractionContext, *args, **kwargs) -> None:
+        await ctx.send(f"**Error:** {error}", ephemeral=True)
 
-def setup(bot):
+
+def setup(bot) -> None:
     CreatePolls(bot)
