@@ -9,6 +9,7 @@ from naff import (
     slash_command,
     File,
     Timestamp,
+    Permissions,
     AutocompleteContext,
 )
 from thefuzz import process
@@ -41,6 +42,8 @@ class PollUtils(ExtensionBase):
     async def poll_autocomplete(self, ctx: AutocompleteContext, poll) -> None:
         def predicate(_poll: PollData):
             if _poll.author_id == ctx.author.id:
+                return True
+            if ctx.author.has_permission(Permissions.MANAGE_MESSAGES):
                 return True
             return False
 
