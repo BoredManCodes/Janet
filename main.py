@@ -4,6 +4,7 @@ import logging
 import random
 import time
 from copy import deepcopy
+from typing import Any
 
 from naff import (
     Client,
@@ -35,8 +36,8 @@ class Bot(Client):
     def __init__(self) -> None:
         super().__init__(
             intents=Intents.DEFAULT | Intents.GUILD_MEMBERS,
-            sync_interactions=True,
-            delete_unused_application_cmds=True,
+            sync_interactions=False,
+            delete_unused_application_cmds=False,
             activity="with polls",
             fetch_members=True,
         )
@@ -65,13 +66,13 @@ class Bot(Client):
         await self.poll_cache.store_poll(guild_id, message_id, poll)
 
     @listen()
-    async def on_startup(self) -> None:
+    async def on_startup(self) -> Any:
         await self.poll_cache.ready.wait()
         log.info(f"Logged in as {self.user.username}")
         log.info(f"Currently in {len(self.guilds)} guilds")
 
     @listen()
-    async def on_modal_response(self, event: ModalResponse) -> None:
+    async def on_modal_response(self, event: ModalResponse) -> Any:
         ctx = event.context
         await ctx.defer(ephemeral=True)
 
@@ -87,7 +88,7 @@ class Bot(Client):
         return await ctx.send("That poll could not be edited")
 
     @listen()
-    async def on_button(self, event: Button) -> None:
+    async def on_button(self, event: Button) -> Any:
         ctx: ComponentContext = event.context
         if ctx.custom_id == "add_option":
             if await self.poll_cache.get_poll(ctx.guild_id, ctx.message.id):
