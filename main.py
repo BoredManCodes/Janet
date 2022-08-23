@@ -36,7 +36,7 @@ class Bot(Client):
     def __init__(self) -> None:
         super().__init__(
             intents=Intents.DEFAULT | Intents.GUILD_MEMBERS,
-            sync_interactions=False,
+            sync_interactions=True,
             delete_unused_application_cmds=False,
             activity="with polls",
             fetch_members=True,
@@ -54,6 +54,7 @@ class Bot(Client):
         bot.load_extension("extensions.create_poll")
         bot.load_extension("extensions.edit_poll")
         bot.load_extension("extensions.poll_utils")
+        bot.load_extension("extensions.admin")
 
         bot.poll_cache = await PollCache.initialize(bot)
 

@@ -1,4 +1,8 @@
+import subprocess
+from typing import TYPE_CHECKING
+
 import aiohttp
+import naff
 from naff.client.errors import CommandCheckFailure
 from naff import (
     Extension,
@@ -6,9 +10,16 @@ from naff import (
     PrefixedContext,
     check,
     Context,
+    slash_command,
+    InteractionContext,
+    Embed,
+    BrandColors,
 )
 
 __all__ = ("is_owner", "setup", "Admin")
+
+if TYPE_CHECKING:
+    from main import Bot
 
 
 def is_owner() -> bool:
@@ -26,6 +37,8 @@ def is_owner() -> bool:
 
 
 class Admin(Extension):
+    bot: "Bot"
+
     @prefixed_command()
     @check(is_owner())
     async def set_avatar(self, ctx: PrefixedContext) -> None:
@@ -43,6 +56,25 @@ class Admin(Extension):
     async def avatar_error(self, error, ctx) -> None:
         if isinstance(error, CommandCheckFailure):
             await ctx.send("You do not have permission to use this command!")
+
+    @slash_command("stats", description="Get some stats about the bot")
+    async def stats(self, ctx: InteractionContext) -> None:
+        await ctx.defer()
+        embed = Embed("Inquiry Stats", color=BrandColors.BLURPLE)
+
+        # get commit hash
+        git_hash = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"]).decode("ascii").strip()
+
+        embed.add_field(name="Guilds", value=str(len(self.bot.guilds)))
+        embed.add_field(name="Users", value=str(len(self.bot.cache.user_cache)))
+        embed.add_field(name="Active Polls", value=str(len(self.bot.poll_cache.polls)))
+        embed.add_field(name="Pending Updates", value=str(len(self.bot.polls_to_update)))
+        embed.add_field(name="NAFF version", value=f"[{naff.const.__version__}](https://github.com/NAFTeam/NAFF)")
+        embed.add_field(
+            name="Inquiry Commit", value=f"[{git_hash}](https://github.com/LordOfPolls/Inquiry/commit/{git_hash})"
+        )
+        embed.set_thumbnail(url=self.bot.user.avatar.url)
+        await ctx.send(embed=embed)
 
 
 def setup(bot) -> None:
