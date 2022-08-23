@@ -8,7 +8,9 @@ from naff import (
     InteractionContext,
     slash_command,
     File,
+    Timestamp,
 )
+from thefuzz import process
 
 from extensions.shared import ExtensionBase, OPT_find_poll
 from models.poll import PollData
@@ -34,6 +36,30 @@ class PollUtils(ExtensionBase):
         except Exception as e:
             pass
         return user_id
+
+    async def poll_autocomplete(self, ctx: InteractionContext, poll) -> None:
+        def predicate(_poll: PollData):
+            if _poll.author_id == ctx.author.id:
+                return True
+            return False
+
+        polls = await self.bot.poll_cache.get_polls_by_guild(ctx.guild_id)
+        if polls:
+            results = process.extract(ctx.input_text, {p.message_id: p.title for p in polls if predicate(p)}, limit=25)
+            results = [await self.bot.poll_cache.get_poll_by_message(p[2]) for p in results if p[1] > 50]
+
+            await ctx.send(
+                [
+                    {
+                        "name": f"{p.title} ({Timestamp.from_snowflake(p.message_id).ctime()})",
+                        "value": str(p.message_id),
+                    }
+                    for p in results
+                ]
+            )
+
+        else:
+            await ctx.send([])
 
     @slash_command("export", description="Export a poll as a csv file", options=[OPT_find_poll])
     async def export(self, ctx: InteractionContext, poll) -> None:

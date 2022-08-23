@@ -11,7 +11,7 @@ from naff import (
     Modal,
     ShortText,
 )
-from thefuzz import fuzz
+from thefuzz import fuzz, process
 
 from models.poll import PollData
 
@@ -109,12 +109,8 @@ class ExtensionBase(Extension):
 
         polls = await self.bot.poll_cache.get_polls_by_guild(ctx.guild_id)
         if polls:
-            polls = [p for p in polls if predicate(p)]
-            polls = sorted(
-                polls,
-                key=lambda x: fuzz.partial_ratio(x.title, ctx.input_text),
-                reverse=True,
-            )[:25]
+            results = process.extract(ctx.input_text, {p.message_id: p.title for p in polls if predicate(p)}, limit=25)
+            results = [await self.bot.poll_cache.get_poll_by_message(p[2]) for p in results if p[1] > 50]
 
             await ctx.send(
                 [
@@ -122,7 +118,7 @@ class ExtensionBase(Extension):
                         "name": f"{p.title} ({Timestamp.from_snowflake(p.message_id).ctime()})",
                         "value": str(p.message_id),
                     }
-                    for p in polls
+                    for p in results
                 ]
             )
 
