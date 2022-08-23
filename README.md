@@ -1,6 +1,8 @@
 Inquiry is a bot that makes polls. Nothing more nothing less. Featuring extensive customisation, all you need to do is ask the question. 
 
+[Invite Inquiry](https://discord.com/oauth2/authorize?client_id=805445862771654667&permissions=24640&scope=applications.commands%20bot)
 [Powered by NAFF](https://github.com/NAFTeam/NAFF)
+
 
 ## So how do you use Inquiry?
 Simply type `/poll` and name your poll. From here you can customise the poll to your needs.
