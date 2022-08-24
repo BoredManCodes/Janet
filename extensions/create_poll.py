@@ -9,6 +9,7 @@ from naff import (
 )
 
 from extensions.shared import def_options
+from models.emoji import opinion_emoji
 from models.poll import PollData
 
 if TYPE_CHECKING:
@@ -99,9 +100,9 @@ class CreatePolls(Extension):
     )
     async def prefab_opinion(self, ctx: InteractionContext) -> None:
         poll = PollData.from_ctx(ctx)
-        poll.add_option("Agree", "✅")
-        poll.add_option("Neutral", "➖")
-        poll.add_option("Disagree", "❌")
+        poll.add_option("Agree", opinion_emoji[0])
+        poll.add_option("Neutral", opinion_emoji[1])
+        poll.add_option("Disagree", opinion_emoji[2])
 
         msg = await poll.send(ctx)
         await self.bot.set_poll(ctx.guild_id, msg.id, poll)
