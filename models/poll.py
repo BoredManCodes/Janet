@@ -155,6 +155,9 @@ class PollData:
         if self.open_poll:
             description.append("• Open Poll - Anyone can add options")
 
+        if len(self.poll_options) == 0:
+            e.add_field("This poll has no options", "Be the first to add one with the `+` button!", inline=False)
+
         if self.expire_time:
             _c = "Closed" if self.expired else "Closes"
             description.append(

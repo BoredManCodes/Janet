@@ -107,6 +107,17 @@ class CreatePolls(Extension):
         msg = await poll.send(ctx)
         await self.bot.set_poll(ctx.guild_id, msg.id, poll)
 
+    @poll_prefab.subcommand(
+        "blank",
+        sub_cmd_description="An open poll with no starting options",
+        options=[o for o in def_options if str(o.name) != "open_poll"],
+    )
+    async def prefab_blank(self, ctx: InteractionContext) -> None:
+        poll = PollData.from_ctx(ctx)
+        poll.open_poll = True
+        msg = await poll.send(ctx)
+        await self.bot.set_poll(ctx.guild_id, msg.id, poll)
+
     async def on_error(self, error: Exception, ctx: InteractionContext, *args, **kwargs) -> None:
         await ctx.send(f"**Error:** {error}", ephemeral=True)
 
