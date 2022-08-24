@@ -41,6 +41,8 @@ class EditPolls(ExtensionBase):
             if poll.author_id == ctx.author.id:
                 message = await self.bot.cache.fetch_message(poll.channel_id, poll.message_id)
                 if message:
+                    if len(poll.poll_options) == 1 and not poll.open_poll:
+                        return await ctx.send("Non-Open polls must have at least one option", ephemeral=True)
                     async with poll.lock:
                         for i in range(len(poll.poll_options)):
                             if poll.poll_options[i].text == option.replace("_", " "):
