@@ -1,5 +1,8 @@
 aioredis[hiredis]
+matplotlib
 naff
+numpy
 orjson
 python-dotenv
+pyyaml
 thefuzz[speedup]
