@@ -163,6 +163,7 @@ class Bot(Client):
                                     await self.poll_cache.delete_poll(poll.channel_id, poll.message_id)
                                     continue
                                 else:
+                                    poll.reallocate_emoji()
                                     tasks.append(
                                         asyncio.create_task(msg.edit(embeds=poll.embed, components=poll.components))
                                     )

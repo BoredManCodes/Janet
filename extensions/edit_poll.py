@@ -45,6 +45,7 @@ class EditPolls(ExtensionBase):
                         for i in range(len(poll.poll_options)):
                             if poll.poll_options[i].text == option.replace("_", " "):
                                 del poll.poll_options[i]
+                                poll.reallocate_emoji()
                                 await message.edit(embeds=poll.embed, components=poll.components)
                                 await ctx.send(f"Removed `{option}` from `{poll.title}`")
                                 break

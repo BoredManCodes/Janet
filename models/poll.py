@@ -178,6 +178,12 @@ class PollData:
 
         return e
 
+    def reallocate_emoji(self):
+        """Reallocate emoji to the poll options"""
+        for i, option in enumerate(self.poll_options):
+            if option.emoji in default_emoji:
+                option.emoji = default_emoji[i]
+
     @property
     def components(self) -> list[ActionRow]:
         if self.expired:
