@@ -18,7 +18,7 @@ Once customised, hit submit, and a modal will appear letting you add your option
 - `Hide_Results` - Hide the results of the poll until it has closed
 - `Open_Poll` - Allow people to add their own options to the poll
 - `Thread` - Create a thread for this poll
-- `inline` - Should the options be displayed in line (side-by-side)
+- `Inline` - Should the options be displayed in line (side-by-side)
 
 ## Need a poll fast? 
 Use `poll_prefab`. These commands create a poll with pre-set options for you. 
@@ -27,6 +27,7 @@ Currently, there are:
 - `boolean` - a poll with yes or no options
 - `opinion` - a poll with `agree`, `neutral`, `disagree` options
 - `week` - a poll with the days of the week
+- `blank` - an open poll with no starting options 
 
 ## Made  a mistake?
 You can edit polls too, up until you close them. Simply use the `edit_poll` commands
