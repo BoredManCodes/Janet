@@ -2,6 +2,7 @@ version: "3.9"
 
 services:
   inquiry:
+    container_name: Inquiry
     build:
       context: ./
       dockerfile: ./Dockerfile
@@ -11,6 +12,22 @@ services:
       - inquiry-network
     restart:
       always
+    depends_on:
+      - redis
+
+  redis:
+    container_name: Redis
+    image: redis:latest
+    networks:
+      - inquiry-network
+    restart:
+      always
+    volumes:
+      - redis-data:/data
 
 networks:
   inquiry-network:
+
+volumes:
+  redis-data:
+    driver: local
