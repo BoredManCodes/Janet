@@ -220,7 +220,7 @@ class PollData:
             single_vote=kwargs.get("single_vote", False),
             hide_results=kwargs.get("hide_results", False),
             open_poll=kwargs.get("open_poll", False),
-            inline=kwargs.get("inline", True),
+            inline=kwargs.get("inline", False),
             colour=kwargs.get("colour", "BLURPLE"),
             thread=kwargs.get("thread", False),
             channel_id=ctx.channel.id,
