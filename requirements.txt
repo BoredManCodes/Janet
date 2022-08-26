@@ -6,3 +6,4 @@ orjson
 python-dotenv
 pyyaml
 thefuzz[speedup]
+emoji

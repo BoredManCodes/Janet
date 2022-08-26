@@ -2,6 +2,7 @@ import asyncio
 import datetime
 
 import attr
+import emoji as emoji_lib
 from naff import ModalContext, MISSING, ButtonStyles, Color, ActionRow
 from naff.models import (
     Snowflake_Type,
@@ -200,10 +201,16 @@ class PollData:
             buttons.append(Button(ButtonStyles.SUCCESS, emoji="\U00002795", custom_id="add_option"))
         return spread_to_rows(*buttons)
 
-    def add_option(self, opt_name: str, emoji: str | None = None) -> None:
+    def add_option(self, opt_name: str, _emoji: str | None = None) -> None:
         if len(self.poll_options) >= len(default_emoji):
             raise ValueError("Poll has reached max options")
-        self.poll_options.append(PollOption(opt_name.strip(), emoji or default_emoji[len(self.poll_options)]))
+        if not _emoji:
+            _emoji_list = emoji_lib.distinct_emoji_list(opt_name)
+            if _emoji_list:
+                _emoji = _emoji_list[0]
+                opt_name = opt_name.replace(_emoji, "")
+
+        self.poll_options.append(PollOption(opt_name.strip(), _emoji or default_emoji[len(self.poll_options)]))
 
     def parse_message(self, msg: Message) -> None:
         self.channel_id = msg.channel.id
