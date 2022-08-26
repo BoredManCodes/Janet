@@ -46,7 +46,9 @@ class CreatePolls(Extension):
         if not m_ctx.kwargs["options"].strip():
             return await m_ctx.send("You did not provide any options!", ephemeral=True)
 
-        poll = PollData.from_ctx(ctx, m_ctx)
+        poll = await PollData.from_ctx(ctx, m_ctx)
+        if not poll:
+            return
 
         msg = await poll.send(ctx)
         await self.bot.set_poll(ctx.guild_id, msg.id, poll)
@@ -63,7 +65,10 @@ class CreatePolls(Extension):
         options=def_options,
     )
     async def prefab_boolean(self, ctx: InteractionContext) -> None:
-        poll = PollData.from_ctx(ctx)
+        poll = await PollData.from_ctx(ctx)
+        if not poll:
+            return
+
         poll.add_option("Yes", "✅")
         poll.add_option("No", "❌")
 
@@ -76,7 +81,9 @@ class CreatePolls(Extension):
         options=def_options,
     )
     async def prefab_week(self, ctx: InteractionContext) -> None:
-        poll = PollData.from_ctx(ctx)
+        poll = await PollData.from_ctx(ctx)
+        if not poll:
+            return
 
         options = [
             "Monday",
@@ -99,7 +106,10 @@ class CreatePolls(Extension):
         options=def_options,
     )
     async def prefab_opinion(self, ctx: InteractionContext) -> None:
-        poll = PollData.from_ctx(ctx)
+        poll = await PollData.from_ctx(ctx)
+        if not poll:
+            return
+
         poll.add_option("Agree", opinion_emoji[0])
         poll.add_option("Neutral", opinion_emoji[1])
         poll.add_option("Disagree", opinion_emoji[2])
@@ -113,7 +123,10 @@ class CreatePolls(Extension):
         options=[o for o in def_options if str(o.name) != "open_poll"],
     )
     async def prefab_blank(self, ctx: InteractionContext) -> None:
-        poll = PollData.from_ctx(ctx)
+        poll = await PollData.from_ctx(ctx)
+        if not poll:
+            return
+
         poll.open_poll = True
         msg = await poll.send(ctx)
         await self.bot.set_poll(ctx.guild_id, msg.id, poll)

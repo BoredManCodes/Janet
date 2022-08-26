@@ -1,9 +1,10 @@
 import asyncio
 import datetime
+from typing import Union
 
 import attr
 import emoji as emoji_lib
-from naff import ModalContext, MISSING, ButtonStyles, Color, ActionRow
+from naff import ModalContext, MISSING, ButtonStyles, Color, ActionRow, Permissions, ThreadChannel
 from naff.models import (
     Snowflake_Type,
     Embed,
@@ -27,6 +28,33 @@ def deserialize_datetime(date) -> datetime.datetime:
     if isinstance(date, str):
         return datetime.datetime.strptime(date, "%Y-%m-%dT%H:%M:%S.%f")
     return date
+
+
+async def santiy_check(ctx: InteractionContext) -> bool:
+    """Sanity checks that the bot can even make a poll here"""
+    if not ctx.guild:
+        # technically shouldn't happen, but no harm in checking
+        await ctx.send("This command can only be used in a server", ephemeral=True)
+        return False
+
+    channel_perms = ctx.channel.permissions_for(ctx.guild.me)
+
+    if Permissions.VIEW_CHANNEL not in channel_perms:
+        await ctx.send("I can't view my messages in this channel", ephemeral=True)
+        return False
+
+    if ctx.kwargs.get("thread"):
+        if not all(perm in channel_perms for perm in (Permissions.USE_PUBLIC_THREADS, Permissions.USE_PRIVATE_THREADS)):
+            await ctx.send("I don't have the permissions to create threads in this channel", ephemeral=True)
+            return False
+        if isinstance(ctx.channel, ThreadChannel):
+            await ctx.send("You cannot create a thread inside a thread!", ephemeral=True)
+            return False
+        if len(ctx.kwargs.get("title")) > 100:
+            await ctx.send("Thread titles cannot be longer than 100 characters", ephemeral=True)
+            return False
+
+    return True
 
 
 @attr.s(auto_attribs=True, on_setattr=[attr.setters.convert, attr.setters.validate])
@@ -217,7 +245,10 @@ class PollData:
         self.message_id = msg.id
 
     @classmethod
-    def from_ctx(cls, ctx: InteractionContext, m_ctx: ModalContext | None = None) -> "PollData":
+    async def from_ctx(cls, ctx: InteractionContext, m_ctx: ModalContext | None = None) -> Union["PollData", bool]:
+        if not await santiy_check(ctx):
+            return False
+
         kwargs = ctx.kwargs
         if m_ctx:
             kwargs |= m_ctx.kwargs
