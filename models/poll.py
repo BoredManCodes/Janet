@@ -136,7 +136,7 @@ class PollData:
 
             option = self.poll_options[i]
             if not self.expired and self.hide_results:
-                e.add_field(f"{option.emoji}", option.text, inline=self.inline)
+                e.add_field(f"{option.emoji} - {option.text}", "‏", inline=self.inline)
             else:
                 e.add_field(
                     f"{option.emoji} {option.text}",
