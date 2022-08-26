@@ -35,7 +35,7 @@ log = logging.getLogger("Inquiry")
 class Bot(Client):
     def __init__(self) -> None:
         super().__init__(
-            intents=Intents.DEFAULT | Intents.GUILD_MEMBERS,
+            intents=Intents.new(guilds=True, guild_members=True, reactions=True),
             sync_interactions=True,
             delete_unused_application_cmds=False,
             activity="with polls",
