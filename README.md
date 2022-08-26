@@ -29,6 +29,14 @@ Currently, there are:
 - `week` - a poll with the days of the week
 - `blank` - an open poll with no starting options 
 
+## What about custom emoji?
+Custom emoji couldnt be simpler; just put an emoji anywhere in the option text, and Inquiry will extract it for the option's emoji
+![image](https://user-images.githubusercontent.com/22540825/186945287-9c4f7807-eb1d-4acb-8e83-2772c48ed1f5.png)
+
+![image](https://user-images.githubusercontent.com/22540825/186945315-2b1a99ad-0c70-4374-af77-652684fe8e67.png)
+
+
+
 ## Made  a mistake?
 You can edit polls too, up until you close them. Simply use the `edit_poll` commands
 
