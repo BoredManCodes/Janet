@@ -18,10 +18,11 @@ from naff import (
     Modal,
     ShortText,
     CommandTypes,
+    InteractionContext,
 )
 from naff.api.events import Button, MessageReactionAdd, ModalResponse
 from naff.client.errors import NotFound
-from naff.models.naff.application_commands import context_menu
+from naff.models.naff.application_commands import context_menu, slash_command
 
 from models.poll import PollData
 from poll_cache import PollCache
@@ -71,6 +72,12 @@ class Bot(Client):
         await self.poll_cache.ready.wait()
         log.info(f"Logged in as {self.user.username}")
         log.info(f"Currently in {len(self.guilds)} guilds")
+
+    @slash_command("invite", description="Get the invite link for this bot")
+    async def invite(self, ctx: InteractionContext):
+        await ctx.send(
+            f"https://discord.com/api/oauth2/authorize?client_id={self.app.id}&permissions=377957124096&scope=bot%20applications.commands"
+        )
 
     @listen()
     async def on_modal_response(self, event: ModalResponse) -> Any:
