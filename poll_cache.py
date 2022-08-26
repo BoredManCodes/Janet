@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from asyncio import Event
+from contextlib import suppress
 
 import aioredis
 import orjson
@@ -130,8 +131,11 @@ class PollCache:
         key = f"{guild_id}|{message_id}"
         await self.redis.delete(key)
 
-        self.polls.remove(self.polls_by_message[message_id])
-        self.polls_by_guild[guild_id].remove(message_id)
-        del self.polls_by_message[message_id]
+        with suppress(KeyError, ValueError):
+            self.polls.remove(self.polls_by_message[message_id])
+        with suppress(KeyError):
+            self.polls_by_guild[guild_id].remove(message_id)
+        with suppress(KeyError):
+            del self.polls_by_message[message_id]
 
         log.debug("Deleted poll: %s", key)
