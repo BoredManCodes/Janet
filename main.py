@@ -80,6 +80,10 @@ class Bot(Client):
             f"https://discord.com/api/oauth2/authorize?client_id={self.app.id}&permissions=377957124096&scope=bot%20applications.commands"
         )
 
+    @slash_command("feedback", description="Send feedback to the bot owner")
+    async def feedback(self, ctx: InteractionContext):
+        await ctx.send("Thank you!\nhttps://forms.gle/6NDMJQXqmWL8fQVm6")
+
     @listen()
     async def on_modal_response(self, event: ModalResponse) -> Any:
         ctx = event.context
