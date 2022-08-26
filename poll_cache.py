@@ -115,7 +115,8 @@ class PollCache:
             if key is None or message_id is None:
                 raise ValueError("Invalid message_id or guild_id")
 
-            self.polls.append(poll)
+            if poll not in self.polls:
+                self.polls.append(poll)
             if not guild_id in self.polls_by_guild:
                 self.polls_by_guild[guild_id] = set()
             self.polls_by_guild[guild_id].add(message_id)
