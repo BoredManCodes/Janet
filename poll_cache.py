@@ -28,7 +28,12 @@ class PollCache:
     @classmethod
     async def initialize(cls, bot):
         try:
-            redis = await aioredis.from_url("redis://redis/5", decode_responses=True)
+            try:
+                redis = await aioredis.from_url("redis://redis/5", decode_responses=True)
+                await redis.ping()
+            except Exception as e:
+                redis = await aioredis.from_url("redis://localhost/5", decode_responses=True)
+                await redis.ping()
             instance = cls(bot, redis)
             asyncio.create_task(instance.load_all_from_redis())
             return instance
