@@ -1,10 +1,20 @@
 import asyncio
 import datetime
+import textwrap
 from typing import Union
 
 import attr
 import emoji as emoji_lib
-from naff import ModalContext, MISSING, ButtonStyles, Color, ActionRow, Permissions, ThreadChannel
+from naff import (
+    ModalContext,
+    MISSING,
+    ButtonStyles,
+    Color,
+    ActionRow,
+    Permissions,
+    ThreadChannel,
+    EMBED_MAX_NAME_LENGTH,
+)
 from naff.models import (
     Snowflake_Type,
     Embed,
@@ -167,11 +177,12 @@ class PollData:
         for i in range(len(self.poll_options)):
 
             option = self.poll_options[i]
+            name = textwrap.shorten(f"{option.emoji} {option.text}", width=EMBED_MAX_NAME_LENGTH)
             if not self.expired and self.hide_results:
-                e.add_field(f"{option.emoji} - {option.text}", "‏", inline=self.inline)
+                e.add_field(name, "‏", inline=self.inline)
             else:
                 e.add_field(
-                    f"{option.emoji} {option.text}",
+                    name,
                     option.create_bar(total_votes),
                     inline=self.inline,
                 )
