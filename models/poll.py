@@ -97,8 +97,8 @@ class PollOption:
 @attr.s(auto_attribs=True, on_setattr=[attr.setters.convert, attr.setters.validate])
 class PollData:
     title: str
-    description: str
     author_id: Snowflake_Type
+    description: str = attr.ib(default=None)
     channel_id: Snowflake_Type = attr.ib(default=MISSING)
     message_id: Snowflake_Type = attr.ib(default=MISSING)
     guild_id: Snowflake_Type = attr.ib(default=MISSING)
