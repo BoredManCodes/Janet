@@ -44,13 +44,26 @@ colours = sorted(
 )
 
 def_options = [
-    SlashCommandOption("title", OptionTypes.STRING, "The title for your poll", required=True),
+    SlashCommandOption(
+        "title",
+        OptionTypes.STRING,
+        "The title for your poll",
+        required=True,
+        max_length=100,
+    ),
     SlashCommandOption(
         "colour",
         OptionTypes.STRING,
         "Choose the colour of the embed (default 'blurple')",
         choices=[SlashCommandChoice(c.replace("_", " "), c) for c in colours],
         required=False,
+    ),
+    SlashCommandOption(
+        "description",
+        OptionTypes.STRING,
+        "The description for your poll",
+        required=False,
+        max_length=128,
     ),
     SlashCommandOption(
         "duration",
@@ -83,6 +96,12 @@ def_options = [
         "inline",
         OptionTypes.BOOLEAN,
         "Make options appear inline, in the embed (default False)",
+        required=False,
+    ),
+    SlashCommandOption(
+        "image",
+        OptionTypes.ATTACHMENT,
+        "Attach an image to the embed",
         required=False,
     ),
 ]

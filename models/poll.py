@@ -96,6 +96,7 @@ class PollOption:
 @attr.s(auto_attribs=True, on_setattr=[attr.setters.convert, attr.setters.validate])
 class PollData:
     title: str
+    description: str
     author_id: Snowflake_Type
     channel_id: Snowflake_Type = attr.ib(default=MISSING)
     message_id: Snowflake_Type = attr.ib(default=MISSING)
@@ -112,6 +113,7 @@ class PollData:
     open_poll: bool = attr.ib(default=False)
     inline: bool = attr.ib(default=False)
     colour: str = attr.ib(default="BLURPLE", converter=lambda x: x.upper())
+    image_url: str = attr.ib(default=MISSING)
     thread: bool = attr.ib(default=False)
 
     expire_time: datetime = attr.ib(default=MISSING, converter=deserialize_datetime)
@@ -172,7 +174,14 @@ class PollData:
                     option.create_bar(total_votes),
                     inline=self.inline,
                 )
-        description = [f"• {total_votes:,} vote{'s' if total_votes != 1 else ''}"]
+
+        if self.image_url:
+            e.set_image(url=self.image_url)
+
+        description = []
+        if self.description:
+            description.append(self.description)
+        description.append(f"• {total_votes:,} vote{'s' if total_votes != 1 else ''}")
 
         if self.single_vote:
             description.append("• One Vote Per User")
@@ -254,6 +263,7 @@ class PollData:
             kwargs |= m_ctx.kwargs
         new_cls: "PollData" = cls(
             title=kwargs.get("title"),
+            description=kwargs.get("description", None),
             author_id=ctx.author.id,
             single_vote=kwargs.get("single_vote", False),
             hide_results=kwargs.get("hide_results", False),
@@ -273,6 +283,9 @@ class PollData:
             for o in options.split("\n-"):
                 if o:
                     new_cls.add_option(o.strip().removeprefix("-"))
+
+        if attachment := kwargs.get("image"):
+            new_cls.image_url = attachment.url
 
         if duration := kwargs.get("duration"):
             new_cls.expire_time = process_duration(duration)
