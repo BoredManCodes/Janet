@@ -14,3 +14,7 @@ closing_polls:
   title: "Closing Polls"
   brief: "I want to close the poll"
   content: "To close a poll, just react to it with :red_circle: or use the `/edit_poll close` command - note only the poll creator can close the poll.\n\nModeration features are coming soon!"
+no_emoji:
+  title: "No Emoji"
+  brief: "My emoji is appearing as text instead of an image"
+  content: "Inquiry can only send emoji from servers it is in. This is a limitation from Discord. Please only use emoji from servers you share with Inquiry."

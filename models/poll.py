@@ -17,6 +17,7 @@ from naff.models import (
     Message,
     InteractionContext,
 )
+from naff.models.discord.emoji import emoji_regex, PartialEmoji
 
 from const import process_duration
 from models.emoji import default_emoji
@@ -242,10 +243,18 @@ class PollData:
         if len(self.poll_options) >= len(default_emoji):
             raise ValueError("Poll has reached max options")
         if not _emoji:
-            _emoji_list = emoji_lib.distinct_emoji_list(opt_name)
-            if _emoji_list:
-                _emoji = _emoji_list[0]
-                opt_name = opt_name.replace(_emoji, "")
+            if data := emoji_regex.findall(opt_name):
+                parsed = parsed = tuple(filter(None, data[0]))
+                if len(parsed) == 3:
+                    _emoji = PartialEmoji(name=parsed[1], id=parsed[2], animated=True)
+                else:
+                    _emoji = PartialEmoji(name=parsed[0], id=parsed[1])
+                opt_name = opt_name.replace(str(_emoji), "")
+            else:
+                _emoji_list = emoji_lib.distinct_emoji_list(opt_name)
+                if _emoji_list:
+                    _emoji = _emoji_list[0]
+                    opt_name = opt_name.replace(_emoji, "")
 
         self.poll_options.append(PollOption(opt_name.strip(), _emoji or default_emoji[len(self.poll_options)]))
 
