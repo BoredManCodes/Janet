@@ -13,12 +13,14 @@ Once customised, hit submit, and a modal will appear letting you add your option
 
 ### All polls have the following optional settings
 - `Colour` - What colour should the embed be?
+- `Description` - Add a description to your poll
 - `Duration` - How long can people vote in this poll?
 - `Single_Vote` - Only allow people to have 1 vote in the poll
 - `Hide_Results` - Hide the results of the poll until it has closed
 - `Open_Poll` - Allow people to add their own options to the poll
 - `Thread` - Create a thread for this poll
 - `Inline` - Should the options be displayed in line (side-by-side)
+- `Image` - Add an image to the poll
 
 ## Need a poll fast? 
 Use `poll_prefab`. These commands create a poll with pre-set options for you. 
