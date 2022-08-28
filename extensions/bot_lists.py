@@ -2,7 +2,7 @@ import logging
 import os
 
 import aiohttp
-from naff import Extension, Task, IntervalTrigger
+from naff import Extension, Task, IntervalTrigger, InteractionContext, slash_command
 
 log = logging.getLogger("bot-lists")
 
@@ -53,6 +53,14 @@ class BotLists(Extension):
                 log.debug("Posted stats to top.gg")
             else:
                 log.warning(f"Failed to post stats to top.gg: {resp.status} {resp.reason}")
+
+    @slash_command("vote", description="Vote for the bot on top.gg")
+    async def top_gg_vote(self, ctx: InteractionContext):
+        await ctx.send(
+            "Thanks for voting! You won't get anything, but it helps the bot grow!\n\nhttps://top.gg/bot/{}/vote".format(
+                self.bot.app.id
+            )
+        )
 
 
 def setup(bot):
