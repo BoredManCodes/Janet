@@ -22,7 +22,7 @@ class BotLists(Extension):
         else:
             log.warning("No top_gg_token provided, not posting to top.gg")
 
-    @Task.create(IntervalTrigger(minutes=1))
+    @Task.create(IntervalTrigger(minutes=5))
     async def discord_bots_gg(self) -> None:
         await self.bot.wait_until_ready()
 
@@ -38,7 +38,7 @@ class BotLists(Extension):
             else:
                 log.warning(f"Failed to post stats to discord.bots.gg: {resp.status} {resp.reason}")
 
-    @Task.create(IntervalTrigger(minutes=1))
+    @Task.create(IntervalTrigger(minutes=5))
     async def top_gg(self) -> None:
         await self.bot.wait_until_ready()
 
