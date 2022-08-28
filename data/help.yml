@@ -1,0 +1,16 @@
+custom_emoji:
+  title: "Custom Emoji"
+  brief: "So how do you use custom emoji?"
+  content: "So you want to choose the emoji in the poll? No problem!\n\nCustom emoji couldn't be simpler; just put an emoji anywhere in the option text, and Inquiry will extract it for the option's emoji"
+  image: "https://user-images.githubusercontent.com/22540825/186945287-9c4f7807-eb1d-4acb-8e83-2772c48ed1f5.png"
+timed_polls:
+  title: "Timed Polls"
+  brief: "I want my polls to end at a certain time"
+  content: "Inquiry can end polls for you, when creating a poll check out the `duration` option. Set this to how long you want your polls to be open for.
+  \n\nFor example; if you want your poll to be open for 30 minutes, set the duration to `30m` or `30 minutes`.
+  \nBut what if you want your poll to be open for 2 days, 1 hour, 3 minutes, and 10 seconds? Set the duration to `2d 1h 3m 10s`"
+  image: "https://user-images.githubusercontent.com/22540825/187059932-88e74854-adf8-4842-9038-9a06337582be.png"
+closing_polls:
+  title: "Closing Polls"
+  brief: "I want to close the poll"
+  content: "To close a poll, just react to it with :red_circle: or use the `/edit_poll close` command - note only the poll creator can close the poll.\n\nModeration features are coming soon!"
