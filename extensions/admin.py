@@ -69,7 +69,10 @@ class Admin(Extension):
         embed.add_field(name="Users", value=str(len(self.bot.cache.user_cache)))
         embed.add_field(name="Active Polls", value=str(len(self.bot.poll_cache.polls)))
         embed.add_field(name="Pending Updates", value=str(len(self.bot.polls_to_update)))
-        embed.add_field(name="NAFF version", value=f"[{naff.const.__version__}](https://github.com/NAFTeam/NAFF)")
+        embed.add_field(
+            name="NAFF version",
+            value=f"[{naff.const.__version__}](https://github.com/NAFTeam/NAFF/releases/tag/NAFF-{naff.const.__version__})",
+        )
         embed.add_field(
             name="Inquiry Commit", value=f"[{git_hash}](https://github.com/LordOfPolls/Inquiry/commit/{git_hash})"
         )
