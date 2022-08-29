@@ -58,7 +58,7 @@ class PollCache:
                 if author:
                     poll.author_data = {
                         "name": author.display_name,
-                        "avatar_url": author.avatar_url,
+                        "avatar_url": author.avatar.url,
                     }
                 else:
                     poll.author_data = {
