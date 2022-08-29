@@ -66,7 +66,7 @@ class Admin(Extension):
         git_hash = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"]).decode("ascii").strip()
 
         embed.add_field(name="Guilds", value=str(len(self.bot.guilds)))
-        embed.add_field(name="Users", value=str(len(self.bot.cache.user_cache)))
+        embed.add_field(name="Cached Users", value=str(len(self.bot.cache.user_cache)))
         embed.add_field(name="Active Polls", value=str(len(self.bot.poll_cache.polls)))
         embed.add_field(name="Pending Updates", value=str(len(self.bot.polls_to_update)))
         embed.add_field(
@@ -78,6 +78,10 @@ class Admin(Extension):
         )
         embed.set_thumbnail(url=self.bot.user.avatar.url)
         await ctx.send(embed=embed)
+
+    @slash_command("server", description="Join the support server")
+    async def server(self, ctx: InteractionContext) -> None:
+        await ctx.send("https://discord.gg/vtRTAwmQsH")
 
 
 def setup(bot) -> None:
