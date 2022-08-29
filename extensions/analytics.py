@@ -17,7 +17,8 @@ class Analytics(Extension):
                 if command.callback:
                     self.command_usage[command.resolved_name] = 0
         for option in poll_options:
-            self.option_usage[option.name] = 0
+            if not option.required:
+                self.option_usage[str(option.name)] = 0
 
     async def on_command(self, ctx: Context, *args, **kwargs):
         if "analytics" not in ctx.command.resolved_name:
