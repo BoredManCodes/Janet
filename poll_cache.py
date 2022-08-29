@@ -6,6 +6,7 @@ from contextlib import suppress
 import aioredis
 import orjson
 from naff import Snowflake_Type, MISSING, to_snowflake
+from naff.client.errors import Forbidden
 
 from models.poll import PollData
 
@@ -54,7 +55,10 @@ class PollCache:
             guild_id, msg_id = [to_snowflake(k) for k in key.split("|")]
 
             if not poll.author_data or poll.author_data.get("name", "Unknown") == "Unknown":
-                author = await self.bot.fetch_member(poll.author_id, guild_id)
+                try:
+                    author = await self.bot.fetch_member(poll.author_id, guild_id)
+                except Forbidden:
+                    author = None
                 if author:
                     poll.author_data = {
                         "name": author.display_name,
