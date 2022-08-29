@@ -22,6 +22,9 @@ Once customised, hit submit, and a modal will appear letting you add your option
 - `Inline` - Should the options be displayed in line (side-by-side)
 - `Image` - Add an image to the poll
 
+![image](https://user-images.githubusercontent.com/22540825/187283824-8da75fad-2323-435f-9700-c799b9f8a275.png)
+
+
 ## Need a poll fast? 
 Use `poll_prefab`. These commands create a poll with pre-set options for you. 
 
