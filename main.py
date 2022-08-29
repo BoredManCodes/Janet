@@ -36,11 +36,10 @@ log = logging.getLogger("Inquiry")
 class Bot(Client):
     def __init__(self) -> None:
         super().__init__(
-            intents=Intents.new(guilds=True, guild_members=True, reactions=True, default=False),
+            intents=Intents.new(guilds=True, reactions=True, default=False),
             sync_interactions=True,
             delete_unused_application_cmds=False,
             activity="with polls",
-            fetch_members=True,
         )
         self.poll_cache: PollCache = MISSING
 

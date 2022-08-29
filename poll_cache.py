@@ -53,22 +53,18 @@ class PollCache:
             poll = PollData(**orjson.loads(raw_data))
             guild_id, msg_id = [to_snowflake(k) for k in key.split("|")]
 
-            if not poll.author_data:
-                try:
-                    author = await self.bot.fetch_member(guild_id, poll.author_id)
-                except Exception as e:
-                    log.error(f"Failed to fetch author for {poll.author_id}")
+            if not poll.author_data or poll.author_data.get("name", "Unknown") == "Unknown":
+                author = await self.bot.fetch_member(poll.author_id, guild_id)
+                if author:
+                    poll.author_data = {
+                        "name": author.display_name,
+                        "avatar_url": author.avatar_url,
+                    }
                 else:
-                    if author:
-                        poll.author_data = {
-                            "name": author.display_name,
-                            "avatar_url": author.avatar_url,
-                        }
-                    else:
-                        poll.author_data = {
-                            "name": "Unknown",
-                            "avatar_url": "https://cdn.discordapp.com/embed/avatars/0.png",
-                        }
+                    poll.author_data = {
+                        "name": "Unknown",
+                        "avatar_url": "https://cdn.discordapp.com/embed/avatars/0.png",
+                    }
 
             # legacy poll support
             if not poll.guild_id:
@@ -85,7 +81,7 @@ class PollCache:
 
             return poll
         except (ValueError, KeyError, TypeError) as e:
-            pass
+            log.warning(f"Failed to fetch poll: {key}", exc_info=e)
 
     async def load_all_from_redis(self):
         if not self.bot.is_ready:
