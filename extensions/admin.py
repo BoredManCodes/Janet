@@ -68,7 +68,7 @@ class Admin(Extension):
         embed.add_field(name="Guilds", value=str(len(self.bot.guilds)))
         embed.add_field(name="Cached Users", value=str(len(self.bot.cache.user_cache)))
         embed.add_field(name="Active Polls", value=str(len(self.bot.poll_cache.polls)))
-        embed.add_field(name="Pending Updates", value=str(len(self.bot.polls_to_update)))
+        embed.add_field(name="Pending Updates", value=str(sum(len(v) for v in self.bot.polls_to_update.values())))
         embed.add_field(
             name="NAFF version",
             value=f"[{naff.const.__version__}](https://github.com/NAFTeam/NAFF/releases/tag/NAFF-{naff.const.__version__})",
