@@ -88,18 +88,20 @@ class Bot(Client):
     @listen()
     async def on_modal_response(self, event: ModalResponse) -> Any:
         ctx = event.context
-        await ctx.defer(ephemeral=True)
+        ids = ctx.custom_id.split("|")
+        if len(ids) == 2:
+            await ctx.defer(ephemeral=True)
 
-        message_id = ctx.custom_id.split("|")[1]
-        if poll := await self.poll_cache.get_poll(ctx.guild_id, message_id):
-            async with poll.lock:
-                poll.add_option(ctx.responses["new_option"])
+            message_id = ctx.custom_id.split("|")[1]
+            if poll := await self.poll_cache.get_poll(ctx.guild_id, message_id):
+                async with poll.lock:
+                    poll.add_option(ctx.responses["new_option"])
 
-                if ctx.guild.id not in self.polls_to_update:
-                    self.polls_to_update[ctx.guild.id] = set()
-                self.polls_to_update[ctx.guild.id].add(int(message_id))
-            return await ctx.send(f"Added {ctx.responses['new_option']} to the poll")
-        return await ctx.send("That poll could not be edited")
+                    if ctx.guild.id not in self.polls_to_update:
+                        self.polls_to_update[ctx.guild.id] = set()
+                    self.polls_to_update[ctx.guild.id].add(int(message_id))
+                return await ctx.send(f"Added {ctx.responses['new_option']} to the poll")
+            return await ctx.send("That poll could not be edited")
 
     @listen()
     async def on_button(self, event: Button) -> Any:
