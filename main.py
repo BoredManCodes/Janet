@@ -24,7 +24,7 @@ from naff.api.events import Button, MessageReactionAdd, ModalResponse
 from naff.client.errors import NotFound
 from naff.models.naff.application_commands import context_menu, slash_command
 
-from models.poll import PollData
+from models.poll import PollData, sanity_check
 from poll_cache import PollCache
 
 __all__ = ("Bot",)
@@ -91,6 +91,8 @@ class Bot(Client):
         ids = ctx.custom_id.split("|")
         if len(ids) == 2:
             await ctx.defer(ephemeral=True)
+            if not await sanity_check(ctx):
+                return
 
             message_id = ctx.custom_id.split("|")[1]
             if poll := await self.poll_cache.get_poll(ctx.guild_id, message_id):

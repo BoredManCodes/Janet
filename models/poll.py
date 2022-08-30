@@ -32,7 +32,7 @@ from naff.models.discord.emoji import emoji_regex, PartialEmoji
 from const import process_duration
 from models.emoji import default_emoji
 
-__all__ = ("deserialize_datetime", "PollData", "PollOption")
+__all__ = ("deserialize_datetime", "PollData", "PollOption", "sanity_check")
 
 
 def deserialize_datetime(date) -> datetime.datetime:
@@ -41,7 +41,7 @@ def deserialize_datetime(date) -> datetime.datetime:
     return date
 
 
-async def santiy_check(ctx: InteractionContext) -> bool:
+async def sanity_check(ctx: InteractionContext) -> bool:
     """Sanity checks that the bot can even make a poll here"""
     if not ctx.guild:
         # technically shouldn't happen, but no harm in checking
@@ -52,6 +52,12 @@ async def santiy_check(ctx: InteractionContext) -> bool:
 
     if Permissions.VIEW_CHANNEL not in channel_perms:
         await ctx.send("I can't view my messages in this channel", ephemeral=True)
+        return False
+
+    if Permissions.EMBED_LINKS not in channel_perms:
+        await ctx.send(
+            "I can't manage embeds in this channel, please give me the `Embed Links` permission", ephemeral=True
+        )
         return False
 
     if ctx.kwargs.get("thread"):
@@ -275,7 +281,7 @@ class PollData:
 
     @classmethod
     async def from_ctx(cls, ctx: InteractionContext, m_ctx: ModalContext | None = None) -> Union["PollData", bool]:
-        if not await santiy_check(ctx):
+        if not await sanity_check(ctx):
             return False
 
         kwargs = ctx.kwargs
