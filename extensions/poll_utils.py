@@ -118,6 +118,8 @@ class PollUtils(ExtensionBase):
                 return f
 
             async with poll.lock:
+                if all(len(opt.voters) == 0 for opt in poll.poll_options):
+                    return await ctx.send("No votes have been cast yet!")
                 file = await asyncio.to_thread(write_buffer, poll)
                 await ctx.send(file=File(file, file_name=f"{poll.title}.csv"))
                 file.close()
@@ -146,6 +148,8 @@ class PollUtils(ExtensionBase):
                 return f
 
             async with poll.lock:
+                if all(len(opt.voters) == 0 for opt in poll.poll_options):
+                    return await ctx.send("No votes have been cast yet!")
                 file = await asyncio.to_thread(write_buffer, poll)
                 await ctx.send(file=File(file, file_name=f"{poll.title}.json"))
                 file.close()
@@ -174,6 +178,8 @@ class PollUtils(ExtensionBase):
                 return f
 
             async with poll.lock:
+                if all(len(opt.voters) == 0 for opt in poll.poll_options):
+                    return await ctx.send("No votes have been cast yet!")
                 file = await asyncio.to_thread(write_buffer, poll)
                 await ctx.send(file=File(file, file_name=f"{poll.title}.yaml"))
                 file.close()
@@ -209,6 +215,8 @@ class PollUtils(ExtensionBase):
                 return f
 
             async with poll.lock:
+                if all(len(opt.voters) == 0 for opt in poll.poll_options):
+                    return await ctx.send("No votes have been cast yet!")
                 file = await asyncio.to_thread(write_buffer, poll)
                 await ctx.send(file=File(file, file_name=f"{poll.title}.png"))
                 file.close()
@@ -244,6 +252,8 @@ class PollUtils(ExtensionBase):
                 return f
 
             async with poll.lock:
+                if all(len(opt.voters) == 0 for opt in poll.poll_options):
+                    return await ctx.send("No votes have been cast yet!")
                 file = await asyncio.to_thread(write_buffer, poll)
                 await ctx.send(file=File(file, file_name=f"{poll.title}.png"))
                 file.close()
