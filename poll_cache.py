@@ -5,7 +5,7 @@ from contextlib import suppress
 
 import aioredis
 import orjson
-from naff import Snowflake_Type, to_optional_snowflake
+from naff import Snowflake_Type
 from naff.client.errors import Forbidden
 
 from models.poll import PollData
@@ -47,12 +47,19 @@ class PollCache:
     def total_polls(self) -> int:
         return len(self.polls)
 
+    @staticmethod
+    def _to_optional_snowflake(value) -> int | None:
+        if value == "None":
+            # handle deserialization
+            return None
+        return int(value)
+
     async def __fetch_poll(self, key: str) -> PollData | None:
         try:
             raw_data = await self.redis.get(key)
 
             poll = PollData(**orjson.loads(raw_data))
-            guild_id, msg_id = [to_optional_snowflake(k) for k in key.split("|")]
+            guild_id, msg_id = [self._to_optional_snowflake(k) for k in key.split("|")]
             if guild_id is None:
                 # broken poll, delete
                 # these were created in an earlier version of the bot
