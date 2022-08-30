@@ -107,8 +107,8 @@ class PollCache:
 
     async def get_polls_by_guild(self, guild_id: Snowflake_Type) -> list[PollData]:
         message_ids = self.polls_by_guild.get(guild_id, set())
-        polls = [self.polls_by_message[msg_id] for msg_id in message_ids]
-        return list(polls)
+        polls = [self.polls_by_message.get(msg_id, None) for msg_id in message_ids]
+        return list(filter(None, polls))
 
     async def store_poll(self, guild_id: Snowflake_Type, message_id: Snowflake_Type, poll: PollData) -> None:
         async with poll.lock:
