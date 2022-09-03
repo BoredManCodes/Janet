@@ -56,11 +56,14 @@ class BotLists(Extension):
 
     @slash_command("vote", description="Vote for the bot on top.gg")
     async def top_gg_vote(self, ctx: InteractionContext):
-        await ctx.send(
-            "Thanks for voting! You won't get anything, but it helps the bot grow!\n\nhttps://top.gg/bot/{}/vote".format(
-                self.bot.app.id
+        if self.top_gg_token:
+            await ctx.send(
+                "Thanks for voting! You won't get anything, but it helps the bot grow!\n\nhttps://top.gg/bot/{}/vote".format(
+                    self.bot.app.id
+                )
             )
-        )
+        else:
+            await ctx.send("Voting has been temporarily disabled pending verification from Discord", ephemeral=True)
 
 
 def setup(bot):
