@@ -110,8 +110,13 @@ class Bot(Client):
     @listen()
     async def on_button(self, event: Button) -> Any:
         ctx: ComponentContext = event.context
+        if isinstance(ctx.channel, ThreadChannel):
+            message_id = ctx.channel.id
+        else:
+            message_id = ctx.message.id
+
         if ctx.custom_id == "add_option":
-            if await self.poll_cache.get_poll(ctx.guild_id, ctx.message.id):
+            if await self.poll_cache.get_poll(ctx.guild_id, message_id):
                 return await ctx.send_modal(
                     Modal(
                         "Add Option",
@@ -125,11 +130,6 @@ class Bot(Client):
             await ctx.defer(ephemeral=True)
 
             option_index = int(ctx.custom_id.removeprefix("poll_option|"))
-
-            if isinstance(ctx.channel, ThreadChannel):
-                message_id = ctx.channel.id
-            else:
-                message_id = ctx.message.id
 
             if poll := await self.poll_cache.get_poll(ctx.guild.id, message_id):
                 async with poll.lock:
