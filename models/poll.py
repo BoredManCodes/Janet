@@ -117,6 +117,7 @@ class PollData:
     description: str = attr.ib(default=None)
     channel_id: Snowflake_Type = attr.ib(default=MISSING)
     message_id: Snowflake_Type = attr.ib(default=MISSING)
+    thread_message_id: Snowflake_Type = attr.ib(default=MISSING)
     guild_id: Snowflake_Type = attr.ib(default=MISSING)
     author_data: dict = attr.ib(default=MISSING)
 
@@ -323,7 +324,9 @@ class PollData:
             msg = await context.send(embeds=self.embed, components=[] if self.expired else self.components)
             self.parse_message(msg)
             if self.thread:
-                await msg.create_thread(self.title, reason=f"Poll created for {context.author.username}")
+                thread = await msg.create_thread(self.title, reason=f"Poll created for {context.author.username}")
+                thread_msg = await thread.send(content="‏", components=self.components)
+                self.thread_message_id = thread_msg.id
             return msg
         except Exception:
             raise

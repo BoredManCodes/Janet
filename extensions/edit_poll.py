@@ -50,6 +50,12 @@ class EditPolls(ExtensionBase):
                                 poll.reallocate_emoji()
                                 await message.edit(embeds=poll.embed, components=poll.components)
                                 await ctx.send(f"Removed `{option}` from `{poll.title}`")
+                                if poll.thread and poll.thread_message_id:
+                                    thread_msg = await self.bot.cache.fetch_message(
+                                        message.thread, poll.thread_message_id
+                                    )
+                                    if thread_msg:
+                                        await thread_msg.edit(content="‏", components=poll.components)
                                 break
                         else:
                             await ctx.send(f"Failed to remove `{option}` from `{poll.title}`")
@@ -81,6 +87,11 @@ class EditPolls(ExtensionBase):
                     async with poll.lock:
                         poll.add_option(option)
                         await message.edit(embeds=poll.embed, components=poll.components)
+                        if poll.thread and poll.thread_message_id:
+                            thread_msg = await self.bot.cache.fetch_message(message.thread, poll.thread_message_id)
+                            if thread_msg:
+                                await thread_msg.edit(content="‏", components=poll.components)
+
                         await ctx.send(f"Added `{option}` to `{poll.title}`")
                     return
             else:

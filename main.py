@@ -19,6 +19,7 @@ from naff import (
     ShortText,
     CommandTypes,
     InteractionContext,
+    ThreadChannel,
 )
 from naff.api.events import Button, MessageReactionAdd, ModalResponse
 from naff.client.errors import NotFound
@@ -125,7 +126,12 @@ class Bot(Client):
 
             option_index = int(ctx.custom_id.removeprefix("poll_option|"))
 
-            if poll := await self.poll_cache.get_poll(ctx.guild.id, ctx.message.id):
+            if isinstance(ctx.channel, ThreadChannel):
+                message_id = ctx.channel.id
+            else:
+                message_id = ctx.message.id
+
+            if poll := await self.poll_cache.get_poll(ctx.guild.id, message_id):
                 async with poll.lock:
                     if not poll.expired:
                         opt = poll.poll_options[option_index]
@@ -187,6 +193,15 @@ class Bot(Client):
                                     )
                                     tasks.append(self.poll_cache.store_poll(poll.guild_id, poll.message_id, poll))
 
+                                    if poll.thread and poll.thread_message_id:
+                                        thread_msg = await self.cache.fetch_message(msg.thread, poll.thread_message_id)
+                                        if thread_msg:
+                                            tasks.append(
+                                                asyncio.create_task(
+                                                    thread_msg.edit(content="‏", components=poll.components)
+                                                )
+                                            )
+
                                 finally:
                                     self.polls_to_update[guild].remove(message_id)
                                 log.debug(f"Updated poll {poll.message_id}")
@@ -210,6 +225,10 @@ class Bot(Client):
                                 continue
                             else:
                                 tasks.append(msg.edit(embeds=poll.embed, components=[]))
+                                if poll.thread and poll.thread_message_id:
+                                    thread_msg = await self.cache.fetch_message(msg.thread, poll.thread_message_id)
+                                    if thread_msg:
+                                        tasks.append(asyncio.create_task(thread_msg.delete()))
                                 poll.closed = True
                                 tasks.append(self.poll_cache.store_poll(poll.guild_id, poll.message_id, poll))
 
