@@ -12,7 +12,7 @@ RUN pip3.10 install uvloop
 
 # install the requirements
 COPY ./requirements.txt /app/requirements.txt
-RUN pip3.10 install -r /app/requirements.txt
+RUN pip3.10 install -r /app/requirements.txt --upgrade
 
 # copy over the source files
 COPY ./ /app/
