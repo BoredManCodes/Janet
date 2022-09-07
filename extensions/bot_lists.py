@@ -63,7 +63,7 @@ class BotLists(Extension):
                 )
             )
         else:
-            await ctx.send("Voting has been temporarily disabled pending verification from Discord", ephemeral=True)
+            await ctx.send("Voting has been temporarily disabled", ephemeral=True)
 
 
 def setup(bot):
