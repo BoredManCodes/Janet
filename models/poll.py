@@ -85,19 +85,17 @@ class PollOption:
     def inline_text(self) -> str:
         return f"{self.text[:15].strip()}" + ("..." if len(self.text) > 15 else "")
 
-    def create_bar(self, total_votes) -> str:
-        prog_bar_length = 12
-
+    def create_bar(self, total_votes, *, size: int = 12) -> str:
         if total_votes != 0:
             percentage = len(self.voters) / total_votes
-            filled_length = prog_bar_length * percentage
+            filled_length = size * percentage
 
             prog_bar_str = "▓" * int(filled_length)
 
-            if len(prog_bar_str) != prog_bar_length:
-                prog_bar_str += "░" * (prog_bar_length - len(prog_bar_str))
+            if len(prog_bar_str) != size:
+                prog_bar_str += "░" * (size - len(prog_bar_str))
         else:
-            prog_bar_str = "░" * prog_bar_length
+            prog_bar_str = "░" * size
             return f"{prog_bar_str} - 0%"
         return f"{prog_bar_str} - {percentage:.0%}"
 
