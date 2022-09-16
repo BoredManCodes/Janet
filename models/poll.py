@@ -323,7 +323,7 @@ class PollData:
             self.parse_message(msg)
             if self.thread:
                 thread = await msg.create_thread(self.title, reason=f"Poll created for {context.author.username}")
-                thread_msg = await thread.send(content="‏", components=self.components)
+                thread_msg = await thread.send(components=self.components)
                 self.thread_message_id = thread_msg.id
             return msg
         except Exception:

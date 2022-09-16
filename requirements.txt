@@ -1,6 +1,6 @@
 aioredis[hiredis]
 matplotlib
-naff
+git+https://github.com/NAFTeam/NAFF.git@dev#egg=naff
 numpy
 orjson
 python-dotenv
