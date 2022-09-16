@@ -21,6 +21,7 @@ from naff import (
     CommandTypes,
     InteractionContext,
     ThreadChannel,
+    Status,
 )
 from naff.api.events import Button, MessageReactionAdd, ModalResponse
 from naff.client.errors import NotFound
@@ -41,7 +42,8 @@ class Bot(Client):
             intents=Intents.new(guilds=True, reactions=True, default=False),
             sync_interactions=True,
             delete_unused_application_cmds=False,
-            activity="with polls",
+            activity="with an update...",
+            status=Status.DND,
         )
         self.poll_cache: PollCache = MISSING
 
@@ -79,6 +81,7 @@ class Bot(Client):
         await self.poll_cache.ready.wait()
         log.info(f"Logged in as {self.user.username}")
         log.info(f"Currently in {len(self.guilds)} guilds")
+        await self.change_presence(activity="with polls", status=Status.ONLINE)
 
     @slash_command("invite", description="Get the invite link for this bot")
     async def invite(self, ctx: InteractionContext):
