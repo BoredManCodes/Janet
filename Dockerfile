@@ -19,4 +19,4 @@ COPY ./ /app/
 
 # start the bot
 WORKDIR /app
-CMD ["python3.10", "main.py"]
+ENTRYPOINT ["python3.10", "main.py"]

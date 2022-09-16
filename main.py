@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import logging
 import random
+import signal
 import time
 from copy import deepcopy
 from typing import Any
@@ -51,6 +52,9 @@ class Bot(Client):
     @classmethod
     async def run(cls, token: str) -> None:
         bot = cls()
+
+        signal.signal(signal.SIGINT, lambda *_: asyncio.create_task(bot.stop()))
+        signal.signal(signal.SIGTERM, lambda *_: asyncio.create_task(bot.stop()))
 
         bot.load_extension("extensions.create_poll")
         bot.load_extension("extensions.edit_poll")
