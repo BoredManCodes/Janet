@@ -138,6 +138,10 @@ class Bot(Client):
             option_index = int(ctx.custom_id.removeprefix("poll_option|"))
 
             if poll := await self.poll_cache.get_poll(ctx.guild.id, message_id):
+                if poll.expired:
+                    message = await self.cache.fetch_message(ctx.channel.id, message_id)
+                    await message.edit(components=poll.get_components(disable=True))
+                    return await ctx.send("This poll is closing - your vote will not be counted", ephemeral=True)
                 async with poll.lock:
                     if not poll.expired:
                         opt = poll.poll_options[option_index]
