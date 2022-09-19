@@ -1,3 +1,4 @@
+import logging
 from typing import TYPE_CHECKING
 
 from naff import (
@@ -16,6 +17,8 @@ if TYPE_CHECKING:
     from main import Bot
 
 __all__ = ("setup", "CreatePolls")
+
+log = logging.getLogger("Inquiry")
 
 
 class CreatePolls(Extension):
@@ -133,6 +136,7 @@ class CreatePolls(Extension):
 
     async def on_error(self, error: Exception, ctx: InteractionContext, *args, **kwargs) -> None:
         await ctx.send(f"**Error:** {error}", ephemeral=True)
+        log.error(f"Error in {ctx.invoke_target}: {error}", exc_info=error)
 
 
 def setup(bot) -> None:
