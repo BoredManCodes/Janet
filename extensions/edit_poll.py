@@ -5,6 +5,8 @@ from naff import (
     InteractionContext,
     SlashCommandOption,
     OptionTypes,
+    context_menu,
+    CommandTypes,
 )
 
 from extensions.shared import ExtensionBase, OPT_find_poll, OPT_find_option
@@ -103,6 +105,23 @@ class EditPolls(ExtensionBase):
                     await ctx.send(f"`{poll.title}` has been closed!")
             else:
                 await ctx.send("Only the author of the poll can close it!")
+
+    @context_menu("Close Poll", CommandTypes.MESSAGE)
+    async def close_poll_context(self, ctx: InteractionContext):
+        await ctx.defer(ephemeral=True)
+        if poll := await self.bot.poll_cache.get_poll(ctx.guild_id, ctx.target_id):
+            if poll.author_id == ctx.author.id:
+                async with poll.lock:
+                    poll._expired = True
+
+                    await poll.update_messages(self.bot)
+
+                    await self.bot.poll_cache.delete_poll(ctx.guild_id, poll.message_id)
+                    await ctx.send(f"`{poll.title}` has been closed!")
+            else:
+                await ctx.send("Only the author of the poll can close it!")
+        else:
+            await ctx.send("This is not a poll!")
 
 
 def setup(bot) -> None:
