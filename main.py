@@ -168,7 +168,7 @@ class Bot(Client):
                         poll.closed = True
                         poll.expire_time = datetime.datetime.now()
 
-                        await event.message.edit(embeds=poll.embed, components=poll.components)
+                        await poll.update_messages(self)
 
                         await self.poll_cache.store_poll(event.message._guild_id, event.message.id, poll)
 
@@ -187,26 +187,14 @@ class Bot(Client):
                             poll = await self.poll_cache.get_poll_by_message(message_id)
                             if not poll.expired:
                                 try:
-                                    msg = await self.cache.fetch_message(poll.channel_id, poll.message_id)
+                                    await self.cache.fetch_message(poll.channel_id, poll.message_id)
                                 except NotFound:
                                     log.warning(f"Poll {poll.message_id} not found - deleting from cache")
                                     await self.poll_cache.delete_poll(poll.channel_id, poll.message_id)
                                     continue
                                 else:
-                                    poll.reallocate_emoji()
-                                    tasks.append(
-                                        asyncio.create_task(msg.edit(embeds=poll.embed, components=poll.components))
-                                    )
+                                    tasks.append(poll.update_messages(self))
                                     tasks.append(self.poll_cache.store_poll(poll.guild_id, poll.message_id, poll))
-
-                                    if poll.thread and poll.thread_message_id:
-                                        thread_msg = await self.cache.fetch_message(msg.thread, poll.thread_message_id)
-                                        if thread_msg:
-                                            tasks.append(
-                                                asyncio.create_task(
-                                                    thread_msg.edit(content="‏", components=poll.components)
-                                                )
-                                            )
 
                                 finally:
                                     self.polls_to_update[guild].remove(message_id)
@@ -224,17 +212,13 @@ class Bot(Client):
                     if poll.expired and not poll.closed:
                         async with poll.lock:
                             try:
-                                msg = await self.cache.fetch_message(poll.channel_id, poll.message_id)
+                                await self.cache.fetch_message(poll.channel_id, poll.message_id)
                             except NotFound:
                                 log.warning(f"Poll {poll.message_id} not found - deleting from cache")
                                 await self.poll_cache.delete_poll(poll.channel_id, poll.message_id)
                                 continue
                             else:
-                                tasks.append(msg.edit(embeds=poll.embed, components=[]))
-                                if poll.thread and poll.thread_message_id:
-                                    thread_msg = await self.cache.fetch_message(msg.thread, poll.thread_message_id)
-                                    if thread_msg:
-                                        tasks.append(asyncio.create_task(thread_msg.delete()))
+                                tasks.append(poll.update_messages(self))
                                 poll.closed = True
                                 tasks.append(self.poll_cache.store_poll(poll.guild_id, poll.message_id, poll))
 

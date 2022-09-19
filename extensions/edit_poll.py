@@ -47,15 +47,9 @@ class EditPolls(ExtensionBase):
                         for i in range(len(poll.poll_options)):
                             if poll.poll_options[i].text == option.replace("_", " "):
                                 del poll.poll_options[i]
-                                poll.reallocate_emoji()
-                                await message.edit(embeds=poll.embed, components=poll.components)
-                                await ctx.send(f"Removed `{option}` from `{poll.title}`")
-                                if poll.thread and poll.thread_message_id:
-                                    thread_msg = await self.bot.cache.fetch_message(
-                                        message.thread, poll.thread_message_id
-                                    )
-                                    if thread_msg:
-                                        await thread_msg.edit(content="‏", components=poll.components)
+
+                                await poll.update_messages(self.bot)
+
                                 break
                         else:
                             await ctx.send(f"Failed to remove `{option}` from `{poll.title}`")
@@ -86,11 +80,8 @@ class EditPolls(ExtensionBase):
                 if message:
                     async with poll.lock:
                         poll.add_option(option)
-                        await message.edit(embeds=poll.embed, components=poll.components)
-                        if poll.thread and poll.thread_message_id:
-                            thread_msg = await self.bot.cache.fetch_message(message.thread, poll.thread_message_id)
-                            if thread_msg:
-                                await thread_msg.edit(content="‏", components=poll.components)
+
+                        await poll.update_messages(self.bot)
 
                         await ctx.send(f"Added `{option}` to `{poll.title}`")
                     return
@@ -105,9 +96,10 @@ class EditPolls(ExtensionBase):
             if poll.author_id == ctx.author.id:
                 async with poll.lock:
                     poll._expired = True
-                    message = await self.bot.cache.fetch_message(poll.channel_id, poll.message_id)
-                    await message.edit(embeds=poll.embed, components=[])
-                    await self.bot.delete_poll(ctx.guild_id, poll.message_id)
+
+                    await poll.update_messages(self.bot)
+
+                    await self.bot.poll_cache.delete_poll(ctx.guild_id, poll.message_id)
                     await ctx.send(f"`{poll.title}` has been closed!")
             else:
                 await ctx.send("Only the author of the poll can close it!")

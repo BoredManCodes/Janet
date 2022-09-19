@@ -242,17 +242,18 @@ class PollData:
             if option.emoji in default_emoji:
                 option.emoji = default_emoji[i]
 
-    @property
-    def components(self) -> list[ActionRow]:
-        if self.expired:
+    def get_components(self, *, disable: bool = False) -> list[ActionRow]:
+        if self.expired and not disable:
             return []
         buttons = []
         for i in range(len(self.poll_options)):
             buttons.append(
-                Button(1, emoji=self.poll_options[i].emoji, custom_id=f"poll_option|{i}"),
+                Button(1, emoji=self.poll_options[i].emoji, custom_id=f"poll_option|{i}", disabled=self.expired),
             )
         if self.open_poll and len(self.poll_options) < len(default_emoji):
-            buttons.append(Button(ButtonStyles.SUCCESS, emoji="\U00002795", custom_id="add_option"))
+            buttons.append(
+                Button(ButtonStyles.SUCCESS, emoji="\U00002795", custom_id="add_option", disabled=self.expired)
+            )
         return spread_to_rows(*buttons)
 
     def add_option(self, opt_name: str, _emoji: str | None = None) -> None:
@@ -319,12 +320,22 @@ class PollData:
 
     async def send(self, context: InteractionContext) -> Message:
         try:
-            msg = await context.send(embeds=self.embed, components=[] if self.expired else self.components)
+            msg = await context.send(embeds=self.embed, components=[] if self.expired else self.get_components())
             self.parse_message(msg)
             if self.thread:
                 thread = await msg.create_thread(self.title, reason=f"Poll created for {context.author.username}")
-                thread_msg = await thread.send(components=self.components)
+                thread_msg = await thread.send(components=self.get_components(disable=True))
                 self.thread_message_id = thread_msg.id
             return msg
         except Exception:
             raise
+
+    async def update_messages(self, client):
+        self.reallocate_emoji()
+
+        message = await client.cache.fetch_message(self.channel_id, self.message_id)
+        await message.edit(embeds=self.embed, components=self.get_components())
+
+        if self.thread:
+            thread_msg = await client.cache.fetch_thread(self.thread_message_id)
+            await thread_msg.edit(components=self.get_components(disable=True))
