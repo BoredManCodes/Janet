@@ -22,3 +22,7 @@ late_close:
   title: "Poll Closed Late"
   brief: "My poll closed a few seconds later than it should have"
   content: "Inquiry checks polls for their closed state every 60 seconds. This can cause a few seconds of delay between the poll closing, and the embed being updated to reflect this. However, the poll will not accept any more votes after your specified duration, it simply hasn't updated the embed yet."
+bot_is_broken:
+  title: "The Bot Is Broken"
+  brief: "Something things don't seem to be working, what should you do?"
+  content: "While every effort is made to ensure Inquiry is working as intended, sometimes things can go wrong. If you notice something isn't working, please report it in the [support server](https://discord.gg/vtRTAwmQsH) and we'll get it fixed as soon as possible."
