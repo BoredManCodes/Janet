@@ -163,7 +163,7 @@ class Bot(Client):
 
     @listen()
     async def on_message_reaction_add(self, event: MessageReactionAdd) -> None:
-        if event.emoji.name == "🔴":
+        if event.emoji.name in ("🔴", "🛑", "🚫", "⛔"):
             poll = await self.poll_cache.get_poll(event.message._guild_id, event.message.id)
             if poll:
                 async with poll.lock:
