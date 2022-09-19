@@ -104,6 +104,12 @@ def_options = [
         "Attach an image to the embed",
         required=False,
     ),
+    SlashCommandOption(
+        "close_message",
+        OptionTypes.BOOLEAN,
+        "Send a message when the poll is closed (default False)",
+        required=False,
+    ),
 ]
 
 

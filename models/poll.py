@@ -131,6 +131,8 @@ class PollData:
     colour: str = attr.ib(default="BLURPLE", converter=lambda x: x.upper())
     image_url: str = attr.ib(default=MISSING)
     thread: bool = attr.ib(default=False)
+    close_message: bool = attr.ib(default=False)
+    _sent_close_message: bool = attr.ib(default=False, init=False)
 
     expire_time: datetime = attr.ib(default=MISSING, converter=deserialize_datetime)
     _expired: bool = attr.ib(default=False)
@@ -170,6 +172,37 @@ class PollData:
             return BrandColors[self.colour]
         else:
             return BrandColors.BLURPLE
+
+    @property
+    def close_embed(self) -> Embed:
+        embed = Embed(
+            title="Poll Closed",
+            description="This poll has been closed",
+            color=self.get_colour(),
+        )
+        sorted_votes: list[PollOption] = sorted(self.poll_options, key=lambda x: len(x.voters), reverse=True)
+        top_voted = sorted_votes[0]
+        possible_ties = [o for o in sorted_votes if len(o.voters) == len(top_voted.voters)]
+
+        embed.add_field(name="Poll Name", value=self.title, inline=False)
+
+        if len(possible_ties) == 1:
+            embed.add_field(
+                name="Highest Voted Option",
+                value=f"{sorted_votes[0].emoji} {sorted_votes[0].text} - {len(sorted_votes[0].voters)} votes ({len(sorted_votes[0].voters) / self.total_votes:.0%})",
+            )
+        else:
+            embed.add_field(
+                name="Tied Highest Voted Options",
+                value="\n".join(
+                    [
+                        f"{o.emoji} {o.text} - {len(o.voters)} votes ({len(sorted_votes[0].voters) / self.total_votes:.0%})"
+                        for o in possible_ties
+                    ]
+                ),
+            )
+        embed.set_footer(text=f"Poll ID: {self.message_id}")
+        return embed
 
     @property
     def embed(self) -> Embed:
@@ -303,6 +336,7 @@ class PollData:
                 "name": ctx.author.display_name,
                 "avatar_url": ctx.author.avatar.url,
             },
+            close_message=kwargs.get("close_message", False),
         )
 
         if options := kwargs.get("options"):
@@ -329,6 +363,13 @@ class PollData:
             return msg
         except Exception:
             raise
+
+    async def send_close_message(self, client) -> None:
+        if not self._sent_close_message:
+            origin_message = await client.cache.fetch_message(self.channel_id, self.message_id)
+            if origin_message:
+                await origin_message.reply(embed=self.close_embed)
+                self._sent_close_message = True
 
     async def update_messages(self, client):
         self.reallocate_emoji()

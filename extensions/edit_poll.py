@@ -100,6 +100,7 @@ class EditPolls(ExtensionBase):
                     poll._expired = True
 
                     await poll.update_messages(self.bot)
+                    await poll.send_close_message(self.bot)
 
                     await self.bot.poll_cache.delete_poll(ctx.guild_id, poll.message_id)
                     await ctx.send(f"`{poll.title}` has been closed!")
@@ -115,6 +116,7 @@ class EditPolls(ExtensionBase):
                     poll._expired = True
 
                     await poll.update_messages(self.bot)
+                    await poll.send_close_message(self.bot)
 
                     await self.bot.poll_cache.delete_poll(ctx.guild_id, poll.message_id)
                     await ctx.send(f"`{poll.title}` has been closed!")
