@@ -1,4 +1,7 @@
-from naff import Extension, Context, BrandColors, InteractionContext, Embed, slash_command
+import os
+
+from naff import Extension, Context, BrandColors, InteractionContext, Embed, slash_command, listen, Timestamp
+from naff.api.events import GuildJoin, GuildLeft
 
 from extensions.shared import def_options as poll_options
 
@@ -10,6 +13,9 @@ class Analytics(Extension):
         self.option_usage = {}
 
         self.bot.post_run_callback = self.on_command
+
+        self.hook = None
+        self.join_log_id = os.environ.get("JOIN_LOG_ID", None)
 
     async def async_start(self):
         for command in self.bot.application_commands:
@@ -57,6 +63,46 @@ class Analytics(Extension):
                 color=BrandColors.BLURPLE,
             )
         )
+
+    async def get_webhook(self):
+        if not self.hook:
+            channel = self.bot.get_channel(self.join_log_id)
+            hooks = await channel.fetch_webhooks()
+            if any(hook.name == "naff-track" for hook in hooks):
+                self.hook = next(hook for hook in hooks if hook.name == "naff-track")
+            else:
+                self.hook = await channel.create_webhook(name="naff-track")
+        return self.hook
+
+    @listen()
+    async def on_guild_join(self, event: GuildJoin):
+        if self.bot.is_ready and self.join_log_id:
+            hook = await self.get_webhook()
+
+            embed = Embed("New Guild", color=BrandColors.GREEN)
+            embed.add_field("Name", event.guild.name)
+            embed.add_field("ID", event.guild.id)
+            embed.add_field("Guild Age", Timestamp.from_snowflake(event.guild.id).format("R"))
+            embed.add_field("Aprox Member Count", event.guild.member_count)
+            if event.guild.icon:
+                embed.set_thumbnail(event.guild.icon.url)
+
+            await hook.send(embed=embed, avatar_url=self.bot.user.avatar.url)
+
+    @listen()
+    async def on_guild_remove(self, event: GuildLeft):
+        if self.bot.is_ready and self.join_log_id:
+            hook = await self.get_webhook()
+
+            embed = Embed("Left Guild", color=BrandColors.RED)
+            embed.add_field("Name", event.guild.name)
+            embed.add_field("ID", event.guild.id)
+            embed.add_field("Guild Age", Timestamp.from_snowflake(event.guild.id).format("R"))
+            embed.add_field("Aprox Member Count", event.guild.member_count)
+            if event.guild.icon:
+                embed.set_thumbnail(event.guild.icon.url)
+
+            await hook.send(embed=embed, avatar_url=self.bot.user.avatar.url)
 
 
 def setup(bot):
