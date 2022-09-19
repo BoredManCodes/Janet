@@ -10,6 +10,7 @@ class HelpTopic:
 
     title: str = attrs.field()
     brief: str = attrs.field()
+    emoji: str = attrs.field()
 
     content: str = attrs.field()
     image: str | None = attrs.field(default=None)
@@ -29,11 +30,10 @@ class HelpExtension(Extension):
     async def help_main(self, ctx: InteractionContext, topic: str | None = None) -> None:
         if topic:
             if topic in self.topics:
-                embed = Embed(
-                    title=self.topics[topic].title, description=self.topics[topic].content, color=BrandColours.BLURPLE
-                )
-                if self.topics[topic].image:
-                    embed.set_image(url=self.topics[topic].image)
+                _t = self.topics[topic]
+                embed = Embed(title=f"{_t.emoji} {_t.title}", description=_t.content, color=BrandColours.BLURPLE)
+                if _t.image:
+                    embed.set_image(url=_t.image)
                 await ctx.send(embed=embed)
 
             else:
@@ -47,7 +47,7 @@ class HelpExtension(Extension):
             sorted_topics = sorted(self.topics.values(), key=lambda t: t.title)
 
             for topic in sorted_topics:
-                embed.add_field(name=topic.title, value=topic.brief, inline=False)
+                embed.add_field(name=f"{topic.emoji} {topic.title}", value=topic.brief, inline=False)
 
             embed.set_footer(
                 text="Think we need a new help topic? Let us know! Use `/feedback` to send us feedback.",
