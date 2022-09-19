@@ -44,7 +44,9 @@ class HelpExtension(Extension):
                 description="Use `/help <topic>` to get help with a specific topic.\n\n",
                 color=BrandColours.BLURPLE,
             )
-            for topic in self.topics.values():
+            sorted_topics = sorted(self.topics.values(), key=lambda t: t.title)
+
+            for topic in sorted_topics:
                 embed.add_field(name=topic.title, value=topic.brief, inline=False)
 
             embed.set_footer(
