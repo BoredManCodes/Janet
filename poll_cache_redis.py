@@ -80,7 +80,7 @@ class PollCache:
                     author = None
                 if author:
                     poll.author_name = author.display_name
-                    poll.author_avatar = author.avatar_url
+                    poll.author_avatar = author.avatar.url
                 else:
                     poll.author_name = "Unknown"
                     poll.author_avatar = "https://cdn.discordapp.com/embed/avatars/0.png"
