@@ -137,6 +137,11 @@ class PollCache:
         log.debug("Poll not in cache, fetching from database: %s", message_id)
         return await self.__fetch_poll(message_id)
 
+    async def get_polls_by_guild(self, guild_id: Snowflake_Type) -> list[PollData]:
+        async with self.db.acquire() as conn:
+            polls = await conn.fetch("SELECT * FROM polls.poll_data WHERE guild_id = $1", int(guild_id))
+        return [await self.deserialize_poll(p, store=True) for p in polls]
+
     async def store_poll(self, poll: PollData) -> None:
         async with poll.lock:
             self.polls[poll.message_id] = poll

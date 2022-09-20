@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import logging
 import textwrap
 from typing import Union
 
@@ -35,6 +36,8 @@ from const import process_duration
 from models.emoji import default_emoji
 
 __all__ = ("deserialize_datetime", "PollData", "PollOption", "sanity_check")
+
+log = logging.getLogger("Poll")
 
 
 def deserialize_datetime(date) -> datetime.datetime:
@@ -381,5 +384,9 @@ class PollData:
         await message.edit(embeds=self.embed, components=self.get_components())
 
         if self.thread:
-            thread_msg = await client.cache.fetch_message(self.message_id, self.thread_message_id)
-            await thread_msg.edit(components=self.get_components(disable=True))
+            try:
+                thread_msg = await client.cache.fetch_message(self.message_id, self.thread_message_id)
+                await thread_msg.edit(components=self.get_components(disable=True))
+            except Exception as e:
+                log.error(f"Failed to update thread message: {e}")
+                pass

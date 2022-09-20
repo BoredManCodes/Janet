@@ -52,6 +52,8 @@ class EditPolls(ExtensionBase):
 
                                 await poll.update_messages(self.bot)
 
+                                await ctx.send(f"Removed `{option}` from `{poll.title}`")
+
                                 break
                         else:
                             await ctx.send(f"Failed to remove `{option}` from `{poll.title}`")

@@ -116,7 +116,7 @@ def_options = [
 class ExtensionBase(Extension):
     async def process_poll_option(self, ctx: InteractionContext, poll: str) -> PollData | None:
         try:
-            poll = await self.bot.poll_cache.get_poll(ctx.guild_id, to_snowflake(poll))
+            poll = await self.bot.poll_cache.get_poll(to_snowflake(poll))
         except AttributeError as e:
             pass
         finally:
@@ -156,7 +156,7 @@ class ExtensionBase(Extension):
             await ctx.send([])
 
     async def option_autocomplete(self, ctx: AutocompleteContext, **kwargs) -> None:
-        poll = await self.bot.poll_cache.get_poll(ctx.guild_id, to_snowflake(kwargs.get("poll")))
+        poll = await self.bot.poll_cache.get_poll(to_snowflake(kwargs.get("poll")))
         if poll:
             p_options = list(poll.poll_options)
             p_options = sorted(
