@@ -17,7 +17,6 @@ from naff import (
     ThreadChannel,
     EMBED_MAX_NAME_LENGTH,
 )
-from naff.client.utils import optional
 from naff.models import (
     Snowflake_Type,
     Embed,

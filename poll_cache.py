@@ -2,12 +2,10 @@ import asyncio
 import logging
 import os
 from asyncio import Event
-from contextlib import suppress
 
-import aioredis
 import asyncpg
 import orjson
-from asyncpg import Connection, Record, Pool
+from asyncpg import Record, Pool
 from naff import Snowflake_Type
 from naff.client.errors import Forbidden
 from naff.client.utils import TTLCache

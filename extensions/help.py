@@ -1,7 +1,7 @@
 import attrs
+import yaml
 from naff import Extension, slash_command, InteractionContext, AutocompleteContext, slash_option, Embed, BrandColours
 from thefuzz import process
-import yaml
 
 
 @attrs.define

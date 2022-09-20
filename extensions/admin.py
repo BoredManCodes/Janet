@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING
 
 import aiohttp
 import naff
-from naff.client.errors import CommandCheckFailure
 from naff import (
     Extension,
     prefixed_command,
@@ -17,6 +16,7 @@ from naff import (
     Timestamp,
     TimestampStyles,
 )
+from naff.client.errors import CommandCheckFailure
 
 __all__ = ("is_owner", "setup", "Admin")
 
@@ -88,23 +88,6 @@ class Admin(Extension):
     @slash_command("server", description="Join the support server")
     async def server(self, ctx: InteractionContext) -> None:
         await ctx.send("https://discord.gg/vtRTAwmQsH")
-
-    @slash_command("import", description="Import poll data from redis", scopes=[985991455074050078])
-    @check(is_owner())
-    async def import_polls(self, ctx: InteractionContext) -> None:
-        await ctx.defer()
-
-        import poll_cache_redis as _redis
-
-        _R = await _redis.PollCache.initialize(self.bot)
-
-        await ctx.send("Redis Loaded, waiting for redis to cache")
-        await _R.ready.wait()
-
-        for poll in _R.polls:
-            await self.bot.poll_cache.store_poll(poll)
-
-        await ctx.send(f"Imported {len(_R.polls)} polls from redis")
 
 
 def setup(bot) -> None:

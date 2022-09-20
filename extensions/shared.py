@@ -8,8 +8,6 @@ from naff import (
     OptionTypes,
     MaterialColors,
     SlashCommandChoice,
-    Modal,
-    ShortText,
 )
 from thefuzz import fuzz, process
 

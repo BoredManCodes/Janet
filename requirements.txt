@@ -1,4 +1,3 @@
-aioredis[hiredis]
 asyncpg
 matplotlib
 git+https://github.com/NAFTeam/NAFF.git@dev#egg=naff
