@@ -297,7 +297,7 @@ class PollData:
             raise ValueError("Poll has reached max options")
         if not _emoji:
             if data := emoji_regex.findall(opt_name):
-                parsed = parsed = tuple(filter(None, data[0]))
+                parsed = tuple(filter(None, data[0]))
                 if len(parsed) == 3:
                     _emoji = PartialEmoji(name=parsed[1], id=parsed[2], animated=True)
                 else:

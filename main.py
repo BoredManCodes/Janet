@@ -238,6 +238,7 @@ class Bot(Client):
                 poll.expire_time = datetime.datetime.now()
 
                 tasks.append(poll.update_messages(self))
+                tasks.append(poll.send_close_message(self))
                 poll.closed = True
 
                 tasks.append(self.poll_cache.store_poll(poll))
