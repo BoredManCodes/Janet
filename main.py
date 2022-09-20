@@ -244,7 +244,13 @@ class Bot(Client):
         else:
             log.warning(f"Poll {message_id} not found - cannot close")
 
-        await asyncio.gather(*tasks)
+        try:
+            await asyncio.gather(*tasks)
+        except NotFound:
+            log.warning(f"Poll {message_id} is no longer on discord - deleting from database")
+            await self.poll_cache.delete_poll(poll.message_id)
+        except Exception as e:
+            log.error(f"Error closing poll {message_id}", exc_info=e)
 
     @context_menu("stress poll", CommandTypes.MESSAGE, scopes=[985991455074050078])
     async def __stress_poll(self, ctx: ComponentContext) -> None:
