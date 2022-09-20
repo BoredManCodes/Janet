@@ -28,7 +28,7 @@ class PollCache:
             soft_limit=25,
             hard_limit=1000,
             ttl=120,
-            on_expire=lambda _, value: asyncio.create_task(self.store_poll(value)),
+            on_expire=lambda _, value: asyncio.create_task(self.__write_poll(value)),
         )
         self.ready: Event = Event()
 
