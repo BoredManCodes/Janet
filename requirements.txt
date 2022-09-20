@@ -1,4 +1,5 @@
 aioredis[hiredis]
+asyncpg
 matplotlib
 git+https://github.com/NAFTeam/NAFF.git@dev#egg=naff
 numpy
@@ -7,3 +8,4 @@ python-dotenv
 pyyaml
 thefuzz[speedup]
 emoji
+apscheduler

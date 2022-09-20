@@ -54,7 +54,7 @@ class CreatePolls(Extension):
             return
 
         msg = await poll.send(ctx)
-        await self.bot.set_poll(ctx.guild_id, msg.id, poll)
+        await self.bot.set_poll(poll)
         await m_ctx.send("To close the poll, react to it with 🔴", ephemeral=True)
 
     @slash_command("poll_prefab", description="Create a poll using pre-set options")
@@ -76,7 +76,7 @@ class CreatePolls(Extension):
         poll.add_option("No", "❌")
 
         msg = await poll.send(ctx)
-        await self.bot.set_poll(ctx.guild_id, msg.id, poll)
+        await self.bot.set_poll(poll)
 
     @poll_prefab.subcommand(
         "week",
@@ -101,7 +101,7 @@ class CreatePolls(Extension):
             poll.add_option(opt)
 
         msg = await poll.send(ctx)
-        await self.bot.set_poll(ctx.guild_id, msg.id, poll)
+        await self.bot.set_poll(poll)
 
     @poll_prefab.subcommand(
         "opinion",
@@ -118,7 +118,7 @@ class CreatePolls(Extension):
         poll.add_option("Disagree", opinion_emoji[2])
 
         msg = await poll.send(ctx)
-        await self.bot.set_poll(ctx.guild_id, msg.id, poll)
+        await self.bot.set_poll(poll)
 
     @poll_prefab.subcommand(
         "blank",
@@ -132,7 +132,7 @@ class CreatePolls(Extension):
 
         poll.open_poll = True
         msg = await poll.send(ctx)
-        await self.bot.set_poll(ctx.guild_id, msg.id, poll)
+        await self.bot.set_poll(poll)
 
     async def on_error(self, error: Exception, ctx: InteractionContext, *args, **kwargs) -> None:
         await ctx.send(f"**Error:** {error}", ephemeral=True)

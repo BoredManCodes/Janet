@@ -140,7 +140,7 @@ class ExtensionBase(Extension):
                 results = process.extract(
                     ctx.input_text, {p.message_id: p.title for p in polls if predicate(p)}, limit=25
                 )
-                results = [await self.bot.poll_cache.get_poll_by_message(p[2]) for p in results if p[1] > 50]
+                results = [await self.bot.poll_cache.get_poll(p[2]) for p in results if p[1] > 50]
 
             await ctx.send(
                 [

@@ -69,7 +69,8 @@ class Admin(Extension):
 
         embed.add_field(name="Guilds", value=str(len(self.bot.guilds)))
         embed.add_field(name="Cached Users", value=str(len(self.bot.cache.user_cache)))
-        embed.add_field(name="Active Polls", value=str(len(self.bot.poll_cache.polls)))
+        embed.add_field(name="Cached Polls", value=str(len(self.bot.poll_cache.polls)))
+        embed.add_field(name="Total Polls", value=str(await self.bot.poll_cache.get_total_polls()))
         embed.add_field(name="Pending Updates", value=str(sum(len(v) for v in self.bot.polls_to_update.values())))
         embed.add_field(
             name="Startup Time", value=Timestamp.fromdatetime(self.bot.start_time).format(TimestampStyles.RelativeTime)
@@ -87,6 +88,23 @@ class Admin(Extension):
     @slash_command("server", description="Join the support server")
     async def server(self, ctx: InteractionContext) -> None:
         await ctx.send("https://discord.gg/vtRTAwmQsH")
+
+    @slash_command("import", description="Import poll data from redis", scopes=[985991455074050078])
+    @check(is_owner())
+    async def import_polls(self, ctx: InteractionContext) -> None:
+        await ctx.defer()
+
+        import poll_cache_redis as _redis
+
+        _R = await _redis.PollCache.initialize(self.bot)
+
+        await ctx.send("Redis Loaded, waiting for redis to cache")
+        await _R.ready.wait()
+
+        for poll in _R.polls:
+            await self.bot.poll_cache.store_poll(poll)
+
+        await ctx.send(f"Imported {len(_R.polls)} polls from redis")
 
 
 def setup(bot) -> None:

@@ -110,7 +110,7 @@ class EditPolls(ExtensionBase):
     @context_menu("Close Poll", CommandTypes.MESSAGE)
     async def close_poll_context(self, ctx: InteractionContext):
         await ctx.defer(ephemeral=True)
-        if poll := await self.bot.poll_cache.get_poll(ctx.guild_id, ctx.target_id):
+        if poll := await self.bot.poll_cache.get_poll(ctx.target_id):
             if poll.author_id == ctx.author.id:
                 async with poll.lock:
                     poll._expired = True

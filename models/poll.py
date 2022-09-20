@@ -5,6 +5,7 @@ from typing import Union
 
 import attr
 import emoji as emoji_lib
+import orjson
 from naff import (
     ModalContext,
     MISSING,
@@ -15,6 +16,7 @@ from naff import (
     ThreadChannel,
     EMBED_MAX_NAME_LENGTH,
 )
+from naff.client.utils import optional
 from naff.models import (
     Snowflake_Type,
     Embed,
@@ -117,7 +119,9 @@ class PollData:
     message_id: Snowflake_Type = attr.ib(default=MISSING)
     thread_message_id: Snowflake_Type = attr.ib(default=MISSING)
     guild_id: Snowflake_Type = attr.ib(default=MISSING)
-    author_data: dict = attr.ib(default=MISSING)
+
+    author_name: str = attr.ib(default=MISSING)
+    author_avatar: str = attr.ib(default=MISSING)
 
     poll_options: list[PollOption] = attr.ib(
         factory=list,
@@ -128,11 +132,13 @@ class PollData:
     hide_results: bool = attr.ib(default=False)
     open_poll: bool = attr.ib(default=False)
     inline: bool = attr.ib(default=False)
-    colour: str = attr.ib(default="BLURPLE", converter=lambda x: x.upper())
-    image_url: str = attr.ib(default=MISSING)
     thread: bool = attr.ib(default=False)
     close_message: bool = attr.ib(default=False)
-    _sent_close_message: bool = attr.ib(default=False, init=False)
+
+    colour: str = attr.ib(default="BLURPLE", converter=lambda x: x.upper())
+    image_url: str = attr.ib(default=MISSING)
+
+    _sent_close_message: bool = attr.ib(default=False)
 
     expire_time: datetime = attr.ib(default=MISSING, converter=deserialize_datetime)
     _expired: bool = attr.ib(default=False)
@@ -140,11 +146,13 @@ class PollData:
     lock: asyncio.Lock = attr.ib(factory=asyncio.Lock)
 
     def __dict__(self) -> dict:
-        return {
+        data = {
             k.removeprefix("_"): v
             for k, v in attr.asdict(self).items()
             if v != MISSING and not isinstance(v, asyncio.Lock)
         }
+        data["poll_options"] = orjson.dumps(data.pop("poll_options")).decode()
+        return data
 
     @property
     def expired(self) -> bool:
@@ -254,17 +262,10 @@ class PollData:
 
         e.description = "\n".join(description)
 
-        if self.author_data:
-            if "(" not in self.author_data["avatar_url"]:
-                e.set_footer(
-                    f'Asked by {self.author_data["name"]}',
-                    icon_url=self.author_data["avatar_url"],
-                )
-            else:
-                e.set_footer(f"Asked by {self.author_data['name']}")
+        e.set_footer(f"Asked by {self.author_name}", icon_url=self.author_avatar)
 
         if self.expired:
-            name = f' • Asked by {self.author_data["name"]}' if self.author_data else ""
+            name = f" • Asked by {self.author_name}" if self.author_name else ""
             e.set_footer(f"This poll has ended{name}")
 
         return e
@@ -332,10 +333,8 @@ class PollData:
             thread=kwargs.get("thread", False),
             channel_id=ctx.channel.id,
             guild_id=ctx.guild.id,
-            author_data={
-                "name": ctx.author.display_name,
-                "avatar_url": ctx.author.avatar.url,
-            },
+            author_name=ctx.author.display_name,
+            author_avatar=ctx.author.avatar.url,
             close_message=kwargs.get("close_message", False),
         )
 
@@ -360,6 +359,10 @@ class PollData:
                 thread = await msg.create_thread(self.title, reason=f"Poll created for {context.author.username}")
                 thread_msg = await thread.send(components=self.get_components(disable=True))
                 self.thread_message_id = thread_msg.id
+
+            if self.expire_time:
+                await context.bot.schedule_close(self)
+
             return msg
         except Exception:
             raise
@@ -378,5 +381,5 @@ class PollData:
         await message.edit(embeds=self.embed, components=self.get_components())
 
         if self.thread:
-            thread_msg = await client.cache.fetch_thread(self.thread_message_id)
+            thread_msg = await client.cache.fetch_message(self.message_id, self.thread_message_id)
             await thread_msg.edit(components=self.get_components(disable=True))

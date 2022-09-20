@@ -7,6 +7,9 @@ import time
 from copy import deepcopy
 from typing import Any
 
+from apscheduler.jobstores.base import JobLookupError
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.date import DateTrigger
 from naff import (
     Client,
     Intents,
@@ -35,6 +38,9 @@ __all__ = ("Bot",)
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger("Inquiry")
 
+ap_log = logging.getLogger("apscheduler")
+ap_log.setLevel(logging.WARNING)
+
 
 class Bot(Client):
     def __init__(self) -> None:
@@ -50,6 +56,8 @@ class Bot(Client):
         self.polls_to_update: dict[Snowflake_Type, set[Snowflake_Type]] = {}
 
         self.update_lock = asyncio.Lock()  # prevent concurrent updates
+
+        self.scheduler = AsyncIOScheduler()
 
     @classmethod
     async def run(cls, token: str) -> None:
@@ -69,12 +77,12 @@ class Bot(Client):
         bot.poll_cache = await PollCache.initialize(bot)
 
         bot.__update_polls.start()
-        bot.__cleanup_polls.start()
+        bot.scheduler.start()
 
         await bot.astart(token)
 
-    async def set_poll(self, guild_id: Snowflake_Type, message_id: Snowflake_Type, poll: PollData) -> None:
-        await self.poll_cache.store_poll(guild_id, message_id, poll)
+    async def set_poll(self, poll: PollData) -> None:
+        await self.poll_cache.store_poll(poll)
 
     @listen()
     async def on_startup(self) -> Any:
@@ -103,7 +111,7 @@ class Bot(Client):
                 return
 
             message_id = ctx.custom_id.split("|")[1]
-            if poll := await self.poll_cache.get_poll(ctx.guild_id, message_id):
+            if poll := await self.poll_cache.get_poll(message_id):
                 async with poll.lock:
                     poll.add_option(ctx.responses["new_option"])
 
@@ -122,7 +130,7 @@ class Bot(Client):
             message_id = ctx.message.id
 
         if ctx.custom_id == "add_option":
-            if await self.poll_cache.get_poll(ctx.guild_id, message_id):
+            if await self.poll_cache.get_poll(message_id):
                 return await ctx.send_modal(
                     Modal(
                         "Add Option",
@@ -137,7 +145,7 @@ class Bot(Client):
 
             option_index = int(ctx.custom_id.removeprefix("poll_option|"))
 
-            if poll := await self.poll_cache.get_poll(ctx.guild.id, message_id):
+            if poll := await self.poll_cache.get_poll(message_id):
                 if poll.expired:
                     message = await self.cache.fetch_message(ctx.channel.id, message_id)
                     await message.edit(components=poll.get_components(disable=True))
@@ -164,17 +172,11 @@ class Bot(Client):
     @listen()
     async def on_message_reaction_add(self, event: MessageReactionAdd) -> None:
         if event.emoji.name in ("🔴", "🛑", "🚫", "⛔"):
-            poll = await self.poll_cache.get_poll(event.message._guild_id, event.message.id)
+            poll = await self.poll_cache.get_poll(event.message.id)
             if poll:
                 async with poll.lock:
                     if event.author.id == poll.author_id:
-                        poll._expired = True
-                        poll.closed = True
-                        poll.expire_time = datetime.datetime.now()
-
-                        await poll.update_messages(self)
-
-                        await self.poll_cache.store_poll(event.message._guild_id, event.message.id, poll)
+                        await self.close_poll(poll.message_id)
 
     @Task.create(IntervalTrigger(seconds=5))
     async def __update_polls(self) -> None:
@@ -188,17 +190,18 @@ class Bot(Client):
                 for guild in polls:
                     for message_id in polls[guild]:
                         try:
-                            poll = await self.poll_cache.get_poll_by_message(message_id)
+                            poll = await self.poll_cache.get_poll(message_id)
                             if not poll.expired:
                                 try:
                                     await self.cache.fetch_message(poll.channel_id, poll.message_id)
                                 except NotFound:
                                     log.warning(f"Poll {poll.message_id} not found - deleting from cache")
                                     await self.poll_cache.delete_poll(poll.channel_id, poll.message_id)
+                                    self.polls_to_update[guild].remove(message_id)
                                     continue
                                 else:
                                     tasks.append(poll.update_messages(self))
-                                    tasks.append(self.poll_cache.store_poll(poll.guild_id, poll.message_id, poll))
+                                    tasks.append(self.poll_cache.store_poll(poll))
 
                                 finally:
                                     self.polls_to_update[guild].remove(message_id)
@@ -207,35 +210,48 @@ class Bot(Client):
                             log.error(f"Error updating poll {message_id}", exc_info=e)
             await asyncio.gather(*tasks)
 
-    @Task.create(IntervalTrigger(seconds=60))
-    async def __cleanup_polls(self) -> None:
-        tasks = []
-        async with self.update_lock:
-            for poll in self.poll_cache.polls.copy():
-                try:
-                    if poll.expired and not poll.closed:
-                        async with poll.lock:
-                            try:
-                                await self.cache.fetch_message(poll.channel_id, poll.message_id)
-                            except NotFound:
-                                log.warning(f"Poll {poll.message_id} not found - deleting from cache")
-                                await self.poll_cache.delete_poll(poll.channel_id, poll.message_id)
-                                continue
-                            else:
-                                tasks.append(poll.update_messages(self))
-                                poll.closed = True
-                                tasks.append(self.poll_cache.store_poll(poll.guild_id, poll.message_id, poll))
+    async def schedule_close(self, poll: PollData) -> None:
+        if poll.expire_time and not poll.closed:
+            try:
+                self.scheduler.reschedule_job(job_id=str(poll.message_id), trigger=DateTrigger(poll.expire_time))
+                log.info(f"Rescheduled poll {poll.message_id} to close at {poll.expire_time}")
+            except JobLookupError:
+                if poll.expire_time > datetime.datetime.now():
+                    self.scheduler.add_job(
+                        id=str(poll.message_id),
+                        name=f"Close Poll {poll.message_id}",
+                        trigger=DateTrigger(poll.expire_time),
+                        func=self.close_poll,
+                        args=[poll.message_id],
+                    )
+                    log.info(f"Scheduled poll {poll.message_id} to close at {poll.expire_time}")
+                else:
+                    await self.close_poll(poll.message_id)
+                    log.info(f"Poll {poll.message_id} already expired - closing immediately")
 
-                                log.debug(f"Poll {poll.message_id} expired - closed")
-                except Exception as e:
-                    log.error(f"Error cleaning up poll {poll.message_id}", exc_info=e)
-            await asyncio.gather(*tasks)
+    async def close_poll(self, message_id):
+        poll = await self.poll_cache.get_poll(message_id)
+        tasks = []
+        if poll:
+            async with poll.lock:
+                log.info(f"Closing poll {poll.message_id}")
+                poll._expired = True
+                poll.expire_time = datetime.datetime.now()
+
+                tasks.append(poll.update_messages(self))
+                poll.closed = True
+
+                tasks.append(self.poll_cache.store_poll(poll))
+        else:
+            log.warning(f"Poll {message_id} not found - cannot close")
+
+        await asyncio.gather(*tasks)
 
     @context_menu("stress poll", CommandTypes.MESSAGE, scopes=[985991455074050078])
     async def __stress_poll(self, ctx: ComponentContext) -> None:
         # stresses out the poll system by voting a huge amount on a poll
         # this is a stress test for the system, and should not be used in production
-        poll = await self.poll_cache.get_poll(ctx.guild_id, ctx.target.id)
+        poll = await self.poll_cache.get_poll(ctx.target.id)
         votes_per_cycle = 30000
         cycles = 10
 
