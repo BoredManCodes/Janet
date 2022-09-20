@@ -174,9 +174,8 @@ class Bot(Client):
         if event.emoji.name in ("🔴", "🛑", "🚫", "⛔"):
             poll = await self.poll_cache.get_poll(event.message.id)
             if poll:
-                async with poll.lock:
-                    if event.author.id == poll.author_id:
-                        await self.close_poll(poll.message_id)
+                if event.author.id == poll.author_id:
+                    await self.close_poll(poll.message_id)
 
     @Task.create(IntervalTrigger(seconds=5))
     async def __update_polls(self) -> None:
