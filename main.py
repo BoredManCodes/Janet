@@ -47,7 +47,7 @@ class Bot(Client):
         super().__init__(
             intents=Intents.new(guilds=True, reactions=True, default=False),
             sync_interactions=True,
-            delete_unused_application_cmds=True,
+            delete_unused_application_cmds=False,
             activity="with an update...",
             status=Status.DND,
         )
