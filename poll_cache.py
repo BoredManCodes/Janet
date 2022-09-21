@@ -49,6 +49,7 @@ class PollCache:
 
             instance = cls(bot, database, db_credentials)
             await instance.__write_poll(test_poll)
+            await instance.delete_poll(test_poll.message_id)
 
             asyncio.create_task(instance.load_all())
 
