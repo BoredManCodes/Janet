@@ -1,3 +1,6 @@
+import asyncio
+import datetime
+import logging
 from typing import TYPE_CHECKING
 
 from naff import (
@@ -7,7 +10,13 @@ from naff import (
     OptionTypes,
     context_menu,
     CommandTypes,
+    Embed,
+    BrandColors,
+    Button,
+    ButtonStyles,
+    ComponentContext,
 )
+from naff.api.events import Component
 
 from extensions.shared import ExtensionBase, OPT_find_poll, OPT_find_option
 
@@ -15,6 +24,8 @@ if TYPE_CHECKING:
     from main import Bot
 
 __all__ = ("setup", "EditPolls")
+
+log = logging.getLogger("edit_poll")
 
 
 class EditPolls(ExtensionBase):
@@ -24,6 +35,7 @@ class EditPolls(ExtensionBase):
         self.add_option.autocomplete("poll")(self.poll_autocomplete)
         self.remove_option.autocomplete("poll")(self.poll_autocomplete)
         self.close_poll.autocomplete("poll")(self.poll_autocomplete)
+        self.delete_poll.autocomplete("poll")(self.poll_autocomplete)
         self.remove_option.autocomplete("option")(self.option_autocomplete)
 
     @slash_command("edit_poll", description="Edit a given poll")
@@ -126,6 +138,53 @@ class EditPolls(ExtensionBase):
                 await ctx.send("Only the author of the poll can close it!")
         else:
             await ctx.send("This is not a poll!")
+
+    @edit_poll.subcommand("delete", sub_cmd_description="Delete a poll", options=[OPT_find_poll])
+    async def delete_poll(self, ctx: InteractionContext, poll) -> None:
+        await ctx.defer()
+        if poll := await self.process_poll_option(ctx, poll):
+            if poll.author_id == ctx.author.id:
+                embed = Embed(title="Delete Poll?", color=BrandColors.RED)
+                embed.description = f"Are you sure you want to delete `{poll.title}`?\nThis action cannot be undone!"
+                prompt = await ctx.send(
+                    embed=embed,
+                    components=[
+                        Button(label="Delete Poll", style=ButtonStyles.DANGER, custom_id="delete"),
+                        Button(label="Cancel", style=ButtonStyles.SUCCESS, custom_id="cancel"),
+                    ],
+                )
+                try:
+                    c: Component = await self.bot.wait_for_component(
+                        messages=[prompt], timeout=20, check=lambda c: c.context.author.id == ctx.author.id
+                    )
+                    button_ctx = c.context
+                    if button_ctx.custom_id == "delete":
+                        await button_ctx.defer()
+
+                        if not poll.closed:
+                            try:
+                                await self.bot.close_poll(poll.message_id)
+                            except Exception:
+                                pass
+
+                        await self.bot.poll_cache.delete_poll(poll.message_id)
+                        await button_ctx.send("Poll Deleted")
+                        await prompt.edit(components=[])
+                    else:
+                        await prompt.edit(components=[])
+                        await button_ctx.send("Cancelled")
+
+                except asyncio.TimeoutError:
+                    await prompt.edit(components=[])
+                    await prompt.reply("Timed out!")
+                except Exception as e:
+                    await prompt.edit(components=[])
+                    await prompt.reply(f"An error occurred: {e}")
+                    log.error("An error occurred while deleting a poll", exc_info=e)
+            else:
+                await ctx.send("Only the author of the poll can delete it!")
+        else:
+            await ctx.send("This poll does not exist!")
 
 
 def setup(bot) -> None:

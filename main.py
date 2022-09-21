@@ -147,7 +147,7 @@ class Bot(Client):
                 )
             else:
                 return await ctx.send("Cannot add options to that poll", ephemeral=True)
-        else:
+        elif "poll_option" in ctx.custom_id:
             await ctx.defer(ephemeral=True)
 
             option_index = int(ctx.custom_id.removeprefix("poll_option|"))
