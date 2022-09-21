@@ -303,8 +303,12 @@ class PollData:
                 parsed = tuple(filter(None, data[0]))
                 if len(parsed) == 3:
                     _emoji = PartialEmoji(name=parsed[1], id=parsed[2], animated=True)
+                elif len(parsed) == 2:
+                    _emoji = PartialEmoji(name=parsed[1], id=parsed[2], animated=False)
                 else:
-                    _emoji = PartialEmoji(name=parsed[0], id=parsed[1])
+                    raise ValueError(
+                        "You have provided an invalid emoji. If you are trying to use a unicode emoji, please just use the unicode character"
+                    )
                 opt_name = opt_name.replace(str(_emoji), "")
             else:
                 _emoji_list = emoji_lib.distinct_emoji_list(opt_name)
