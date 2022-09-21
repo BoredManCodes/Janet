@@ -22,11 +22,6 @@ no_emoji:
   emoji: "⁉️"
   brief: "My emoji is appearing as text instead of an image"
   content: "Inquiry can only send emoji from servers it is in. This is a limitation from Discord. Please only use emoji from servers you share with Inquiry."
-late_close:
-  title: "Poll Closed Late"
-  emoji: "😨"
-  brief: "My poll closed a few seconds later than it should have"
-  content: "Inquiry checks polls for their closed state every 60 seconds. This can cause a few seconds of delay between the poll closing, and the embed being updated to reflect this. However, the poll will not accept any more votes after your specified duration, it simply hasn't updated the embed yet."
 bot_is_broken:
   title: "The Bot Is Broken"
   emoji: "🛠️"
