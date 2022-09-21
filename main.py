@@ -318,6 +318,7 @@ class Bot(Client):
                             icon_url=self.user.avatar.url,
                         )
                         await channel.send(embed=embed)
+                        log.info(f"Sent thanks message to {channel.guild.id}")
         except Exception as e:
             log.error("Error sending thanks message", exc_info=e)
 
