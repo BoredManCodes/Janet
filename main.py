@@ -306,35 +306,33 @@ class Bot(Client):
         try:
             channel = await self.cache.fetch_channel(channel_id)
             if channel:
-                async with self.poll_cache.db.acquire():
-                    total_polls = await self.poll_cache.db.fetchval(
-                        "SELECT COUNT(*) FROM polls.poll_data WHERE guild_id = $1", channel.guild.id
+                total_polls = await self.poll_cache.db.fetchval(
+                    "SELECT COUNT(*) FROM polls.poll_data WHERE guild_id = $1", channel.guild.id
+                )
+                if total_polls == 2:
+                    embed = Embed(title="Thanks for using Inquiry!", color=BrandColors.BLURPLE)
+                    embed.description = f"If you have any questions try {self.server.mention()} \nIf you have feedback use {self.feedback.mention()}. \n\nOtherwise, enjoy the bot!"
+                    embed.set_footer(
+                        text="This is the only time Inquiry will send a message like this",
+                        icon_url=self.user.avatar.url,
                     )
-                    if total_polls == 2:
-                        embed = Embed(title="Thanks for using Inquiry!", color=BrandColors.BLURPLE)
-                        embed.description = f"If you have any questions try {self.server.mention()} \nIf you have feedback use {self.feedback.mention()}. \n\nOtherwise, enjoy the bot!"
-                        embed.set_footer(
-                            text="This is the only time Inquiry will send a message like this",
-                            icon_url=self.user.avatar.url,
-                        )
-                        await channel.send(embed=embed)
-                        log.info(f"Sent thanks message to {channel.guild.id}")
+                    await channel.send(embed=embed)
+                    log.info(f"Sent thanks message to {channel.guild.id}")
         except Exception as e:
             log.error("Error sending thanks message", exc_info=e)
 
     @listen()
     async def on_guild_remove(self, event: GuildLeft) -> None:
         if self.is_ready:
-            async with self.poll_cache.db.acquire():
-                try:
-                    total_polls = await self.poll_cache.db.fetchval(
-                        "SELECT COUNT(*) FROM polls.poll_data WHERE guild_id = $1", event.guild.id
-                    )
+            try:
+                total_polls = await self.poll_cache.db.fetchval(
+                    "SELECT COUNT(*) FROM polls.poll_data WHERE guild_id = $1", event.guild.id
+                )
 
-                    await self.poll_cache.db.execute("DELETE FROM polls.poll_data WHERE guild_id = $1", event.guild.id)
-                    log.info(f"Left guild {event.guild.id} -- Deleted {total_polls} related polls from database")
-                except Exception as e:
-                    log.error("Error deleting polls on guild leave", exc_info=e)
+                await self.poll_cache.db.execute("DELETE FROM polls.poll_data WHERE guild_id = $1", event.guild.id)
+                log.info(f"Left guild {event.guild.id} -- Deleted {total_polls} related polls from database")
+            except Exception as e:
+                log.error("Error deleting polls on guild leave", exc_info=e)
 
 
 if __name__ == "__main__":
