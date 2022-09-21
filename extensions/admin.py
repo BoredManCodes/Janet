@@ -88,10 +88,6 @@ class Admin(Extension):
         embed.set_thumbnail(url=self.bot.user.avatar.url)
         await ctx.send(embed=embed)
 
-    @slash_command("server", description="Join the support server")
-    async def server(self, ctx: InteractionContext) -> None:
-        await ctx.send("https://discord.gg/vtRTAwmQsH")
-
 
 def setup(bot) -> None:
     Admin(bot)

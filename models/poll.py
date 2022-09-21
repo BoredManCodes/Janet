@@ -190,27 +190,30 @@ class PollData:
             description="This poll has been closed",
             color=self.get_colour(),
         )
-        sorted_votes: list[PollOption] = sorted(self.poll_options, key=lambda x: len(x.voters), reverse=True)
-        top_voted = sorted_votes[0]
-        possible_ties = [o for o in sorted_votes if len(o.voters) == len(top_voted.voters)]
-
         embed.add_field(name="Poll Name", value=self.title, inline=False)
 
-        if len(possible_ties) == 1:
-            embed.add_field(
-                name="Highest Voted Option",
-                value=f"{sorted_votes[0].emoji} {sorted_votes[0].text} - {len(sorted_votes[0].voters)} votes ({len(sorted_votes[0].voters) / self.total_votes:.0%})",
-            )
+        if self.total_votes != 0:
+            sorted_votes: list[PollOption] = sorted(self.poll_options, key=lambda x: len(x.voters), reverse=True)
+            top_voted = sorted_votes[0]
+            possible_ties = [o for o in sorted_votes if len(o.voters) == len(top_voted.voters)]
+            if len(possible_ties) == 1:
+                embed.add_field(
+                    name="Highest Voted Option",
+                    value=f"{sorted_votes[0].emoji} {sorted_votes[0].text} - {len(sorted_votes[0].voters)} votes ({len(sorted_votes[0].voters) / self.total_votes:.0%})",
+                )
+            else:
+                embed.add_field(
+                    name="Tied Highest Voted Options",
+                    value="\n".join(
+                        [
+                            f"{o.emoji} {o.text} - {len(o.voters)} votes ({len(sorted_votes[0].voters) / self.total_votes:.0%})"
+                            for o in possible_ties
+                        ]
+                    ),
+                )
         else:
-            embed.add_field(
-                name="Tied Highest Voted Options",
-                value="\n".join(
-                    [
-                        f"{o.emoji} {o.text} - {len(o.voters)} votes ({len(sorted_votes[0].voters) / self.total_votes:.0%})"
-                        for o in possible_ties
-                    ]
-                ),
-            )
+            embed.add_field(name="Highest Voted Option", value="No votes were cast")
+
         embed.set_footer(text=f"Poll ID: {self.message_id}")
         return embed
 
