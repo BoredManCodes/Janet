@@ -64,6 +64,13 @@ async def sanity_check(ctx: InteractionContext) -> bool:
         )
         return False
 
+    if Permissions.READ_MESSAGE_HISTORY not in channel_perms:
+        await ctx.send(
+            "I can't read message history in this channel, please give me the `Read Message History` permission",
+            ephemeral=True,
+        )
+        return False
+
     if ctx.kwargs.get("thread"):
         if not all(perm in channel_perms for perm in (Permissions.USE_PUBLIC_THREADS, Permissions.USE_PRIVATE_THREADS)):
             await ctx.send("I don't have the permissions to create threads in this channel", ephemeral=True)
