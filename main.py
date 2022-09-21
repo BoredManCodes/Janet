@@ -78,6 +78,11 @@ class Bot(Client):
         bot.load_extension("extensions.analytics")
         bot.load_extension("extensions.dev")
 
+        for command in bot.application_commands:
+            # it really isnt necessary to do it like this, but im really lazy
+            # basically this disables using every command in dms **except** the commands in this file
+            command.dm_permission = False
+
         bot.poll_cache = await PollCache.initialize(bot)
 
         bot.__update_polls.start()
