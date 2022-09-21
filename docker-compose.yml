@@ -14,17 +14,6 @@ services:
       always
     depends_on:
       - postgres
-      - redis
-
-  redis:
-    container_name: Redis
-    image: redis:latest
-    networks:
-      - inquiry-network
-    restart:
-      always
-    volumes:
-      - redis-data:/data
 
   postgres:
     container_name: Postgres
@@ -47,7 +36,5 @@ networks:
 
 
 volumes:
-  redis-data:
-    driver: local
   postgres-data:
     driver: local
