@@ -76,6 +76,7 @@ class Bot(Client):
         bot.load_extension("extensions.bot_lists")
         bot.load_extension("extensions.help")
         bot.load_extension("extensions.analytics")
+        bot.load_extension("extensions.dev")
 
         bot.poll_cache = await PollCache.initialize(bot)
 
