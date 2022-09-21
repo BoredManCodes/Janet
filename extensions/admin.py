@@ -67,13 +67,15 @@ class Admin(Extension):
         # get commit hash
         git_hash = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"]).decode("ascii").strip()
 
+        total_polls = await self.bot.poll_cache.db.fetchval(
+            "SELECT COUNT(*) FROM polls.poll_data WHERE guild_id = $1", ctx.guild.id
+        )
+
         embed.add_field(name="Guilds", value=str(len(self.bot.guilds)))
         embed.add_field(name="Cached Users", value=str(len(self.bot.cache.user_cache)))
         embed.add_field(name="Cached Polls", value=str(len(self.bot.poll_cache.polls)))
         embed.add_field(name="Total Polls", value=str(await self.bot.poll_cache.get_total_polls()))
-        embed.add_field(
-            name="Polls From This Guild", value=str(len(await self.bot.poll_cache.get_polls_by_guild(ctx.guild_id)))
-        )
+        embed.add_field(name="Polls From This Guild", value=str(total_polls))
         embed.add_field(name="Pending Updates", value=str(sum(len(v) for v in self.bot.polls_to_update.values())))
         embed.add_field(
             name="Startup Time", value=Timestamp.fromdatetime(self.bot.start_time).format(TimestampStyles.RelativeTime)
