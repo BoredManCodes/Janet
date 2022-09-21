@@ -29,7 +29,7 @@ from naff import (
     BrandColors,
     Embed,
 )
-from naff.api.events import Button, MessageReactionAdd, ModalResponse
+from naff.api.events import Button, MessageReactionAdd, ModalResponse, GuildLeft
 from naff.client.errors import NotFound
 from naff.models.naff.application_commands import context_menu, slash_command
 
@@ -321,6 +321,20 @@ class Bot(Client):
                         log.info(f"Sent thanks message to {channel.guild.id}")
         except Exception as e:
             log.error("Error sending thanks message", exc_info=e)
+
+    @listen()
+    async def on_guild_remove(self, event: GuildLeft) -> None:
+        if self.is_ready:
+            async with self.poll_cache.db.acquire():
+                try:
+                    total_polls = await self.poll_cache.db.fetchval(
+                        "SELECT COUNT(*) FROM polls.poll_data WHERE guild_id = $1", event.guild.id
+                    )
+
+                    await self.poll_cache.db.execute("DELETE FROM polls.poll_data WHERE guild_id = $1", event.guild.id)
+                    log.info(f"Left guild {event.guild.id} -- Deleted {total_polls} related polls from database")
+                except Exception as e:
+                    log.error("Error deleting polls on guild leave", exc_info=e)
 
 
 if __name__ == "__main__":
