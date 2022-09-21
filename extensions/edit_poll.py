@@ -116,7 +116,6 @@ class EditPolls(ExtensionBase):
                     await poll.update_messages(self.bot)
                     await poll.send_close_message(self.bot)
 
-                    await self.bot.poll_cache.delete_poll(ctx.guild_id, poll.message_id)
                     await ctx.send(f"`{poll.title}` has been closed!")
             else:
                 await ctx.send("Only the author of the poll can close it!")
@@ -132,7 +131,6 @@ class EditPolls(ExtensionBase):
                     await poll.update_messages(self.bot)
                     await poll.send_close_message(self.bot)
 
-                    await self.bot.poll_cache.delete_poll(ctx.guild_id, poll.message_id)
                     await ctx.send(f"`{poll.title}` has been closed!")
             else:
                 await ctx.send("Only the author of the poll can close it!")
