@@ -373,7 +373,7 @@ class PollData:
             raise
 
     async def send_close_message(self, client) -> None:
-        if not self._sent_close_message:
+        if self.close_message and not self._sent_close_message:
             origin_message = await client.cache.fetch_message(self.channel_id, self.message_id)
             if origin_message:
                 await origin_message.reply(embed=self.close_embed)
