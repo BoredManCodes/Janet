@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 from asyncio import Event
+from typing import Any
 
 import asyncpg
 import orjson
@@ -58,12 +59,19 @@ class PollCache:
             log.critical(f"Failed to initialize cache", exc_info=e)
             exit()
 
+    @staticmethod
+    def assemble_query_with_dict(query: str, data: dict) -> str:
+        query = query.format(
+            ", ".join('"{0}"'.format(k) for k in data.keys()),
+            ", ".join(f"${i + 1}" for i in range(len(data))),
+            ", ".join(f'"{k}"=${i + 1}' for i, k in enumerate(data.keys())),
+        )
+        return query
+
     async def __write_poll(self, poll: PollData):
         serialised = poll.__dict__()
-        poll_query = "INSERT INTO polls.poll_data ({}) VALUES ({}) ON CONFLICT(message_id) DO UPDATE SET {};".format(
-            ", ".join('"{0}"'.format(k) for k in serialised.keys()),
-            ", ".join(f"${i + 1}" for i in range(len(serialised))),
-            ", ".join(f'"{k}"=${i + 1}' for i, k in enumerate(serialised.keys())),
+        poll_query = self.assemble_query_with_dict(
+            "INSERT INTO polls.poll_data ({}) VALUES ({}) ON CONFLICT(message_id) DO UPDATE SET {};", serialised
         )
         async with self.db.acquire() as conn:
             await conn.execute(poll_query, *serialised.values())
@@ -122,7 +130,7 @@ class PollCache:
 
     async def __fetch_poll(self, message_id: Snowflake_Type) -> PollData | None:
         async with self.db.acquire() as conn:
-            poll = await conn.fetchrow("SELECT * FROM polls.poll_data WHERE message_id = $1", int(message_id))
+            poll = await conn.fetchrow("SELECT * FROM polls.poll_data WHERE message_id = $1", message_id)
         if poll:
             log.debug("Fetched poll: %s", message_id)
             return await self.deserialize_poll(poll)
@@ -138,7 +146,7 @@ class PollCache:
 
     async def get_polls_by_guild(self, guild_id: Snowflake_Type) -> list[PollData]:
         async with self.db.acquire() as conn:
-            polls = await conn.fetch("SELECT * FROM polls.poll_data WHERE guild_id = $1", int(guild_id))
+            polls = await conn.fetch("SELECT * FROM polls.poll_data WHERE guild_id = $1", guild_id)
         return [await self.deserialize_poll(p, store=True) for p in polls]
 
     async def store_poll(self, poll: PollData) -> None:
@@ -154,9 +162,25 @@ class PollCache:
 
         async with lock:
             async with self.db.acquire() as conn:
-                await conn.execute("DELETE FROM polls.poll_data WHERE message_id = $1", int(message_id))
+                await conn.execute("DELETE FROM polls.poll_data WHERE message_id = $1", message_id)
             self.polls.pop(message_id, None)
             log.debug("Deleted poll: %s", message_id)
 
     async def get_total_polls(self) -> int:
         return await self.db.fetchval("SELECT COUNT(*) FROM polls.poll_data")
+
+    async def get_guild_data(self, guild_id: Snowflake_Type) -> dict[str, Any]:
+        async with self.db.acquire() as conn:
+            data = await conn.fetchrow("SELECT * FROM polls.guild_data WHERE id = $1", guild_id)
+        if data:
+            return dict(data)
+        await self.db.execute("INSERT INTO polls.guild_data (id) VALUES ($1)", guild_id)
+        return {}
+
+    async def set_guild_data(self, data: dict[str, Any]) -> None:
+        query = self.assemble_query_with_dict(
+            "INSERT INTO polls.guild_data ({}) VALUES ({}) ON CONFLICT(id) DO UPDATE SET {};", data
+        )
+        async with self.db.acquire() as conn:
+            await conn.execute(query, *data.values())
+            log.debug("Updated guild data: %s", data["id"])

@@ -1,6 +1,6 @@
 create schema polls;
 
-create table polls.poll_data
+create table poll_data
 (
     title              text   not null,
     author_id          bigint not null,
@@ -26,4 +26,13 @@ create table polls.poll_data
     author_name        text,
     author_avatar      text,
     poll_options       json
+);
+
+create table polls.guild_data
+(
+    id             bigint not null
+        constraint guild_pk
+            primary key,
+    thank_you_sent boolean default false,
+    blacklisted    boolean default false
 );

@@ -29,7 +29,7 @@ from naff import (
     BrandColors,
     Embed,
 )
-from naff.api.events import Button, MessageReactionAdd, ModalResponse, GuildLeft
+from naff.api.events import Button, MessageReactionAdd, ModalResponse, GuildLeft, GuildJoin
 from naff.client.errors import NotFound
 from naff.models.naff.application_commands import context_menu, slash_command
 
@@ -312,17 +312,37 @@ class Bot(Client):
         try:
             channel = await self.cache.fetch_channel(channel_id)
             if channel:
+                guild_data = await self.poll_cache.get_guild_data(channel.guild.id)
+                if guild_data.get("thank_you_sent", True):
+                    return
                 total_polls = await self.poll_cache.db.fetchval(
                     "SELECT COUNT(*) FROM polls.poll_data WHERE guild_id = $1", channel.guild.id
                 )
-                if total_polls == 2:
+
+                if total_polls >= 3:
                     embed = Embed(title="Thanks for using Inquiry!", color=BrandColors.BLURPLE)
-                    embed.description = f"If you have any questions try {self.server.mention()} \nIf you have feedback use {self.feedback.mention()}. \n\nOtherwise, enjoy the bot!"
+                    vote_command = self.interactions[0].get("vote")
+                    help_command = self.interactions[0].get("help")
+
+                    description = [
+                        "I hope you've enjoyed using it so far. Please excuse this shameless plug message.",
+                        "",
+                        f"If you have any questions; use {self.server.mention()}",
+                        f"If you have feedback; use {self.feedback.mention()}",
+                        f"If you want to help the bot grow; use {vote_command.mention()}",
+                        f"For help guides; use {help_command.mention()}",
+                        "",
+                        "Otherwise, enjoy the bot!",
+                    ]
+
+                    embed.description = "\n".join(description)
                     embed.set_footer(
                         text="This is the only time Inquiry will send a message like this",
                         icon_url=self.user.avatar.url,
                     )
                     await channel.send(embed=embed)
+                    guild_data["thank_you_sent"] = True
+                    await self.poll_cache.set_guild_data(guild_data)
                     log.info(f"Sent thanks message to {channel.guild.id}")
         except Exception as e:
             log.error("Error sending thanks message", exc_info=e)

@@ -117,6 +117,7 @@ class EditPolls(ExtensionBase):
                     await poll.send_close_message(self.bot)
 
                     await ctx.send(f"`{poll.title}` has been closed!")
+                    await self.bot.send_thanks_message(ctx.channel.id)
             else:
                 await ctx.send("Only the author of the poll can close it!")
 
@@ -132,6 +133,7 @@ class EditPolls(ExtensionBase):
                     await poll.send_close_message(self.bot)
 
                     await ctx.send(f"`{poll.title}` has been closed!")
+                    await self.bot.send_thanks_message(ctx.channel.id)
             else:
                 await ctx.send("Only the author of the poll can close it!")
         else:
