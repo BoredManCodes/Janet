@@ -76,6 +76,8 @@ class Analytics(Extension):
 
     @listen()
     async def on_guild_join(self, event: GuildJoin):
+        guild_data = await self.bot.poll_cache.get_guild_data(event.guild.id)
+
         if self.bot.is_ready and self.join_log_id:
             hook = await self.get_webhook()
 
@@ -84,6 +86,8 @@ class Analytics(Extension):
             embed.add_field("ID", event.guild.id)
             embed.add_field("Guild Age", Timestamp.from_snowflake(event.guild.id).format("R"))
             embed.add_field("Aprox Member Count", event.guild.member_count)
+            if guild_data.get("blacklisted", False):
+                embed.add_field("⚠️ Blacklisted Guild", "True")
             if event.guild.icon:
                 embed.set_thumbnail(event.guild.icon.url)
 
