@@ -315,7 +315,7 @@ class PollData:
                     _emoji = PartialEmoji(name=parsed[1], id=parsed[2], animated=False)
                     opt_name = opt_name.replace(str(_emoji), "")
                 else:
-                    _name = emoji_lib.emojize(opt_name)
+                    _name = emoji_lib.emojize(opt_name, language="alias")
                     _emoji_list = emoji_lib.distinct_emoji_list(_name)
                     if _emoji_list:
                         _emoji = _emoji_list[0]
