@@ -218,21 +218,20 @@ class Bot(Client):
                     for message_id in polls[guild]:
                         try:
                             poll = await self.poll_cache.get_poll(message_id)
-                            if not poll.expired:
-                                try:
+                            try:
+                                if not poll.expired:
                                     await self.cache.fetch_message(poll.channel_id, poll.message_id)
-                                except NotFound:
-                                    log.warning(f"Poll {poll.message_id} not found - deleting from cache")
-                                    await self.poll_cache.delete_poll(poll.channel_id, poll.message_id)
-                                    self.polls_to_update[guild].remove(message_id)
-                                    continue
-                                else:
-                                    tasks.append(poll.update_messages(self))
-                                    tasks.append(self.poll_cache.store_poll(poll))
-
-                                finally:
-                                    self.polls_to_update[guild].remove(message_id)
+                            except NotFound:
+                                log.warning(f"Poll {poll.message_id} not found - deleting from cache")
+                                await self.poll_cache.delete_poll(poll.channel_id, poll.message_id)
+                                continue
+                            else:
+                                tasks.append(poll.update_messages(self))
+                                tasks.append(self.poll_cache.store_poll(poll))
                                 log.debug(f"Updated poll {poll.message_id}")
+
+                            finally:
+                                self.polls_to_update[guild].remove(message_id)
                         except Exception as e:
                             log.error(f"Error updating poll {message_id}", exc_info=e)
             await asyncio.gather(*tasks)
