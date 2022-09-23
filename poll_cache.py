@@ -107,7 +107,12 @@ class PollCache:
 
     async def deserialize_poll(self, data: Record, *, store: bool = True) -> PollData:
         try:
+            if poll := self.polls.get(data["message_id"]):
+                # prevent edge case data loss
+                return poll
+
             data = dict(data)
+
             data["poll_options"] = orjson.loads(data["poll_options"])
             poll = PollData(**data)
 
@@ -144,7 +149,6 @@ class PollCache:
 
     async def get_poll(self, message_id: Snowflake_Type) -> PollData | None:
         if poll := self.polls.get(message_id):
-            log.debug("Fetched poll from cache: %s", message_id)
             return poll
         log.debug("Poll not in cache, fetching from database: %s", message_id)
         return await self.__fetch_poll(message_id)
