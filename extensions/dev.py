@@ -1,7 +1,7 @@
 import asyncio
-import json
 from io import StringIO
 
+import orjson
 from naff import (
     Extension,
     slash_command,
@@ -22,7 +22,7 @@ class Dev(Extension):
     def __init__(self, _):
         self.add_ext_check(checks.is_owner())
 
-    @slash_command("dev", description="Developer only commmands", scopes=[1013821165191581756])
+    @slash_command("dev", description="Developer only commmands", scopes=[1013821165191581756, 985991455074050078])
     async def dev(self, ctx):
         ...
 
@@ -86,7 +86,7 @@ class Dev(Extension):
             return await ctx.send("Poll not found")
 
         file = StringIO()
-        json.dump(poll.__dict__(), file, indent=4)
+        file.write(orjson.dumps((poll.__dict__()), option=orjson.OPT_INDENT_2).decode())
         file.seek(0)
 
         await ctx.send(file=File(file, file_name="poll.json"))
