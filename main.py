@@ -30,6 +30,7 @@ from naff import (
     Embed,
 )
 from naff.api.events import Button, MessageReactionAdd, ModalResponse, GuildLeft, GuildJoin
+from naff.api.events.processors._template import Processor
 from naff.client.errors import NotFound
 from naff.models.naff.application_commands import context_menu, slash_command
 
@@ -61,6 +62,21 @@ class Bot(Client):
         self.update_lock = asyncio.Lock()  # prevent concurrent updates
 
         self.scheduler = AsyncIOScheduler()
+
+        # disable processors that we don't need for efficiency
+        # naff by default will request missing data, by removing these, the api won't be polled on every reaction
+        del self.processors["raw_message_reaction_remove"]
+        del self.processors["raw_message_reaction_remove_all"]
+
+    @Processor.define()
+    async def _on_raw_message_reaction_add(self, event: "RawGatewayEvent") -> None:
+        poll = await self.poll_cache.get_poll(event.data["message_id"])
+        data = event.data
+        if poll:
+            if data["emoji"]["name"] in ("🔴", "🛑", "🚫", "⛔"):
+                if int(data["user_id"]) == poll.author_id:
+                    log.info(f"Closing poll {poll.message_id} due to reaction")
+                    await self.close_poll(poll.message_id)
 
     @classmethod
     async def run(cls, token: str) -> None:
@@ -193,17 +209,6 @@ class Bot(Client):
                 # likely a legacy or deleted poll
                 log.warning(f"Could not find poll with message id {message_id}")
                 await ctx.send("That poll could not be edited 😕")
-
-    @listen()
-    async def on_message_reaction_add(self, event: MessageReactionAdd) -> None:
-        if event.message.author.id == self.user.id and event.message.components:
-            # if the above is true, then the message is likely a poll
-            if event.emoji.name in ("🔴", "🛑", "🚫", "⛔"):
-                poll = await self.poll_cache.get_poll(event.message.id)
-                if poll:
-                    log.info(f"Closing poll {poll.message_id} due to reaction")
-                    if event.author.id == poll.author_id:
-                        await self.close_poll(poll.message_id)
 
     @Task.create(IntervalTrigger(seconds=5))
     async def __update_polls(self) -> None:
