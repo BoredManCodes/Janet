@@ -123,28 +123,37 @@ class ExtensionBase(Extension):
                 return None
             return poll
 
-    async def poll_autocomplete(self, ctx: AutocompleteContext, **kwargs) -> bool:
+    @staticmethod
+    def poll_autocomplete_predicate(ctx: AutocompleteContext):
         def predicate(_poll: PollData):
             if not _poll.expired:
                 if _poll.author_id == ctx.author.id:
                     return True
             return False
 
-        polls = await self.bot.poll_cache.get_polls_by_guild(ctx.guild_id)
+        return predicate
+
+    async def poll_autocomplete(self, ctx: AutocompleteContext, **kwargs) -> bool:
+        predicate = self.poll_autocomplete_predicate(ctx)
+
+        polls = await self.bot.poll_cache.db.fetch(
+            f"SELECT message_id, title FROM polls.poll_data WHERE guild_id = {ctx.guild_id}"
+        )
+
         if polls:
             if not ctx.input_text:
                 results = polls[:25]
             else:
                 results = process.extract(
-                    ctx.input_text, {p.message_id: p.title for p in polls if predicate(p)}, limit=25
+                    ctx.input_text, {p["message_id"]: p["title"] for p in polls if predicate(p)}, limit=25
                 )
                 results = [await self.bot.poll_cache.get_poll(p[2]) for p in results if p[1] > 50]
 
             await ctx.send(
                 [
                     {
-                        "name": f"{p.title} ({Timestamp.from_snowflake(p.message_id).ctime()})",
-                        "value": str(p.message_id),
+                        "name": f"{p['title']} ({Timestamp.from_snowflake(p['message_id']).ctime()})",
+                        "value": str(p["message_id"]),
                     }
                     for p in results
                 ]
