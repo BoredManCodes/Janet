@@ -137,6 +137,7 @@ class Bot(Client):
                     if ctx.guild.id not in self.polls_to_update:
                         self.polls_to_update[ctx.guild.id] = set()
                     self.polls_to_update[ctx.guild.id].add(int(message_id))
+                log.info(f"Added option to {message_id}")
                 return await ctx.send(f"Added {ctx.responses['new_option']} to the poll")
             return await ctx.send("That poll could not be edited")
 
@@ -150,6 +151,7 @@ class Bot(Client):
 
         if ctx.custom_id == "add_option":
             if await self.poll_cache.get_poll(message_id):
+                log.info("Opening add-option modal")
                 return await ctx.send_modal(
                     Modal(
                         "Add Option",
@@ -178,14 +180,18 @@ class Bot(Client):
                                     if ctx.author.id in _o.voters:
                                         _o.voters.remove(ctx.author.id)
                         if opt.vote(ctx.author.id):
+                            log.info(f"Added vote to {poll.message_id}")
                             await ctx.send(f"⬆️ Your vote for {opt.emoji}`{opt.inline_text}` has been added!")
                         else:
+                            log.info(f"Removed vote from {poll.message_id}")
                             await ctx.send(f"⬇️ Your vote for {opt.emoji}`{opt.inline_text}` has been removed!")
 
                     if ctx.guild.id not in self.polls_to_update:
                         self.polls_to_update[ctx.guild.id] = set()
                     self.polls_to_update[ctx.guild.id].add(poll.message_id)
             else:
+                # likely a legacy or deleted poll
+                log.warning(f"Could not find poll with message id {message_id}")
                 await ctx.send("That poll could not be edited 😕")
 
     @listen()
@@ -195,6 +201,7 @@ class Bot(Client):
             if event.emoji.name in ("🔴", "🛑", "🚫", "⛔"):
                 poll = await self.poll_cache.get_poll(event.message.id)
                 if poll:
+                    log.info(f"Closing poll {poll.message_id} due to reaction")
                     if event.author.id == poll.author_id:
                         await self.close_poll(poll.message_id)
 
@@ -247,7 +254,7 @@ class Bot(Client):
                     log.info(f"Scheduled poll {poll.message_id} to close at {poll.expire_time}")
                 else:
                     await self.close_poll(poll.message_id)
-                    log.info(f"Poll {poll.message_id} already expired - closing immediately")
+                    log.warning(f"Poll {poll.message_id} already expired - closing immediately")
 
     async def close_poll(self, message_id):
         poll = await self.poll_cache.get_poll(message_id)
@@ -284,6 +291,7 @@ class Bot(Client):
         cycles = 10
 
         if poll:
+            log.warning(f"Stressing poll {poll.message_id}")
             msg = await ctx.send("Stress testing...")
 
             for i in range(cycles):
