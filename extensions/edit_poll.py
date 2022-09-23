@@ -69,6 +69,7 @@ class EditPolls(ExtensionBase):
                                 break
                         else:
                             await ctx.send(f"Failed to remove `{option}` from `{poll.title}`")
+                    await self.bot.poll_cache.store_poll(poll)
                     return
             else:
                 return await ctx.send("Only the author of the poll can edit it!")
@@ -100,6 +101,7 @@ class EditPolls(ExtensionBase):
                         await poll.update_messages(self.bot)
 
                         await ctx.send(f"Added `{option}` to `{poll.title}`")
+                    await self.bot.poll_cache.store_poll(poll)
                     return
             else:
                 await ctx.send("Only the author of the poll can edit it!")
@@ -118,6 +120,7 @@ class EditPolls(ExtensionBase):
 
                     await ctx.send(f"`{poll.title}` has been closed!")
                     await self.bot.send_thanks_message(ctx.channel.id)
+                await self.bot.poll_cache.store_poll(poll)
             else:
                 await ctx.send("Only the author of the poll can close it!")
 
