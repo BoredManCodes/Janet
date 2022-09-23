@@ -144,13 +144,11 @@ class PollCache:
         if poll:
             log.debug("Fetched poll: %s", message_id)
             return await self.deserialize_poll(poll)
-        log.warning("Poll does not exist in database: %s", message_id)
         return None
 
     async def get_poll(self, message_id: Snowflake_Type) -> PollData | None:
         if poll := self.polls.get(message_id):
             return poll
-        log.debug("Poll not in cache, fetching from database: %s", message_id)
         return await self.__fetch_poll(message_id)
 
     async def get_polls_by_guild(self, guild_id: Snowflake_Type) -> list[PollData]:
@@ -173,7 +171,7 @@ class PollCache:
             async with self.db.acquire() as conn:
                 await conn.execute("DELETE FROM polls.poll_data WHERE message_id = $1", int(message_id))
             self.polls.pop(message_id, None)
-            log.debug("Deleted poll: %s", message_id)
+            log.info("Deleted poll: %s", message_id)
 
     async def get_total_polls(self) -> int:
         return await self.db.fetchval("SELECT COUNT(*) FROM polls.poll_data")
