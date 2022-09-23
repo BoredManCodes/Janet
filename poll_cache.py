@@ -135,7 +135,7 @@ class PollCache:
 
     async def __fetch_poll(self, message_id: Snowflake_Type) -> PollData | None:
         async with self.db.acquire() as conn:
-            poll = await conn.fetchrow("SELECT * FROM polls.poll_data WHERE message_id = $1", message_id)
+            poll = await conn.fetchrow("SELECT * FROM polls.poll_data WHERE message_id = $1", int(message_id))
         if poll:
             log.debug("Fetched poll: %s", message_id)
             return await self.deserialize_poll(poll)
@@ -151,7 +151,7 @@ class PollCache:
 
     async def get_polls_by_guild(self, guild_id: Snowflake_Type) -> list[PollData]:
         async with self.db.acquire() as conn:
-            polls = await conn.fetch("SELECT * FROM polls.poll_data WHERE guild_id = $1", guild_id)
+            polls = await conn.fetch("SELECT * FROM polls.poll_data WHERE guild_id = $1", int(guild_id))
         return [await self.deserialize_poll(p, store=True) for p in polls]
 
     async def store_poll(self, poll: PollData) -> None:
@@ -167,7 +167,7 @@ class PollCache:
 
         async with lock:
             async with self.db.acquire() as conn:
-                await conn.execute("DELETE FROM polls.poll_data WHERE message_id = $1", message_id)
+                await conn.execute("DELETE FROM polls.poll_data WHERE message_id = $1", int(message_id))
             self.polls.pop(message_id, None)
             log.debug("Deleted poll: %s", message_id)
 
@@ -176,12 +176,12 @@ class PollCache:
 
     async def get_guild_data(self, guild_id: Snowflake_Type, *, create: bool = False) -> dict[str, Any]:
         async with self.db.acquire() as conn:
-            data = await conn.fetchrow("SELECT * FROM polls.guild_data WHERE id = $1", guild_id)
+            data = await conn.fetchrow("SELECT * FROM polls.guild_data WHERE id = $1", int(guild_id))
             if data:
                 return dict(data)
             if create:
-                await conn.execute("INSERT INTO polls.guild_data (id) VALUES ($1)", guild_id)
-                data = await conn.fetchrow("SELECT * FROM polls.guild_data WHERE id = $1", guild_id)
+                await conn.execute("INSERT INTO polls.guild_data (id) VALUES ($1)", int(guild_id))
+                data = await conn.fetchrow("SELECT * FROM polls.guild_data WHERE id = $1", int(guild_id))
                 return dict(data)
         return {}
 
