@@ -359,11 +359,12 @@ class Bot(Client):
     async def on_guild_remove(self, event: GuildLeft) -> None:
         if self.is_ready:
             try:
-                total_polls = await self.poll_cache.db.fetchval(
-                    "SELECT COUNT(*) FROM polls.poll_data WHERE guild_id = $1", event.guild.id
-                )
+                async with self.poll_cache.db.acquire() as conn:
+                    total_polls = await conn.fetchval(
+                        "SELECT COUNT(*) FROM polls.poll_data WHERE guild_id = $1", event.guild.id
+                    )
 
-                await self.poll_cache.db.execute("DELETE FROM polls.poll_data WHERE guild_id = $1", event.guild.id)
+                    await conn.execute("DELETE FROM polls.poll_data WHERE guild_id = $1", event.guild.id)
                 log.info(f"Left guild {event.guild.id} -- Deleted {total_polls} related polls from database")
             except Exception as e:
                 log.error("Error deleting polls on guild leave", exc_info=e)
