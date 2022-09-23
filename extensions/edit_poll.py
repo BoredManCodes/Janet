@@ -141,7 +141,7 @@ class EditPolls(ExtensionBase):
 
     @edit_poll.subcommand("delete", sub_cmd_description="Delete a poll", options=[OPT_find_poll])
     async def delete_poll(self, ctx: InteractionContext, poll) -> None:
-        await ctx.defer()
+        await ctx.defer(ephemeral=True)
         if poll := await self.process_poll_option(ctx, poll):
             if poll.author_id == ctx.author.id:
                 embed = Embed(title="Delete Poll?", color=BrandColors.RED)
@@ -159,7 +159,7 @@ class EditPolls(ExtensionBase):
                     )
                     button_ctx = c.context
                     if button_ctx.custom_id == "delete":
-                        await button_ctx.defer()
+                        await button_ctx.defer(edit_origin=True)
 
                         if not poll.closed:
                             try:
@@ -168,11 +168,16 @@ class EditPolls(ExtensionBase):
                                 pass
 
                         await self.bot.poll_cache.delete_poll(poll.message_id)
-                        await button_ctx.send("Poll Deleted")
-                        await prompt.edit(components=[])
+                        await button_ctx.edit_origin(
+                            embed=Embed(
+                                title="Poll Deleted", color=BrandColors.RED, description="This cannot be undone!"
+                            ),
+                            components=[],
+                        )
                     else:
-                        await prompt.edit(components=[])
-                        await button_ctx.send("Cancelled")
+                        await button_ctx.edit_origin(
+                            embed=Embed(title="Cancelled Deletion", color=BrandColors.GREEN), components=[]
+                        )
 
                 except asyncio.TimeoutError:
                     await prompt.edit(components=[])
