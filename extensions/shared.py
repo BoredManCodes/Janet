@@ -8,6 +8,7 @@ from naff import (
     OptionTypes,
     MaterialColors,
     SlashCommandChoice,
+    Permissions,
 )
 from thefuzz import fuzz, process
 
@@ -125,10 +126,11 @@ class ExtensionBase(Extension):
 
     @staticmethod
     def poll_autocomplete_predicate(ctx: AutocompleteContext):
-        def predicate(_poll: PollData):
-            if not _poll.expired:
-                if _poll.author_id == ctx.author.id:
-                    return True
+        def predicate(poll: PollData):
+            if poll.author_id == ctx.author.id:
+                return True
+            if ctx.author.has_permission(Permissions.MANAGE_MESSAGES):
+                return True
             return False
 
         return predicate
@@ -136,24 +138,22 @@ class ExtensionBase(Extension):
     async def poll_autocomplete(self, ctx: AutocompleteContext, **kwargs) -> bool:
         predicate = self.poll_autocomplete_predicate(ctx)
 
-        polls = await self.bot.poll_cache.db.fetch(
-            f"SELECT message_id, title FROM polls.poll_data WHERE guild_id = {ctx.guild_id}"
-        )
+        polls = await self.bot.poll_cache.get_polls_by_guild(ctx.guild_id)
 
         if polls:
             if not ctx.input_text:
                 results = polls[:25]
             else:
                 results = process.extract(
-                    ctx.input_text, {p["message_id"]: p["title"] for p in polls if predicate(p)}, limit=25
+                    ctx.input_text, {p.message_id: p.title for p in polls if predicate(p)}, limit=25
                 )
                 results = [await self.bot.poll_cache.get_poll(p[2]) for p in results if p[1] > 50]
 
             await ctx.send(
                 [
                     {
-                        "name": f"{p['title']} ({Timestamp.from_snowflake(p['message_id']).ctime()})",
-                        "value": str(p["message_id"]),
+                        "name": f"{p.title} ({Timestamp.from_snowflake(p.message_id).ctime()})",
+                        "value": str(p.message_id),
                     }
                     for p in results
                 ]
