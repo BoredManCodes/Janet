@@ -67,25 +67,34 @@ class Admin(Extension):
         # get commit hash
         git_hash = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"]).decode("ascii").strip()
 
-        total_polls = await self.bot.poll_cache.db.fetchval(
-            "SELECT COUNT(*) FROM polls.poll_data WHERE guild_id = $1", ctx.guild.id
-        )
+        async with self.bot.poll_cache.db.acquire() as conn:
+            total_polls = await conn.fetchval("SELECT COUNT(*) FROM polls.poll_data WHERE guild_id = $1", ctx.guild.id)
 
-        embed.add_field(name="Guilds", value=str(len(self.bot.guilds)))
-        embed.add_field(name="Cached Users", value=str(len(self.bot.cache.user_cache)))
-        embed.add_field(name="Cached Polls", value=str(len(self.bot.poll_cache.polls)))
-        embed.add_field(name="Total Polls", value=str(await self.bot.poll_cache.get_total_polls()))
-        embed.add_field(name="Polls From This Guild", value=str(total_polls))
-        embed.add_field(name="Pending Updates", value=str(sum(len(v) for v in self.bot.polls_to_update.values())))
+            user_polls = await conn.fetchval("SELECT COUNT(*) FROM polls.poll_data WHERE author_id = $1", ctx.author.id)
+
+        embed.add_field(name="Guilds", value=str(len(self.bot.guilds)), inline=True)
+        embed.add_field(name="Cached Users", value=str(len(self.bot.cache.user_cache)), inline=True)
+        embed.add_field(name="Cached Polls", value=str(len(self.bot.poll_cache.polls)), inline=True)
+        embed.add_field(name="Total Polls", value=str(await self.bot.poll_cache.get_total_polls()), inline=True)
+        embed.add_field(name="Polls From This Guild", value=str(total_polls), inline=True)
+        embed.add_field(name="Polls From You", value=str(user_polls), inline=True)
         embed.add_field(
-            name="Startup Time", value=Timestamp.fromdatetime(self.bot.start_time).format(TimestampStyles.RelativeTime)
+            name="Pending Updates", value=str(sum(len(v) for v in self.bot.polls_to_update.values())), inline=False
+        )
+        embed.add_field(
+            name="Startup Time",
+            value=Timestamp.fromdatetime(self.bot.start_time).format(TimestampStyles.RelativeTime),
+            inline=True,
         )
         embed.add_field(
             name="NAFF version",
             value=f"[{naff.const.__version__}](https://github.com/NAFTeam/NAFF/releases/tag/NAFF-{naff.const.__version__})",
+            inline=True,
         )
         embed.add_field(
-            name="Inquiry Commit", value=f"[{git_hash}](https://github.com/LordOfPolls/Inquiry/commit/{git_hash})"
+            name="Inquiry Commit",
+            value=f"[{git_hash}](https://github.com/LordOfPolls/Inquiry/commit/{git_hash})",
+            inline=True,
         )
         embed.set_thumbnail(url=self.bot.user.avatar.url)
         await ctx.send(embed=embed)
