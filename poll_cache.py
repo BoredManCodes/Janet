@@ -59,6 +59,10 @@ class PollCache:
             log.critical(f"Failed to initialize cache", exc_info=e)
             exit()
 
+    async def stop(self):
+        log.info("Closing cache...")
+        await asyncio.gather(*[self.__write_poll(poll) for poll in self.polls.values()])
+
     @staticmethod
     def assemble_query_with_dict(query: str, data: dict) -> str:
         query = query.format(

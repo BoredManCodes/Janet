@@ -100,6 +100,12 @@ class Bot(Client):
         log.info(f"Currently in {len(self.guilds)} guilds")
         await self.change_presence(activity="with polls", status=Status.ONLINE)
 
+    async def stop(self) -> None:
+        log.info("Stopping...")
+        self.scheduler.shutdown()
+        await self.poll_cache.stop()
+        await super().stop()
+
     @slash_command("invite", description="Get the invite link for this bot")
     async def invite(self, ctx: InteractionContext):
         await ctx.send(
