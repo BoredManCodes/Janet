@@ -190,11 +190,13 @@ class Bot(Client):
 
     @listen()
     async def on_message_reaction_add(self, event: MessageReactionAdd) -> None:
-        if event.emoji.name in ("🔴", "🛑", "🚫", "⛔"):
-            poll = await self.poll_cache.get_poll(event.message.id)
-            if poll:
-                if event.author.id == poll.author_id:
-                    await self.close_poll(poll.message_id)
+        if event.message.author.id == self.user.id and event.message.components:
+            # if the above is true, then the message is likely a poll
+            if event.emoji.name in ("🔴", "🛑", "🚫", "⛔"):
+                poll = await self.poll_cache.get_poll(event.message.id)
+                if poll:
+                    if event.author.id == poll.author_id:
+                        await self.close_poll(poll.message_id)
 
     @Task.create(IntervalTrigger(seconds=5))
     async def __update_polls(self) -> None:
