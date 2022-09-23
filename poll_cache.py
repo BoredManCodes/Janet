@@ -169,12 +169,15 @@ class PollCache:
     async def get_total_polls(self) -> int:
         return await self.db.fetchval("SELECT COUNT(*) FROM polls.poll_data")
 
-    async def get_guild_data(self, guild_id: Snowflake_Type) -> dict[str, Any]:
+    async def get_guild_data(self, guild_id: Snowflake_Type, *, create: bool = False) -> dict[str, Any]:
         async with self.db.acquire() as conn:
             data = await conn.fetchrow("SELECT * FROM polls.guild_data WHERE id = $1", guild_id)
             if data:
                 return dict(data)
-            await conn.execute("INSERT INTO polls.guild_data (id) VALUES ($1)", guild_id)
+            if create:
+                await conn.execute("INSERT INTO polls.guild_data (id) VALUES ($1)", guild_id)
+                data = await conn.fetchrow("SELECT * FROM polls.guild_data WHERE id = $1", guild_id)
+                return dict(data)
         return {}
 
     async def set_guild_data(self, data: dict[str, Any]) -> None:
