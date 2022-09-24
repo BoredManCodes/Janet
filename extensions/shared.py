@@ -71,9 +71,10 @@ def_options = [
         required=False,
     ),
     SlashCommandOption(
-        "single_vote",
-        OptionTypes.BOOLEAN,
-        "Only allow a single vote per user (default False)",
+        "max_votes",
+        OptionTypes.INTEGER,
+        "The maximum number of votes per user (default unlimited)",
+        min_value=1,
         required=False,
     ),
     SlashCommandOption(

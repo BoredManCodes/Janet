@@ -105,6 +105,14 @@ class PollCache:
         await asyncio.gather(*(self.bot.schedule_close(poll) for poll in polls))
         self.ready.set()
 
+    @staticmethod
+    def migrate_poll(data: dict[str, Any]) -> dict[str, Any]:
+        """A placeholder method to be used for migration of data"""
+        if data["single_vote"]:
+            data["max_votes"] = 1
+        del data["single_vote"]
+        return data
+
     async def deserialize_poll(self, data: Record, *, store: bool = True) -> PollData:
         try:
             if poll := self.polls.get(data["message_id"]):
@@ -112,6 +120,7 @@ class PollCache:
                 return poll
 
             data = dict(data)
+            data = self.migrate_poll(data)
 
             data["poll_options"] = orjson.loads(data["poll_options"])
             poll = PollData(**data)

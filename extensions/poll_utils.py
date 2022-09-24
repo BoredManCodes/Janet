@@ -260,6 +260,8 @@ class PollUtils(ExtensionBase):
                 poll_config.append(f"Expires {Timestamp.fromdatetime(poll.expire_time).format('R')}")
             if poll.single_vote:
                 poll_config.append("Single vote only")
+            elif poll.max_votes:
+                poll_config.append(f"Max votes: {poll.max_votes}")
             if poll.hide_results:
                 poll_config.append("Results hidden")
             if poll.open_poll:

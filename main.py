@@ -195,12 +195,34 @@ class Bot(Client):
                                 if _o != opt:
                                     if ctx.author.id in _o.voters:
                                         _o.voters.remove(ctx.author.id)
+                        elif poll.max_votes is not None:
+                            voted_options = poll.get_user_votes(ctx.author.id)
+                            if opt not in voted_options:
+                                if len(voted_options) >= poll.max_votes:
+                                    log.error(
+                                        f"{poll.message_id}|{ctx.author.id} tried to vote for more than the max votes allowed"
+                                    )
+                                    embed = Embed(
+                                        "You have already voted for the maximum number of options",
+                                        color=BrandColors.RED,
+                                    )
+                                    embed.add_field("Maximum Votes", poll.max_votes)
+                                    embed.add_field(
+                                        "Your Votes", ", ".join([f"`{o.emoji} {o.text}`" for o in voted_options])
+                                    )
+                                    embed.add_field("To remove a vote", "Vote again for the option you want to remove")
+                                    return await ctx.send(embed=embed, ephemeral=True)
+
                         if opt.vote(ctx.author.id):
                             log.info(f"Added vote to {poll.message_id}")
-                            await ctx.send(f"⬆️ Your vote for {opt.emoji}`{opt.inline_text}` has been added!")
+                            embed = Embed("Your vote has been added", color=BrandColors.GREEN)
+                            embed.add_field("Option", f"⬆️ `{opt.emoji} {opt.text}`")
+                            await ctx.send(embed=embed, ephemeral=True)
                         else:
                             log.info(f"Removed vote from {poll.message_id}")
-                            await ctx.send(f"⬇️ Your vote for {opt.emoji}`{opt.inline_text}` has been removed!")
+                            embed = Embed("Your vote has been removed", color=BrandColors.GREEN)
+                            embed.add_field("Option", f"⬇️ `{opt.emoji} {opt.text}`")
+                            await ctx.send(embed=embed, ephemeral=True)
 
                     if ctx.guild.id not in self.polls_to_update:
                         self.polls_to_update[ctx.guild.id] = set()

@@ -110,6 +110,9 @@ class PollOption:
             return f"{prog_bar_str} - 0%"
         return f"{prog_bar_str} - {percentage:.0%}"
 
+    def has_voted(self, user_id: Snowflake_Type) -> bool:
+        return user_id in self.voters
+
     def vote(self, author_id: Snowflake_Type) -> bool:
         if author_id not in self.voters:
             self.voters.add(author_id)
@@ -137,7 +140,7 @@ class PollData:
         converter=lambda options: [PollOption(**o) if not isinstance(o, PollOption) else o for o in options],
     )
 
-    single_vote: bool = attr.ib(default=False)
+    max_votes: int | None = attr.ib(default=None)
     hide_results: bool = attr.ib(default=False)
     open_poll: bool = attr.ib(default=False)
     inline: bool = attr.ib(default=False)
@@ -172,6 +175,10 @@ class PollData:
                 self._expired = True
                 return True
         return False
+
+    @property
+    def single_vote(self) -> bool:
+        return self.max_votes == 1
 
     @property
     def total_votes(self) -> int:
@@ -255,6 +262,8 @@ class PollData:
 
         if self.single_vote:
             description.append("• One Vote Per User")
+        elif self.max_votes:
+            description.append(f"• {self.max_votes} Votes Per User")
         if self.hide_results:
             if self.expired:
                 description.append("• Results were hidden until the poll ended")
@@ -344,7 +353,7 @@ class PollData:
             title=kwargs.get("title"),
             description=kwargs.get("description", None),
             author_id=ctx.author.id,
-            single_vote=kwargs.get("single_vote", False),
+            max_votes=kwargs.get("max_votes", None),
             hide_results=kwargs.get("hide_results", False),
             open_poll=kwargs.get("open_poll", False),
             inline=kwargs.get("inline", False),
@@ -406,3 +415,6 @@ class PollData:
             except Exception as e:
                 log.error(f"Failed to update thread message: {e}")
                 pass
+
+    def get_user_votes(self, user_id: int) -> list[PollOption]:
+        return [option for option in self.poll_options if option.has_voted(user_id)]
