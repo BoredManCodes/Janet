@@ -108,9 +108,6 @@ class PollCache:
     @staticmethod
     def migrate_poll(data: dict[str, Any]) -> dict[str, Any]:
         """A placeholder method to be used for migration of data"""
-        if data["single_vote"]:
-            data["max_votes"] = 1
-        del data["single_vote"]
         return data
 
     async def deserialize_poll(self, data: Record, *, store: bool = True) -> PollData:
