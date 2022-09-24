@@ -8,6 +8,7 @@ def process_duration(duration) -> datetime:
     units = {"w": "weeks", "d": "days", "h": "hours", "m": "minutes", "s": "seconds"}
     delta = {"weeks": 0, "days": 0, "hours": 0, "minutes": 0, "seconds": 0}
     # delay: str = ctx.kwargs.get("duration")
+    duration = duration.strip().lower()
     if duration:
         if times := TIME_PATTERN.findall(duration):
             for t in times:
