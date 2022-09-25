@@ -77,6 +77,8 @@ class Bot(Client):
                 if int(data["user_id"]) == poll.author_id:
                     log.info(f"Closing poll {poll.message_id} due to reaction")
                     await self.close_poll(poll.message_id)
+        if member := event.data.get("member"):
+            self.cache.place_member_data(event.data.get("guild_id"), member)
 
     @classmethod
     async def run(cls, token: str) -> None:
