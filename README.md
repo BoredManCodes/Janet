@@ -15,14 +15,16 @@ Once customised, hit submit, and a modal will appear letting you add your option
 - `Colour` - What colour should the embed be?
 - `Description` - Add a description to your poll
 - `Duration` - How long can people vote in this poll?
-- `Single_Vote` - Only allow people to have 1 vote in the poll
+- `Max_Votes` - The maximum number of votes per user
 - `Hide_Results` - Hide the results of the poll until it has closed
+- `voting_role` - Require the member has a specific role to vote 
 - `Open_Poll` - Allow people to add their own options to the poll
 - `Thread` - Create a thread for this poll
 - `Inline` - Should the options be displayed in line (side-by-side)
 - `Image` - Add an image to the poll
+- `Close_Message` - Send a message when the poll is closed
 
-![image](https://user-images.githubusercontent.com/22540825/187283824-8da75fad-2323-435f-9700-c799b9f8a275.png)
+![image](https://user-images.githubusercontent.com/22540825/192163218-7c464536-1bf9-4a05-a710-f703c7910b62.png)
 
 
 ## Need a poll fast? 
@@ -47,6 +49,12 @@ You can edit polls too, up until you close them. Simply use the `edit_poll` comm
 
 ## Want to close the poll?
 To automatically close polls, use the `duration` setting, otherwise just react to the poll with 🔴
+
+## It's your data!
+These are your polls, your voters, and your results. If you want to take your results from a poll to use for something else, its your right to. Use `/export` to export the data out of the polls in whatever format you need. 
+
+![image](https://user-images.githubusercontent.com/22540825/192162953-e032ca82-8e49-4fe5-8683-eff87c49a29e.png)
+
 
 ## How do I self-host this?
 While I won't go out of my way to make help you, I can appreciate wanting to host things yourself. 
