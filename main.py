@@ -168,7 +168,10 @@ class Bot(Client):
             message_id = ctx.message.id
 
         if ctx.custom_id == "add_option":
-            if await self.poll_cache.get_poll(message_id):
+            if poll := await self.poll_cache.get_poll(message_id):
+                if poll.voting_role:
+                    if not ctx.author.has_role(poll.voting_role):
+                        return await ctx.send("You do not have permission to add options to this poll", ephemeral=True)
                 log.info("Opening add-option modal")
                 return await ctx.send_modal(
                     Modal(
