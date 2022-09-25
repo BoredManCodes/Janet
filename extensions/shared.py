@@ -62,7 +62,7 @@ def_options = [
         OptionTypes.STRING,
         "The description for your poll",
         required=False,
-        max_length=128,
+        max_length=512,
     ),
     SlashCommandOption(
         "duration",
