@@ -189,6 +189,10 @@ class Bot(Client):
                     return await ctx.send("This poll is closing - your vote will not be counted", ephemeral=True)
                 async with poll.lock:
                     if not poll.expired:
+                        if poll.voting_role:
+                            if not ctx.author.has_role(poll.voting_role):
+                                return await ctx.send("You do not have permission to vote in this poll", ephemeral=True)
+
                         opt = poll.poll_options[option_index]
                         if poll.single_vote:
                             for _o in poll.poll_options:

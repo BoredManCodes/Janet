@@ -16,6 +16,7 @@ from naff import (
     Permissions,
     ThreadChannel,
     EMBED_MAX_NAME_LENGTH,
+    to_optional_snowflake,
 )
 from naff.models import (
     Snowflake_Type,
@@ -141,6 +142,7 @@ class PollData:
     )
 
     max_votes: int | None = attr.ib(default=None)
+    voting_role: Snowflake_Type | None = attr.ib(default=None)
     hide_results: bool = attr.ib(default=False)
     open_poll: bool = attr.ib(default=False)
     inline: bool = attr.ib(default=False)
@@ -269,6 +271,9 @@ class PollData:
                 description.append("• Results were hidden until the poll ended")
             else:
                 description.append("• Results are hidden until the poll ends")
+        if self.voting_role:
+            description.append(f"• Required Role: <@&{self.voting_role}>")
+
         if self.open_poll:
             description.append("• Open Poll - Anyone can add options")
 
@@ -364,6 +369,7 @@ class PollData:
             author_name=ctx.author.display_name,
             author_avatar=ctx.author.avatar.url,
             close_message=kwargs.get("close_message", False),
+            voting_role=to_optional_snowflake(kwargs.get("voting_role", None)),
         )
 
         if options := kwargs.get("options"):

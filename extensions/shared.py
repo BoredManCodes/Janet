@@ -78,13 +78,22 @@ def_options = [
         required=False,
     ),
     SlashCommandOption(
+        "voting_role",
+        OptionTypes.ROLE,
+        "Restrict voting to this role (default unrestricted)",
+        required=False,
+    ),
+    SlashCommandOption(
         "hide_results",
         OptionTypes.BOOLEAN,
         "Hide results until the poll is closed (default False)",
         required=False,
     ),
     SlashCommandOption(
-        "open_poll", OptionTypes.BOOLEAN, "Allow anybody to add options to the poll (default False)", required=False
+        "open_poll",
+        OptionTypes.BOOLEAN,
+        "Allow anybody to add options to the poll (default False)",
+        required=False,
     ),
     SlashCommandOption(
         "thread",
