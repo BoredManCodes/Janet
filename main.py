@@ -25,11 +25,10 @@ from naff import (
     InteractionContext,
     ThreadChannel,
     Status,
-    BaseChannel,
     BrandColors,
     Embed,
 )
-from naff.api.events import Button, MessageReactionAdd, ModalResponse, GuildLeft, GuildJoin
+from naff.api.events import Button, ModalResponse, GuildLeft, GuildJoin
 from naff.api.events.processors._template import Processor
 from naff.client.errors import NotFound
 from naff.models.naff.application_commands import context_menu, slash_command
@@ -87,6 +86,7 @@ class Bot(Client):
         signal.signal(signal.SIGINT, lambda *_: asyncio.create_task(bot.stop()))
         signal.signal(signal.SIGTERM, lambda *_: asyncio.create_task(bot.stop()))
 
+        bot.load_extension("extensions.dev")
         bot.load_extension("extensions.create_poll")
         bot.load_extension("extensions.edit_poll")
         bot.load_extension("extensions.poll_utils")
@@ -94,7 +94,7 @@ class Bot(Client):
         bot.load_extension("extensions.bot_lists")
         bot.load_extension("extensions.help")
         bot.load_extension("extensions.analytics")
-        bot.load_extension("extensions.dev")
+        bot.load_extension("extensions.moderation")
 
         for command in bot.application_commands:
             # it really isnt necessary to do it like this, but im really lazy
@@ -162,6 +162,12 @@ class Bot(Client):
     @listen()
     async def on_button(self, event: Button) -> Any:
         ctx: ComponentContext = event.context
+
+        guild_data = await self.poll_cache.get_guild_data(ctx.guild.id)
+        if guild_data["blacklisted_users"]:
+            if ctx.author.id in guild_data["blacklisted_users"]:
+                return await ctx.send("This server's moderators have disabled your ability to vote", ephemeral=True)
+
         if isinstance(ctx.channel, ThreadChannel):
             message_id = ctx.channel.id
         else:
