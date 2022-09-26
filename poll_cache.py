@@ -12,6 +12,7 @@ from naff.client.errors import Forbidden
 from naff.client.utils import TTLCache
 
 from models.poll import PollData
+from models.types import GuildData
 
 log = logging.getLogger("Cache")
 
@@ -182,7 +183,7 @@ class PollCache:
     async def get_total_polls(self) -> int:
         return await self.db.fetchval("SELECT COUNT(*) FROM polls.poll_data")
 
-    async def get_guild_data(self, guild_id: Snowflake_Type, *, create: bool = False) -> dict[str, Any]:
+    async def get_guild_data(self, guild_id: Snowflake_Type, *, create: bool = False) -> GuildData:
         async with self.db.acquire() as conn:
             data = await conn.fetchrow("SELECT * FROM polls.guild_data WHERE id = $1", int(guild_id))
             if data:

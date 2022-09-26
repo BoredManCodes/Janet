@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from naff import (
     InteractionContext,
     to_snowflake,
@@ -13,6 +15,9 @@ from naff import (
 from thefuzz import fuzz, process
 
 from models.poll import PollData
+
+if TYPE_CHECKING:
+    from main import Bot
 
 __all__ = ("ExtensionBase", "OPT_find_poll", "OPT_find_option", "colours", "def_options")
 
@@ -123,6 +128,8 @@ def_options = [
 
 
 class ExtensionBase(Extension):
+    bot: "Bot"
+
     async def process_poll_option(self, ctx: InteractionContext, poll: str) -> PollData | None:
         try:
             poll = await self.bot.poll_cache.get_poll(to_snowflake(poll))
