@@ -241,12 +241,13 @@ class Bot(Client):
                 await ctx.send("That poll could not be edited 😕")
 
     def schedule_update(self, message_id: Snowflake_Type) -> None:
-        if self.scheduler.get_job(str(message_id)):
+        job_id = f"poll_update|{message_id}"
+        if self.scheduler.get_job(job_id):
             return
         self.scheduler.add_job(
             self.update_poll,
             trigger=DateTrigger(datetime.datetime.now() + datetime.timedelta(seconds=5)),
-            id=str(message_id),
+            id=job_id,
             args=[message_id],
         )
         log.debug(f"Created job to update {message_id}")
