@@ -191,7 +191,7 @@ class PollCache:
     async def get_total_polls(self) -> int:
         return await self.db.fetchval("SELECT COUNT(*) FROM polls.poll_data")
 
-    async def get_guild_data(self, guild_id: Snowflake_Type, *, create: bool = False) -> GuildData:
+    async def get_guild_data(self, guild_id: Snowflake_Type, *, create: bool = False, store: bool = True) -> GuildData:
         if guild := self.guild_data.get(guild_id):
             return guild
         out = None
@@ -205,7 +205,8 @@ class PollCache:
                 data = await conn.fetchrow("SELECT * FROM polls.guild_data WHERE id = $1", int(guild_id))
                 out = GuildData.from_dict(data)
 
-        self.guild_data[guild_id] = out
+        if store:
+            self.guild_data[guild_id] = out
         return out
 
     async def set_guild_data(self, data: GuildData) -> None:

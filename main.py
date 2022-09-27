@@ -408,7 +408,7 @@ class Bot(Client):
 
     @listen()
     async def on_guild_join(self, event: GuildJoin) -> None:
-        guild_data = await self.poll_cache.get_guild_data(event.guild.id, create=True)
+        guild_data = await self.poll_cache.get_guild_data(event.guild.id, create=True, store=False)
         if guild_data.blacklisted:
             # this guild is blacklisted, leave
             await event.guild.leave()
