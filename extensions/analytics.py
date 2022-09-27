@@ -85,8 +85,8 @@ class Analytics(Extension):
             embed.add_field("Name", event.guild.name)
             embed.add_field("ID", event.guild.id)
             embed.add_field("Guild Age", Timestamp.from_snowflake(event.guild.id).format("R"))
-            embed.add_field("Aprox Member Count", event.guild.member_count)
-            if guild_data.blacklisted:
+            embed.add_field("Approx Member Count", event.guild.member_count)
+            if guild_data and guild_data.blacklisted:
                 embed.add_field("⚠️ Blacklisted Guild", "True")
             if event.guild.icon:
                 embed.set_thumbnail(event.guild.icon.url)
