@@ -76,9 +76,9 @@ class Analytics(Extension):
 
     @listen()
     async def on_guild_join(self, event: GuildJoin):
-        guild_data = await self.bot.poll_cache.get_guild_data(event.guild.id)
-
         if self.bot.is_ready and self.join_log_id:
+            guild_data = await self.bot.poll_cache.get_guild_data(event.guild.id)
+
             hook = await self.get_webhook()
 
             embed = Embed("New Guild", color=BrandColors.GREEN)
