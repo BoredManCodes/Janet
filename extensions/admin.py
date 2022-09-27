@@ -67,6 +67,10 @@ class Admin(Extension):
         # get commit hash
         git_hash = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"]).decode("ascii").strip()
 
+        deps = subprocess.check_output(["pip", "freeze"]).decode("ascii").splitlines()
+        naff_module = [dep for dep in deps if dep.startswith("naff")][0]
+        naff_commit = naff_module.split("@")[-1]
+
         async with self.bot.poll_cache.db.acquire() as conn:
             total_polls = await conn.fetchval("SELECT COUNT(*) FROM polls.poll_data WHERE guild_id = $1", ctx.guild.id)
 
@@ -86,7 +90,7 @@ class Admin(Extension):
         )
         embed.add_field(
             name="NAFF version",
-            value=f"[{naff.const.__version__}](https://github.com/NAFTeam/NAFF/releases/tag/NAFF-{naff.const.__version__})",
+            value=f"[{naff.const.__version__}](https://github.com/NAFTeam/NAFF/commit/{naff_commit})",
             inline=True,
         )
         embed.add_field(
