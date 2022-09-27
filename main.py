@@ -196,7 +196,7 @@ class Bot(Client):
                 async with poll.lock:
                     if not poll.expired:
                         if poll.voting_role:
-                            if not ctx.author.has_role(poll.voting_role):
+                            if poll.voting_role != ctx.guild_id and not ctx.author.has_role(poll.voting_role):
                                 return await ctx.send("You do not have permission to vote in this poll", ephemeral=True)
 
                         opt = poll.poll_options[option_index]
