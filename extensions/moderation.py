@@ -72,14 +72,12 @@ class Moderation(ExtensionBase):
     async def blacklist(self, ctx: InteractionContext, user: Member):
         await ctx.defer(ephemeral=True)
         guild_data = await self.bot.poll_cache.get_guild_data(ctx.guild_id)
-        if not guild_data["blacklisted_users"]:
-            guild_data["blacklisted_users"] = []
 
-        if user.id in guild_data["blacklisted_users"]:
+        if user.id in guild_data.blacklisted_users:
             if b_ctx := await self.confirmation(
                 ctx, "Restore voting permissions?", f"Are you sure you want to allow {user.mention} to vote?"
             ):
-                guild_data["blacklisted_users"].remove(user.id)
+                guild_data.blacklisted_users.remove(user.id)
                 await self.bot.poll_cache.set_guild_data(guild_data)
 
                 embed = Embed(
@@ -95,7 +93,7 @@ class Moderation(ExtensionBase):
             if b_ctx := await self.confirmation(
                 ctx, "Revoke voting permissions?", f"Are you sure you want to disable voting for {user.mention}?"
             ):
-                guild_data["blacklisted_users"].append(user.id)
+                guild_data.blacklisted_users.append(user.id)
                 await self.bot.poll_cache.set_guild_data(guild_data)
 
                 embed = Embed(
@@ -111,7 +109,7 @@ class Moderation(ExtensionBase):
     async def list_blacklisted(self, ctx: InteractionContext):
         await ctx.defer(ephemeral=True)
         guild_data = await self.bot.poll_cache.get_guild_data(ctx.guild_id)
-        if not guild_data["blacklisted_users"]:
+        if not guild_data.blacklisted_users:
             await ctx.send("No users have had voting revoked!")
             return
 

@@ -11,8 +11,8 @@ from naff import Snowflake_Type
 from naff.client.errors import Forbidden
 from naff.client.utils import TTLCache
 
+from models.guild_data import GuildData, GuildDataPayload
 from models.poll import PollData
-from models.types import GuildData
 
 log = logging.getLogger("Cache")
 
@@ -29,6 +29,12 @@ class PollCache:
             hard_limit=1000,
             ttl=120,
             on_expire=lambda _, value: asyncio.create_task(self.__write_poll(value)),
+        )
+        self.guild_data: TTLCache = TTLCache(
+            soft_limit=150,
+            hard_limit=10000,
+            ttl=120,
+            on_expire=lambda _, value: asyncio.create_task(self.set_guild_data(value)),
         )
         self.ready: Event = Event()
 
@@ -62,7 +68,9 @@ class PollCache:
 
     async def stop(self):
         log.info("Closing cache...")
-        await asyncio.gather(*[self.__write_poll(poll) for poll in self.polls.values()])
+        poll_tasks = [self.__write_poll(poll) for poll in self.polls.values()]
+        guild_tasks = [self.set_guild_data(guild) for guild in self.guild_data.values()]
+        await asyncio.gather(*poll_tasks, *guild_tasks)
 
     @staticmethod
     def assemble_query_with_dict(query: str, data: dict) -> str:
@@ -74,7 +82,7 @@ class PollCache:
         return query
 
     async def __write_poll(self, poll: PollData):
-        serialised = poll.__dict__()
+        serialised = poll.to_dict()
         poll_query = self.assemble_query_with_dict(
             "INSERT INTO polls.poll_data ({}) VALUES ({}) ON CONFLICT(message_id) DO UPDATE SET {};", serialised
         )
@@ -121,7 +129,7 @@ class PollCache:
             data = self.migrate_poll(data)
 
             data["poll_options"] = orjson.loads(data["poll_options"])
-            poll = PollData(**data)
+            poll = PollData.from_dict(data)
 
             if not poll.author_name or not poll.author_avatar or poll.author_name == "Unknown":
                 try:
@@ -184,20 +192,27 @@ class PollCache:
         return await self.db.fetchval("SELECT COUNT(*) FROM polls.poll_data")
 
     async def get_guild_data(self, guild_id: Snowflake_Type, *, create: bool = False) -> GuildData:
+        if guild := self.guild_data.get(guild_id):
+            return guild
+        out = None
+
         async with self.db.acquire() as conn:
             data = await conn.fetchrow("SELECT * FROM polls.guild_data WHERE id = $1", int(guild_id))
             if data:
-                return dict(data)
-            if create:
+                out = GuildData.from_dict(data)
+            elif create:
                 await conn.execute("INSERT INTO polls.guild_data (id) VALUES ($1)", int(guild_id))
                 data = await conn.fetchrow("SELECT * FROM polls.guild_data WHERE id = $1", int(guild_id))
-                return dict(data)
-        return {}
+                out = GuildData.from_dict(data)
 
-    async def set_guild_data(self, data: dict[str, Any]) -> None:
+        self.guild_data[guild_id] = out
+        return out
+
+    async def set_guild_data(self, data: GuildData) -> None:
+        payload: GuildDataPayload = data.to_dict()
         query = self.assemble_query_with_dict(
-            "INSERT INTO polls.guild_data ({}) VALUES ({}) ON CONFLICT(id) DO UPDATE SET {};", data
+            "INSERT INTO polls.guild_data ({}) VALUES ({}) ON CONFLICT(id) DO UPDATE SET {};", payload
         )
         async with self.db.acquire() as conn:
-            await conn.execute(query, *data.values())
-            log.debug("Updated guild data: %s", data["id"])
+            await conn.execute(query, *payload.values())
+            log.debug("Updated guild data: %s", payload["id"])

@@ -5,6 +5,7 @@ import textwrap
 from typing import Union
 
 import attr
+import attrs
 import emoji as emoji_lib
 import orjson
 from naff import (
@@ -18,6 +19,7 @@ from naff import (
     EMBED_MAX_NAME_LENGTH,
     to_optional_snowflake,
 )
+from naff.client.mixins.serialization import DictSerializationMixin
 from naff.models import (
     Snowflake_Type,
     Embed,
@@ -124,7 +126,7 @@ class PollOption:
 
 
 @attr.s(auto_attribs=True, on_setattr=[attr.setters.convert, attr.setters.validate])
-class PollData:
+class PollData(DictSerializationMixin):
     title: str
     author_id: Snowflake_Type
     description: str = attr.ib(default=None)
@@ -159,7 +161,7 @@ class PollData:
     closed: bool = attr.ib(default=False)
     lock: asyncio.Lock = attr.ib(factory=asyncio.Lock)
 
-    def __dict__(self) -> dict:
+    def as_dict(self) -> dict:
         data = {
             k.removeprefix("_"): v
             for k, v in attr.asdict(self).items()

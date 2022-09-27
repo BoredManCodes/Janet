@@ -164,8 +164,8 @@ class Bot(Client):
         ctx: ComponentContext = event.context
 
         guild_data = await self.poll_cache.get_guild_data(ctx.guild.id)
-        if guild_data["blacklisted_users"]:
-            if ctx.author.id in guild_data["blacklisted_users"]:
+        if guild_data.blacklisted_users:
+            if ctx.author.id in guild_data.blacklisted_users:
                 return await ctx.send("This server's moderators have disabled your ability to vote", ephemeral=True)
 
         if isinstance(ctx.channel, ThreadChannel):
@@ -370,7 +370,7 @@ class Bot(Client):
             channel = await self.cache.fetch_channel(channel_id)
             if channel:
                 guild_data = await self.poll_cache.get_guild_data(channel.guild.id)
-                if guild_data.get("thank_you_sent", True):
+                if guild_data is None or guild_data.thank_you_sent:
                     return
                 total_polls = await self.poll_cache.db.fetchval(
                     "SELECT COUNT(*) FROM polls.poll_data WHERE guild_id = $1", channel.guild.id
@@ -398,7 +398,7 @@ class Bot(Client):
                         icon_url=self.user.avatar.url,
                     )
                     await channel.send(embed=embed)
-                    guild_data["thank_you_sent"] = True
+                    guild_data.thank_you_sent = True
                     await self.poll_cache.set_guild_data(guild_data)
                     log.info(f"Sent thanks message to {channel.guild.id}")
         except Exception as e:
@@ -421,7 +421,7 @@ class Bot(Client):
     @listen()
     async def on_guild_join(self, event: GuildJoin) -> None:
         guild_data = await self.poll_cache.get_guild_data(event.guild.id, create=True)
-        if guild_data.get("blacklisted", False):
+        if guild_data.blacklisted:
             # this guild is blacklisted, leave
             await event.guild.leave()
             log.warning(f"Bot was invited to blacklisted guild {event.guild.id} - leaving")
