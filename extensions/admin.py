@@ -1,4 +1,5 @@
 import subprocess
+from functools import cached_property
 from typing import TYPE_CHECKING
 
 import aiohttp
@@ -41,6 +42,16 @@ def is_owner() -> bool:
 class Admin(Extension):
     bot: "Bot"
 
+    @cached_property
+    def naff_commit(self) -> str:
+        deps = subprocess.check_output(["pip", "freeze"]).decode("ascii").splitlines()
+        naff_module = [dep for dep in deps if dep.startswith("naff")][0]
+        return naff_module.split("@")[-1]
+
+    @cached_property
+    def inquiry_commit(self) -> str:
+        return subprocess.check_output(["git", "rev-parse", "--short", "HEAD"]).decode("ascii").strip()
+
     @prefixed_command()
     @check(is_owner())
     async def set_avatar(self, ctx: PrefixedContext) -> None:
@@ -64,13 +75,6 @@ class Admin(Extension):
         await ctx.defer()
         embed = Embed("Inquiry Stats", color=BrandColors.BLURPLE)
 
-        # get commit hash
-        git_hash = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"]).decode("ascii").strip()
-
-        deps = subprocess.check_output(["pip", "freeze"]).decode("ascii").splitlines()
-        naff_module = [dep for dep in deps if dep.startswith("naff")][0]
-        naff_commit = naff_module.split("@")[-1]
-
         async with self.bot.poll_cache.db.acquire() as conn:
             total_polls = await conn.fetchval("SELECT COUNT(*) FROM polls.poll_data WHERE guild_id = $1", ctx.guild.id)
 
@@ -90,12 +94,12 @@ class Admin(Extension):
         )
         embed.add_field(
             name="NAFF version",
-            value=f"[{naff.const.__version__}](https://github.com/NAFTeam/NAFF/commit/{naff_commit})",
+            value=f"[{naff.const.__version__}](https://github.com/NAFTeam/NAFF/commit/{self.naff_commit})",
             inline=True,
         )
         embed.add_field(
             name="Inquiry Commit",
-            value=f"[{git_hash}](https://github.com/LordOfPolls/Inquiry/commit/{git_hash})",
+            value=f"[{self.inquiry_commit}](https://github.com/LordOfPolls/Inquiry/commit/{self.inquiry_commit})",
             inline=True,
         )
         embed.set_thumbnail(url=self.bot.user.avatar.url)
