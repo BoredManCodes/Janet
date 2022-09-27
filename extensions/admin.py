@@ -78,9 +78,6 @@ class Admin(Extension):
         embed.add_field(name="Total Polls", value=str(await self.bot.poll_cache.get_total_polls()), inline=True)
         embed.add_field(name="Polls From This Guild", value=str(total_polls), inline=True)
         embed.add_field(name="Polls From You", value=str(user_polls), inline=True)
-        embed.add_field(
-            name="Pending Updates", value=str(sum(len(v) for v in self.bot.polls_to_update.values())), inline=True
-        )
         embed.add_field(name="Scheduled Tasks", value=str(len(self.bot.scheduler.get_jobs())), inline=True)
         embed.add_field(
             name="Startup Time",

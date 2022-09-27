@@ -56,8 +56,6 @@ class Bot(Client):
         )
         self.poll_cache: PollCache = MISSING
 
-        self.polls_to_update: dict[Snowflake_Type, set[Snowflake_Type]] = {}
-
         self.update_lock = asyncio.Lock()  # prevent concurrent updates
 
         self.scheduler = AsyncIOScheduler()
@@ -103,7 +101,6 @@ class Bot(Client):
 
         bot.poll_cache = await PollCache.initialize(bot)
 
-        bot.__update_polls.start()
         bot.scheduler.start()
 
         await bot.astart(token)
@@ -152,9 +149,7 @@ class Bot(Client):
                 async with poll.lock:
                     poll.add_option(ctx.responses["new_option"])
 
-                    if ctx.guild.id not in self.polls_to_update:
-                        self.polls_to_update[ctx.guild.id] = set()
-                    self.polls_to_update[ctx.guild.id].add(int(message_id))
+                    self.schedule_update(poll.message_id)
                 log.info(f"Added option to {message_id}")
                 return await ctx.send(f"Added {ctx.responses['new_option']} to the poll")
             return await ctx.send("That poll could not be edited")
@@ -239,44 +234,38 @@ class Bot(Client):
                             embed.add_field("Option", f"⬇️ `{opt.emoji} {opt.text}`")
                             await ctx.send(embed=embed, ephemeral=True)
 
-                    if ctx.guild.id not in self.polls_to_update:
-                        self.polls_to_update[ctx.guild.id] = set()
-                    self.polls_to_update[ctx.guild.id].add(poll.message_id)
+                    self.schedule_update(poll.message_id)
             else:
                 # likely a legacy or deleted poll
                 log.warning(f"Could not find poll with message id {message_id}")
                 await ctx.send("That poll could not be edited 😕")
 
-    @Task.create(IntervalTrigger(seconds=5))
-    async def __update_polls(self) -> None:
-        # messages edits have a 5-second rate limit, while technically you can edit a message multiple times within those 5 seconds
-        # its a better idea to just over compensate and only edit once per 5 seconds
-        tasks = []
-        async with self.update_lock:
-            polls = deepcopy(self.polls_to_update)
+    def schedule_update(self, message_id: Snowflake_Type) -> None:
+        if self.scheduler.get_job(str(message_id)):
+            return
+        self.scheduler.add_job(
+            self.update_poll,
+            trigger=DateTrigger(datetime.datetime.now() + datetime.timedelta(seconds=5)),
+            id=str(message_id),
+            args=[message_id],
+        )
+        log.debug(f"Created job to update {message_id}")
 
-            if polls:
-                for guild in polls:
-                    for message_id in polls[guild]:
-                        try:
-                            poll = await self.poll_cache.get_poll(message_id)
-                            try:
-                                if not poll.expired:
-                                    await self.cache.fetch_message(poll.channel_id, poll.message_id)
-                            except NotFound:
-                                log.warning(f"Poll {poll.message_id} not found - deleting from cache")
-                                await self.poll_cache.delete_poll(poll.channel_id, poll.message_id)
-                                continue
-                            else:
-                                tasks.append(poll.update_messages(self))
-                                tasks.append(self.poll_cache.store_poll(poll))
-                                log.debug(f"Updated poll {poll.message_id}")
-
-                            finally:
-                                self.polls_to_update[guild].remove(message_id)
-                        except Exception as e:
-                            log.error(f"Error updating poll {message_id}", exc_info=e)
-            await asyncio.gather(*tasks)
+    async def update_poll(self, message_id: Snowflake_Type) -> None:
+        try:
+            if poll := await self.poll_cache.get_poll(message_id):
+                try:
+                    if not poll.expired:
+                        await self.cache.fetch_message(poll.channel_id, message_id)
+                except NotFound:
+                    log.warning(f"Poll {poll.message_id} not found - deleting from cache")
+                    return await self.poll_cache.delete_poll(poll.message_id)
+                else:
+                    await asyncio.gather(poll.update_messages(self), self.poll_cache.store_poll(poll))
+                    log.debug(f"Updated poll {poll.message_id}")
+        except Exception as e:
+            log.error(f"Error updating poll {message_id}", exc_info=e)
+            return
 
     async def schedule_close(self, poll: PollData) -> None:
         if poll.expire_time and not poll.closed:
@@ -348,9 +337,7 @@ class Bot(Client):
                                         if voter in _o.voters:
                                             _o.voters.remove(voter)
                             opt.vote(voter)
-                            if ctx.guild.id not in self.polls_to_update:
-                                self.polls_to_update[ctx.guild.id] = set()
-                            self.polls_to_update[ctx.guild.id].add(poll.message_id)
+                            self.schedule_update(poll.message_id)
 
                 end = time.perf_counter()
 
