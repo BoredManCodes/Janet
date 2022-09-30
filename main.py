@@ -124,7 +124,7 @@ class Bot(Client):
     @slash_command("invite", description="Get the invite link for this bot")
     async def invite(self, ctx: InteractionContext):
         await ctx.send(
-            f"https://discord.com/api/oauth2/authorize?client_id={self.app.id}&permissions=377957124096&scope=bot%20applications.commands"
+            f"https://discord.com/api/oauth2/authorize?client_id={self.app.id}&permissions=377957468160&scope=bot%20applications.commands"
         )
 
     @slash_command("server", description="Join the support server")
