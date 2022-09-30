@@ -7,6 +7,8 @@ from naff import (
     InteractionContext,
     Modal,
     ParagraphText,
+    SlashCommandOption,
+    OptionTypes,
 )
 
 from extensions.shared import def_options
@@ -19,6 +21,17 @@ if TYPE_CHECKING:
 __all__ = ("setup", "CreatePolls")
 
 log = logging.getLogger("Inquiry")
+
+in_line_options = def_options
+in_line_options.insert(
+    1,
+    SlashCommandOption(
+        "options",
+        OptionTypes.STRING,
+        "Options for your poll. Separated with `|`. ie 'opt1 | opt2 | opt3'",
+        required=True,
+    ),
+)
 
 
 class CreatePolls(Extension):
@@ -56,6 +69,21 @@ class CreatePolls(Extension):
         msg = await poll.send(ctx)
         await self.bot.set_poll(poll)
         await m_ctx.send("To close the poll, react to it with 🔴", ephemeral=True)
+
+    @slash_command(
+        "poll_inline",
+        description="Create a poll with inline options; this is to help with using emoji in polls",
+        options=in_line_options,
+    )
+    async def poll_inline(self, ctx: InteractionContext) -> None:
+        raw_options = ctx.kwargs["options"]
+        ctx.kwargs["options"] = [o.strip() for o in raw_options.split("|")]
+
+        poll = await PollData.from_ctx(ctx)
+        if not poll:
+            return
+        msg = await poll.send(ctx)
+        await self.bot.set_poll(poll)
 
     @slash_command(
         "poll_boolean",

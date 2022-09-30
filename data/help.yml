@@ -2,7 +2,7 @@ custom_emoji:
   title: "Custom Emoji"
   emoji: "😁"
   brief: "So how do you use custom emoji?"
-  content: "So you want to choose the emoji in the poll? No problem!\n\nCustom emoji couldn't be simpler; just put an emoji anywhere in the option text, and Inquiry will extract it for the option's emoji"
+  content: "So you want to choose the emoji in the poll? No problem!\n\nCustom emoji couldn't be simpler; just put an emoji anywhere in the option text, and Inquiry will extract it for the option's emoji. Alternatively, use `poll_inline` to take advantage of discords emoji picker."
   image: "https://user-images.githubusercontent.com/22540825/186945287-9c4f7807-eb1d-4acb-8e83-2772c48ed1f5.png"
 timed_polls:
   title: "Timed Polls"
@@ -22,6 +22,7 @@ no_emoji:
   emoji: "⁉️"
   brief: "My emoji is appearing as text instead of an image"
   content: "Inquiry can only send emoji from servers it is in. This is a limitation from Discord. Please only use emoji from servers you share with Inquiry."
+  image: "https://user-images.githubusercontent.com/22540825/193199759-cb7e014d-62ba-4366-8c69-0c456650f230.png"
 bot_is_broken:
   title: "The Bot Is Broken"
   emoji: "🛠️"

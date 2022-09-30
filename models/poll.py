@@ -331,7 +331,7 @@ class PollData(DictSerializationMixin):
                     _emoji = PartialEmoji(name=parsed[1], id=parsed[2], animated=True)
                     opt_name = opt_name.replace(str(_emoji), "")
                 elif len(parsed) == 2:
-                    _emoji = PartialEmoji(name=parsed[1], id=parsed[2], animated=False)
+                    _emoji = PartialEmoji(name=parsed[0], id=parsed[1], animated=False)
                     opt_name = opt_name.replace(str(_emoji), "")
                 else:
                     _name = emoji_lib.emojize(opt_name, language="alias")
@@ -379,7 +379,10 @@ class PollData(DictSerializationMixin):
         )
 
         if options := kwargs.get("options"):
-            for o in options.split("\n-"):
+            if not isinstance(options, list):
+                options = options.split("\n")
+
+            for o in options:
                 if o:
                     new_cls.add_option(o.strip().removeprefix("-"))
 
