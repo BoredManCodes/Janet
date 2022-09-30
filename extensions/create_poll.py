@@ -57,14 +57,9 @@ class CreatePolls(Extension):
         await self.bot.set_poll(poll)
         await m_ctx.send("To close the poll, react to it with 🔴", ephemeral=True)
 
-    @slash_command("poll_prefab", description="Create a poll using pre-set options")
-    async def poll_prefab(self, ctx: InteractionContext) -> None:
-        """A dummy method for creating subcommands from"""
-        ...
-
-    @poll_prefab.subcommand(
-        "boolean",
-        sub_cmd_description="A poll with yes and no options",
+    @slash_command(
+        "poll_boolean",
+        description="A poll with yes and no options",
         options=def_options,
     )
     async def prefab_boolean(self, ctx: InteractionContext) -> None:
@@ -78,9 +73,9 @@ class CreatePolls(Extension):
         msg = await poll.send(ctx)
         await self.bot.set_poll(poll)
 
-    @poll_prefab.subcommand(
-        "week",
-        sub_cmd_description="A poll with options for each day of the week",
+    @slash_command(
+        "poll_week",
+        description="A poll with options for each day of the week",
         options=def_options,
     )
     async def prefab_week(self, ctx: InteractionContext) -> None:
@@ -103,9 +98,9 @@ class CreatePolls(Extension):
         msg = await poll.send(ctx)
         await self.bot.set_poll(poll)
 
-    @poll_prefab.subcommand(
-        "opinion",
-        sub_cmd_description="A poll with agree, neutral, and disagree options",
+    @slash_command(
+        "poll_opinion",
+        description="A poll with agree, neutral, and disagree options",
         options=def_options,
     )
     async def prefab_opinion(self, ctx: InteractionContext) -> None:
@@ -120,9 +115,9 @@ class CreatePolls(Extension):
         msg = await poll.send(ctx)
         await self.bot.set_poll(poll)
 
-    @poll_prefab.subcommand(
-        "blank",
-        sub_cmd_description="An open poll with no starting options",
+    @slash_command(
+        "poll_blank",
+        description="An open poll with no starting options",
         options=[o for o in def_options if str(o.name) != "open_poll"],
     )
     async def prefab_blank(self, ctx: InteractionContext) -> None:
