@@ -58,6 +58,8 @@ class PollUtils(ExtensionBase):
     @staticmethod
     def poll_autocomplete_predicate(ctx: AutocompleteContext):
         def predicate(poll: PollData):
+            if poll.anonymous:
+                return False
             if poll.author_id == ctx.author.id:
                 return True
             if ctx.author.has_permission(Permissions.MANAGE_MESSAGES):
@@ -76,6 +78,10 @@ class PollUtils(ExtensionBase):
     )
     async def export_csv(self, ctx: InteractionContext, poll) -> None:
         if poll := await self.process_poll_option(ctx, poll):
+            if poll.anonymous:
+                await ctx.send("Anonymous polls cannot be exported!", ephemeral=True)
+                return
+
             await ctx.defer()
 
             def write_buffer(_poll: PollData):
@@ -117,6 +123,9 @@ class PollUtils(ExtensionBase):
     )
     async def export_json(self, ctx: InteractionContext, poll) -> None:
         if poll := await self.process_poll_option(ctx, poll):
+            if poll.anonymous:
+                await ctx.send("Anonymous polls cannot be exported!", ephemeral=True)
+                return
             await ctx.defer()
 
             def write_buffer(_poll: PollData):
@@ -147,6 +156,9 @@ class PollUtils(ExtensionBase):
     )
     async def export_yaml(self, ctx: InteractionContext, poll) -> None:
         if poll := await self.process_poll_option(ctx, poll):
+            if poll.anonymous:
+                await ctx.send("Anonymous polls cannot be exported!", ephemeral=True)
+                return
             await ctx.defer()
 
             def write_buffer(_poll: PollData):
@@ -179,6 +191,9 @@ class PollUtils(ExtensionBase):
     )
     async def export_pie(self, ctx: InteractionContext, poll) -> None:
         if poll := await self.process_poll_option(ctx, poll):
+            if poll.anonymous:
+                await ctx.send("Anonymous polls cannot be exported!", ephemeral=True)
+                return
             await ctx.defer()
 
             def write_buffer(_poll: PollData):
@@ -214,6 +229,9 @@ class PollUtils(ExtensionBase):
     )
     async def export_bar(self, ctx: InteractionContext, poll) -> None:
         if poll := await self.process_poll_option(ctx, poll):
+            if poll.anonymous:
+                await ctx.send("Anonymous polls cannot be exported!", ephemeral=True)
+                return
             await ctx.defer()
 
             def write_buffer(_poll: PollData):
@@ -266,6 +284,10 @@ class PollUtils(ExtensionBase):
                 poll_config.append("Results hidden")
             if poll.open_poll:
                 poll_config.append("Open poll")
+            if poll.anonymous:
+                poll_config.append("Anonymous poll")
+            if poll.voting_role:
+                poll_config.append(f"Voting role: <@{poll.voting_role.mention}>")
 
             embed.add_field("Question", value=poll.title, inline=True)
             embed.add_field("Active", value="✅" if not poll.closed else "❌", inline=True)

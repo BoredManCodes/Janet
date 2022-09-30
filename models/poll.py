@@ -146,6 +146,7 @@ class PollData(DictSerializationMixin):
     max_votes: int | None = attr.ib(default=None)
     voting_role: Snowflake_Type | None = attr.ib(default=None)
     hide_results: bool = attr.ib(default=False)
+    anonymous: bool = attr.ib(default=False)
     open_poll: bool = attr.ib(default=False)
     inline: bool = attr.ib(default=False)
     thread: bool = attr.ib(default=False)
@@ -273,6 +274,8 @@ class PollData(DictSerializationMixin):
                 description.append("• Results were hidden until the poll ended")
             else:
                 description.append("• Results are hidden until the poll ends")
+        if self.anonymous:
+            description.append("• Anonymous Voting")
         if self.voting_role:
             description.append(f"• Required Role: <@&{self.voting_role}>")
 
@@ -372,6 +375,7 @@ class PollData(DictSerializationMixin):
             author_avatar=ctx.author.avatar.url,
             close_message=kwargs.get("close_message", False),
             voting_role=to_optional_snowflake(kwargs.get("voting_role", None)),
+            anonymous=kwargs.get("anonymous", False),
         )
 
         if options := kwargs.get("options"):

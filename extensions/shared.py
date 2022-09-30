@@ -95,6 +95,12 @@ def_options = [
         required=False,
     ),
     SlashCommandOption(
+        "anonymous",
+        OptionTypes.BOOLEAN,
+        "Prevent anyone from seeing who voted for what (default False)",
+        required=False,
+    ),
+    SlashCommandOption(
         "open_poll",
         OptionTypes.BOOLEAN,
         "Allow anybody to add options to the poll (default False)",
