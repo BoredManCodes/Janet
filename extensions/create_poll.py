@@ -22,7 +22,7 @@ __all__ = ("setup", "CreatePolls")
 
 log = logging.getLogger("Inquiry")
 
-in_line_options = def_options
+in_line_options = def_options.copy()
 in_line_options.insert(
     1,
     SlashCommandOption(
