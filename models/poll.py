@@ -1,11 +1,11 @@
 import asyncio
 import datetime
 import logging
+import re
 import textwrap
 from typing import Union
 
 import attr
-import attrs
 import emoji as emoji_lib
 import orjson
 from naff import (
@@ -40,6 +40,10 @@ from models.emoji import default_emoji
 __all__ = ("deserialize_datetime", "PollData", "PollOption", "sanity_check")
 
 log = logging.getLogger("Poll")
+
+channel_mention = re.compile(r"<#(\d{17,})>")
+role_mention = re.compile(r"<@&(\d{17,})")
+user_mention = re.compile(r"<@!?(\d{17,})>")
 
 
 def deserialize_datetime(date) -> datetime.datetime:
@@ -377,6 +381,19 @@ class PollData(DictSerializationMixin):
             voting_role=to_optional_snowflake(kwargs.get("voting_role", None)),
             anonymous=kwargs.get("anonymous", False),
         )
+
+        # handle discord not allowing mentions in titles
+        for channel_id in channel_mention.findall(new_cls.title):
+            if channel_id and (channel := ctx.bot.get_channel(channel_id)):
+                new_cls.title = new_cls.title.replace(channel.mention, f"#{channel.name}")
+
+        for role_id in role_mention.findall(new_cls.title):
+            if role_id and (role := ctx.guild.get_role(role_id)):
+                new_cls.title = new_cls.title.replace(role.mention, f"@{role.name}")
+
+        for user_id in user_mention.findall(new_cls.title):
+            if user_id and (user := ctx.guild.get_member(user_id)):
+                new_cls.title = new_cls.title.replace(user.mention, f"@{user.tag}")
 
         if options := kwargs.get("options"):
             if not isinstance(options, list):
