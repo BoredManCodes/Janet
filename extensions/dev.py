@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 from io import StringIO
 
 import orjson
@@ -12,6 +13,7 @@ from naff import (
     OptionTypes,
     File,
     MISSING,
+    to_snowflake,
 )
 from naff.models.naff import checks
 
@@ -121,6 +123,39 @@ class Dev(Extension):
         await poll.update_messages(self.bot)
 
         await ctx.send(f"Poll ({poll.title}) reopened")
+
+    @dev.subcommand("lookup", sub_cmd_description="Search through the cache for a specified ID")
+    @slash_option("id", "The id to search for", opt_type=OptionTypes.STRING, required=True)
+    @slash_option("all", "Find all matching objects", opt_type=OptionTypes.BOOLEAN, required=False)
+    async def lookup(self, ctx: InteractionContext, id: str, all: bool = False):
+        await ctx.defer()
+
+        found: bool = False
+        caches = [
+            c[0]
+            for c in inspect.getmembers(self.bot.cache, predicate=lambda x: isinstance(x, dict))
+            if not c[0].startswith("__")
+        ]
+
+        for cache in caches:
+            _c = getattr(self.bot.cache, cache)
+            for obj in _c.values():
+                if getattr(obj, "id", None) == to_snowflake(id):
+                    file = StringIO()
+                    if hasattr(obj, "__dict__") or hasattr(obj, "to_dict"):
+                        json = obj.to_dict() if hasattr(obj, "to_dict") else obj.__dict__()
+                        file = StringIO()
+                        file.write(orjson.dumps(json, option=orjson.OPT_INDENT_2).decode())
+                    else:
+                        file.write(str(obj))
+                    file.seek(0)
+                    await ctx.send(f"Found `{id}` in `{cache}`", file=File(file, file_name="object.json"))
+                    found = True
+                    if not all:
+                        return
+
+        if not found:
+            await ctx.send(f"No object found with `{id}`")
 
 
 def setup(bot):
