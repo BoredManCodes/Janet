@@ -8,3 +8,4 @@ pyyaml
 thefuzz[speedup]
 emoji
 apscheduler
+git+https://github.com/artem30801/nafftrack.git

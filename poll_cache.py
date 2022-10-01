@@ -7,9 +7,11 @@ from typing import Any
 import asyncpg
 import orjson
 from asyncpg import Record, Pool
-from naff import Snowflake_Type
+from naff import Snowflake_Type, Task, IntervalTrigger
 from naff.client.errors import Forbidden
 from naff.client.utils import TTLCache
+from nafftrack.stats import BUCKETS
+from prometheus_client import Gauge, Histogram
 
 from models.guild_data import GuildData, GuildDataPayload
 from models.poll import PollData
@@ -37,6 +39,12 @@ class PollCache:
             on_expire=lambda _, value: asyncio.create_task(self.set_guild_data(value)),
         )
         self.ready: Event = Event()
+        self._polls_cached = Gauge("cached_polls", "How many polls are in the cache")
+        self._total_polls = Gauge("total_polls", "How many polls are in the database")
+        self._thanked_guilds = Gauge("thanked_guilds", "How many guilds have received a thank you message")
+
+        task = Task.create(IntervalTrigger(seconds=30))(self._update_stats)
+        task.start()
 
     @classmethod
     async def initialize(cls, bot):
@@ -217,3 +225,16 @@ class PollCache:
         async with self.db.acquire() as conn:
             await conn.execute(query, *payload.values())
             log.debug("Updated guild data: %s", payload["id"])
+
+    async def _update_stats(self):
+        await self.bot.wait_until_ready()
+
+        log.info("Updating poll stats...")
+        async with self.db.acquire() as conn:
+            # print(len(self.polls))
+            # print(await self.get_total_polls())
+            self._polls_cached.set(len(self.polls))
+            self._total_polls.set(await conn.fetchval("SELECT COUNT(*) FROM polls.poll_data"))
+            self._thanked_guilds.set(
+                await conn.fetchval("SELECT COUNT(*) FROM polls.guild_data WHERE thank_you_sent is true")
+            )

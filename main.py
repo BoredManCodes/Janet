@@ -34,6 +34,7 @@ from naff.client.errors import NotFound
 from naff.models.naff.application_commands import context_menu, slash_command
 
 from models.poll import PollData, sanity_check
+from nafftrack.client import StatsClient
 from poll_cache import PollCache
 
 __all__ = ("Bot",)
@@ -45,7 +46,7 @@ ap_log = logging.getLogger("apscheduler")
 ap_log.setLevel(logging.WARNING)
 
 
-class Bot(Client):
+class Bot(StatsClient):
     def __init__(self) -> None:
         super().__init__(
             intents=Intents.new(guilds=True, reactions=True, default=False),
@@ -84,6 +85,7 @@ class Bot(Client):
         signal.signal(signal.SIGINT, lambda *_: asyncio.create_task(bot.stop()))
         signal.signal(signal.SIGTERM, lambda *_: asyncio.create_task(bot.stop()))
 
+        bot.load_extension("nafftrack.extension")
         bot.load_extension("extensions.dev")
         bot.load_extension("extensions.create_poll")
         bot.load_extension("extensions.edit_poll")
