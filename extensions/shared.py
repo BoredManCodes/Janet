@@ -162,6 +162,7 @@ class ExtensionBase(Extension):
         predicate = self.poll_autocomplete_predicate(ctx)
 
         polls = await self.bot.poll_cache.get_polls_by_guild(ctx.guild_id)
+        polls.sort(key=lambda x: x.message_id, reverse=True)
 
         if polls:
             if not ctx.input_text:
