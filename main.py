@@ -4,26 +4,21 @@ import logging
 import random
 import signal
 import time
-from copy import deepcopy
 from typing import Any
 
 from apscheduler.jobstores.base import JobLookupError
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.date import DateTrigger
 from naff import (
-    Client,
     Intents,
     listen,
     MISSING,
     ComponentContext,
     Snowflake_Type,
-    IntervalTrigger,
-    Task,
     Modal,
     ShortText,
     CommandTypes,
     InteractionContext,
-    ThreadChannel,
     Status,
     BrandColors,
     Embed,
@@ -32,9 +27,10 @@ from naff.api.events import Button, ModalResponse, GuildLeft, GuildJoin
 from naff.api.events.processors._template import Processor
 from naff.client.errors import NotFound
 from naff.models.naff.application_commands import context_menu, slash_command
+from nafftrack.client import StatsClient
+from prometheus_client import Gauge
 
 from models.poll import PollData, sanity_check
-from nafftrack.client import StatsClient
 from poll_cache import PollCache
 
 __all__ = ("Bot",)
@@ -65,6 +61,10 @@ class Bot(StatsClient):
         # naff by default will request missing data, by removing these, the api won't be polled on every reaction
         del self.processors["raw_message_reaction_remove"]
         del self.processors["raw_message_reaction_remove_all"]
+
+        self._vote_analytics = Gauge(
+            "inquiry_vote", "Analytics of how many votes have been cast", labelnames=["guild_name"]
+        )
 
     @Processor.define()
     async def _on_raw_message_reaction_add(self, event: "RawGatewayEvent") -> None:
@@ -234,11 +234,13 @@ class Bot(StatsClient):
                             embed = Embed("Your vote has been removed", color=BrandColors.GREEN)
                             embed.add_field("Option", f"⬇️ `{opt.emoji} {opt.text}`")
                             await ctx.send(embed=embed, ephemeral=True)
+                        vote = self._vote_analytics.labels(guild_name=ctx.guild.name)
+                        vote.inc(1)
 
                     self.schedule_update(poll.message_id)
             else:
                 # likely a legacy or deleted poll
-                log.warning(f"Could not find poll with message id {message_id}")
+                log.warning(f"Could not find poll with message id {ctx.message.id} or {ctx.channel.id}")
                 await ctx.send("That poll could not be edited 😕")
 
     def schedule_update(self, message_id: Snowflake_Type) -> None:
