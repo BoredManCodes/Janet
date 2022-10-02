@@ -58,8 +58,11 @@ async def sanity_check(ctx: InteractionContext) -> bool:
         # technically shouldn't happen, but no harm in checking
         await ctx.send("This command can only be used in a server", ephemeral=True)
         return False
-
-    channel_perms = ctx.channel.permissions_for(ctx.guild.me)
+    if not isinstance(ctx.channel, ThreadChannel):
+        channel = ctx.channel
+    else:
+        channel = ctx.channel.parent_channel
+    channel_perms = channel.permissions_for(ctx.guild.me)
 
     if Permissions.VIEW_CHANNEL not in channel_perms:
         await ctx.send("I can't view my messages in this channel", ephemeral=True)
@@ -79,6 +82,9 @@ async def sanity_check(ctx: InteractionContext) -> bool:
         return False
 
     if ctx.kwargs.get("thread"):
+        if isinstance(ctx.channel, ThreadChannel):
+            await ctx.send("You can't make a thread inside a thread", ephemeral=True)
+            return False
         if not all(perm in channel_perms for perm in (Permissions.USE_PUBLIC_THREADS, Permissions.USE_PRIVATE_THREADS)):
             await ctx.send("I don't have the permissions to create threads in this channel", ephemeral=True)
             return False

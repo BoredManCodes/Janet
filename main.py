@@ -165,13 +165,10 @@ class Bot(StatsClient):
             if ctx.author.id in guild_data.blacklisted_users:
                 return await ctx.send("This server's moderators have disabled your ability to vote", ephemeral=True)
 
-        if isinstance(ctx.channel, ThreadChannel):
-            message_id = ctx.channel.id
-        else:
-            message_id = ctx.message.id
-
         if ctx.custom_id == "add_option":
-            if poll := await self.poll_cache.get_poll(message_id):
+            if poll := (
+                await self.poll_cache.get_poll(ctx.message.id) or await self.poll_cache.get_poll(ctx.channel.id)
+            ):
                 if poll.voting_role:
                     if not ctx.author.has_role(poll.voting_role):
                         return await ctx.send("You do not have permission to add options to this poll", ephemeral=True)
@@ -190,9 +187,11 @@ class Bot(StatsClient):
 
             option_index = int(ctx.custom_id.removeprefix("poll_option|"))
 
-            if poll := await self.poll_cache.get_poll(message_id):
+            if poll := (
+                await self.poll_cache.get_poll(ctx.message.id) or await self.poll_cache.get_poll(ctx.channel.id)
+            ):
                 if poll.expired:
-                    message = await self.cache.fetch_message(ctx.channel.id, message_id)
+                    message = await self.cache.fetch_message(ctx.channel.id, poll.message_id)
                     await message.edit(components=poll.get_components(disable=True))
                     return await ctx.send("This poll is closing - your vote will not be counted", ephemeral=True)
                 async with poll.lock:
