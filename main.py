@@ -177,7 +177,7 @@ class Bot(StatsClient):
                     Modal(
                         "Add Option",
                         [ShortText(label="Option", custom_id="new_option")],
-                        custom_id="add_option_modal|{}".format(ctx.message.id),
+                        custom_id="add_option_modal|{}".format(poll.message_id),
                     )
                 )
             else:
