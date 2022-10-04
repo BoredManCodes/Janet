@@ -37,6 +37,7 @@ from naff.models.discord.emoji import emoji_regex, PartialEmoji
 
 from const import process_duration
 from models.emoji import default_emoji
+from models.events import PollCreate, PollClose
 
 if TYPE_CHECKING:
     pass
@@ -420,6 +421,8 @@ class PollData(ClientObject):
         if duration := kwargs.get("duration"):
             new_cls.expire_time = process_duration(duration)
 
+        new_cls._client.dispatch(PollCreate(new_cls))
+
         return new_cls
 
     async def send(self, context: InteractionContext) -> Message:
@@ -439,6 +442,7 @@ class PollData(ClientObject):
             raise
 
     async def send_close_message(self) -> None:
+        self._client.dispatch(PollClose(self))
         if self.close_message and not self._sent_close_message:
             origin_message = await self._client.cache.fetch_message(self.channel_id, self.message_id)
             if origin_message:
