@@ -3,10 +3,11 @@ import datetime
 import logging
 import re
 import textwrap
-from typing import Union
+from typing import Union, TYPE_CHECKING
 
 import attr
 import emoji as emoji_lib
+import naff
 import orjson
 from naff import (
     ModalContext,
@@ -19,7 +20,6 @@ from naff import (
     EMBED_MAX_NAME_LENGTH,
     to_optional_snowflake,
 )
-from naff.client.mixins.serialization import DictSerializationMixin
 from naff.models import (
     Snowflake_Type,
     Embed,
@@ -32,10 +32,14 @@ from naff.models import (
     Message,
     InteractionContext,
 )
+from naff.models.discord.base import ClientObject
 from naff.models.discord.emoji import emoji_regex, PartialEmoji
 
 from const import process_duration
 from models.emoji import default_emoji
+
+if TYPE_CHECKING:
+    pass
 
 __all__ = ("deserialize_datetime", "PollData", "PollOption", "sanity_check")
 
@@ -136,7 +140,7 @@ class PollOption:
 
 
 @attr.s(auto_attribs=True, on_setattr=[attr.setters.convert, attr.setters.validate])
-class PollData(DictSerializationMixin):
+class PollData(ClientObject):
     title: str
     author_id: Snowflake_Type
     description: str = attr.ib(default=None)
@@ -176,7 +180,7 @@ class PollData(DictSerializationMixin):
         data = {
             k.removeprefix("_"): v
             for k, v in attr.asdict(self).items()
-            if v != MISSING and not isinstance(v, asyncio.Lock)
+            if v != MISSING and not isinstance(v, (asyncio.Lock, naff.Client))
         }
         data["poll_options"] = orjson.dumps(data.pop("poll_options")).decode()
         return data
@@ -370,6 +374,7 @@ class PollData(DictSerializationMixin):
         if m_ctx:
             kwargs |= m_ctx.kwargs
         new_cls: "PollData" = cls(
+            client=ctx.bot,
             title=kwargs.get("title"),
             description=kwargs.get("description", None),
             author_id=ctx.author.id,
@@ -433,22 +438,22 @@ class PollData(DictSerializationMixin):
         except Exception:
             raise
 
-    async def send_close_message(self, client) -> None:
+    async def send_close_message(self) -> None:
         if self.close_message and not self._sent_close_message:
-            origin_message = await client.cache.fetch_message(self.channel_id, self.message_id)
+            origin_message = await self._client.cache.fetch_message(self.channel_id, self.message_id)
             if origin_message:
                 await origin_message.reply(embed=self.close_embed)
                 self._sent_close_message = True
 
-    async def update_messages(self, client):
+    async def update_messages(self):
         self.reallocate_emoji()
 
-        message = await client.cache.fetch_message(self.channel_id, self.message_id)
+        message = await self._client.cache.fetch_message(self.channel_id, self.message_id)
         await message.edit(embeds=self.embed, components=self.get_components())
 
         if self.thread:
             try:
-                thread_msg = await client.cache.fetch_message(self.message_id, self.thread_message_id)
+                thread_msg = await self._client.cache.fetch_message(self.message_id, self.thread_message_id)
                 await thread_msg.edit(components=self.get_components(disable=True))
             except Exception as e:
                 log.error(f"Failed to update thread message: {e}")

@@ -265,7 +265,7 @@ class Bot(StatsClient):
                     log.warning(f"Poll {poll.message_id} not found - deleting from cache")
                     return await self.poll_cache.delete_poll(poll.message_id)
                 else:
-                    await asyncio.gather(poll.update_messages(self), self.poll_cache.store_poll(poll))
+                    await asyncio.gather(poll.update_messages(), self.poll_cache.store_poll(poll))
                     log.debug(f"Updated poll {poll.message_id}")
         except Exception as e:
             log.error(f"Error updating poll {message_id}", exc_info=e)
@@ -299,8 +299,8 @@ class Bot(StatsClient):
                 poll._expired = True
                 poll.expire_time = datetime.datetime.now()
 
-                tasks.append(poll.update_messages(self))
-                tasks.append(poll.send_close_message(self))
+                tasks.append(poll.update_messages())
+                tasks.append(poll.send_close_message())
                 poll.closed = True
 
                 tasks.append(self.poll_cache.store_poll(poll))

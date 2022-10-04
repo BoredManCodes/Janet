@@ -130,7 +130,7 @@ class Moderation(ExtensionBase):
             ):
                 poll._expired = True
                 poll.expire_time = datetime.datetime.now()
-                asyncio.create_task(poll.update_messages(self.bot))
+                asyncio.create_task(poll.update_messages())
                 await self.bot.poll_cache.store_poll(poll)
 
                 embed = Embed(title="Poll Closed", description=f"Closed poll `{poll.title}`", color=BrandColors.RED)

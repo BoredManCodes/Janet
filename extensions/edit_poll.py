@@ -62,7 +62,7 @@ class EditPolls(ExtensionBase):
                             if poll.poll_options[i].text == option.replace("_", " "):
                                 del poll.poll_options[i]
 
-                                await poll.update_messages(self.bot)
+                                await poll.update_messages()
 
                                 await ctx.send(f"Removed `{option}` from `{poll.title}`")
 
@@ -98,7 +98,7 @@ class EditPolls(ExtensionBase):
                     async with poll.lock:
                         poll.add_option(option)
 
-                        await poll.update_messages(self.bot)
+                        await poll.update_messages()
 
                         await ctx.send(f"Added `{option}` to `{poll.title}`")
                     await self.bot.poll_cache.store_poll(poll)
@@ -115,8 +115,8 @@ class EditPolls(ExtensionBase):
                 async with poll.lock:
                     poll._expired = True
 
-                    await poll.update_messages(self.bot)
-                    await poll.send_close_message(self.bot)
+                    await poll.update_messages()
+                    await poll.send_close_message()
 
                     await ctx.send(f"`{poll.title}` has been closed!")
                     await self.bot.send_thanks_message(ctx.channel.id)
@@ -132,8 +132,8 @@ class EditPolls(ExtensionBase):
                 async with poll.lock:
                     poll._expired = True
 
-                    await poll.update_messages(self.bot)
-                    await poll.send_close_message(self.bot)
+                    await poll.update_messages()
+                    await poll.send_close_message()
 
                     await ctx.send(f"`{poll.title}` has been closed!")
                     await self.bot.send_thanks_message(ctx.channel.id)

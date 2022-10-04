@@ -60,7 +60,13 @@ class PollCache:
             log.info(f"Connected to postgres as {db_credentials['user']}")
             log.debug("Writing sanity check to database")
             test_poll = PollData(
-                title="test", author_id=1234, channel_id=1234, guild_id=12345, message_id=1234, colour="blurple"
+                client=bot,
+                title="test",
+                author_id=1234,
+                channel_id=1234,
+                guild_id=12345,
+                message_id=1234,
+                colour="blurple",
             )
 
             instance = cls(bot, database, db_credentials)
@@ -137,7 +143,7 @@ class PollCache:
             data = self.migrate_poll(data)
 
             data["poll_options"] = orjson.loads(data["poll_options"])
-            poll = PollData.from_dict(data)
+            poll = PollData.from_dict(data, self.bot)
 
             if not poll.author_name or not poll.author_avatar or poll.author_name == "Unknown":
                 try:

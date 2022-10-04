@@ -120,7 +120,7 @@ class Dev(Extension):
         poll._expired = False
         poll.closed = False
 
-        await poll.update_messages(self.bot)
+        await poll.update_messages()
 
         await ctx.send(f"Poll ({poll.title}) reopened")
 
