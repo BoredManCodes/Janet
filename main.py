@@ -159,6 +159,8 @@ class Bot(StatsClient):
     @listen()
     async def on_button(self, event: Button) -> Any:
         ctx: ComponentContext = event.context
+        if not self.poll_cache.ready.is_set():
+            return await ctx.send("Inquiry is restarting. Please try again in a few seconds", ephemeral=True)
 
         guild_data = await self.poll_cache.get_guild_data(ctx.guild.id)
         if guild_data.blacklisted_users:
