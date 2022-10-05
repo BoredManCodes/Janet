@@ -13,6 +13,7 @@ from naff.client.utils import TTLCache
 from nafftrack.stats import BUCKETS
 from prometheus_client import Gauge, Histogram
 
+from models.elimination_poll import EliminationPoll
 from models.guild_data import GuildData, GuildDataPayload
 from models.poll import PollData
 
@@ -131,6 +132,8 @@ class PollCache:
     @staticmethod
     def migrate_poll(data: dict[str, Any]) -> dict[str, Any]:
         """A placeholder method to be used for migration of data"""
+        if data.get("poll_type", None) is None:
+            data["poll_type"] = "default"
         return data
 
     async def deserialize_poll(self, data: Record, *, store: bool = True) -> PollData:
@@ -143,7 +146,11 @@ class PollCache:
             data = self.migrate_poll(data)
 
             data["poll_options"] = orjson.loads(data["poll_options"])
-            poll = PollData.from_dict(data, self.bot)
+            match data["poll_type"]:
+                case "elimination":
+                    poll = EliminationPoll.from_dict(data, self.bot)
+                case _:
+                    poll = PollData.from_dict(data, self.bot)
 
             if not poll.author_name or not poll.author_avatar or poll.author_name == "Unknown":
                 try:

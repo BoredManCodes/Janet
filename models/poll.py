@@ -20,6 +20,7 @@ from naff import (
     EMBED_MAX_NAME_LENGTH,
     to_optional_snowflake,
     Member,
+    EmbedField,
 )
 from naff.models import (
     Snowflake_Type,
@@ -110,6 +111,7 @@ class PollOption:
     emoji: str
     voters: set[Snowflake_Type] = attr.ib(factory=set, converter=set)
     style: int = attr.ib(default=1)
+    eliminated: bool = attr.ib(default=False)
 
     @property
     def inline_text(self) -> str:
@@ -174,6 +176,7 @@ class PollData(ClientObject):
     _sent_close_message: bool = attr.ib(default=False)
 
     expire_time: datetime = attr.ib(default=MISSING, converter=deserialize_datetime)
+    poll_type: str = attr.ib(default="default")
     _expired: bool = attr.ib(default=False)
     closed: bool = attr.ib(default=False)
     lock: asyncio.Lock = attr.ib(factory=asyncio.Lock)
@@ -253,6 +256,18 @@ class PollData(ClientObject):
         return embed
 
     @property
+    def option_fields(self) -> list[EmbedField]:
+        fields = []
+        for i in range(len(self.poll_options)):
+            option = self.poll_options[i]
+            name = textwrap.shorten(f"{option.emoji} {option.text}", width=EMBED_MAX_NAME_LENGTH)
+            if not self.expired and self.hide_results:
+                fields.append(EmbedField(name=name, value="‏", inline=self.inline))
+            else:
+                fields.append(EmbedField(name=name, value=option.create_bar(self.total_votes), inline=self.inline))
+        return fields
+
+    @property
     def embed(self) -> Embed:
         e = Embed(
             f"{self.title}" if self.title else "Poll:",
@@ -260,18 +275,8 @@ class PollData(ClientObject):
             color=self.get_colour() if not self.expired else MaterialColors.GREY,
         )
         total_votes = self.total_votes
-        for i in range(len(self.poll_options)):
 
-            option = self.poll_options[i]
-            name = textwrap.shorten(f"{option.emoji} {option.text}", width=EMBED_MAX_NAME_LENGTH)
-            if not self.expired and self.hide_results:
-                e.add_field(name, "‏", inline=self.inline)
-            else:
-                e.add_field(
-                    name,
-                    option.create_bar(total_votes),
-                    inline=self.inline,
-                )
+        e.fields = self.option_fields
 
         if self.image_url:
             e.set_image(url=self.image_url)
@@ -280,6 +285,9 @@ class PollData(ClientObject):
         if self.description:
             description.append(self.description)
         description.append(f"• {total_votes:,} vote{'s' if total_votes != 1 else ''}")
+
+        if self.poll_type != "default":
+            description.append(f"• {self.poll_type.title()} Poll")
 
         if self.single_vote:
             description.append("• One Vote Per User")
@@ -467,8 +475,20 @@ class PollData(ClientObject):
     def get_user_votes(self, user_id: int) -> list[PollOption]:
         return [option for option in self.poll_options if option.has_voted(user_id)]
 
-    def __vote(self, option: PollOption, user: Member) -> bool:
-        option.vote(user.id)
+    def _vote(self, option: PollOption, user: Member) -> bool:
+        return option.vote(user.id)
+
+    async def _vote_check(self, ctx: InteractionContext, option: PollOption) -> bool:
+        """A placeholder for future checks in subclasses"""
+        return True
+
+    @property
+    def vote_added_text(self) -> str:
+        return "Your vote has been added."
+
+    @property
+    def vote_removed_text(self) -> str:
+        return "Your vote has been removed."
 
     async def vote(self, ctx: InteractionContext):
         if self.expired:
@@ -503,14 +523,17 @@ class PollData(ClientObject):
                         embed.add_field("To remove a vote", "Vote again for the option you want to remove")
                         return await ctx.send(embed=embed, ephemeral=True)
 
-                if self.__vote(option, ctx.author):
+                if not await self._vote_check(ctx, option):
+                    return
+
+                if self._vote(option, ctx.author):
                     log.info(f"Added vote to {self.message_id}")
-                    embed = Embed("Your vote has been added", color=BrandColors.GREEN)
+                    embed = Embed(self.vote_added_text, color=BrandColors.GREEN)
                     embed.add_field("Option", f"⬆️ `{option.emoji} {option.text}`")
                     await ctx.send(embed=embed, ephemeral=True)
                 else:
                     log.info(f"Removed vote from {self.message_id}")
-                    embed = Embed("Your vote has been removed", color=BrandColors.GREEN)
+                    embed = Embed(self.vote_removed_text, color=BrandColors.GREEN)
                     embed.add_field("Option", f"⬇️ `{option.emoji} {option.text}`")
                     await ctx.send(embed=embed, ephemeral=True)
                 self._client.dispatch(PollVote(self, ctx.guild.id))

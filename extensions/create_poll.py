@@ -12,6 +12,7 @@ from naff import (
 )
 
 from extensions.shared import def_options
+from models.elimination_poll import EliminationPoll
 from models.emoji import opinion_emoji
 from models.poll import PollData
 
@@ -156,6 +157,34 @@ class CreatePolls(Extension):
         poll.open_poll = True
         msg = await poll.send(ctx)
         await self.bot.set_poll(poll)
+
+    @slash_command(
+        "poll_elimination", description="A poll where options are removed when they're voted for", options=def_options
+    )
+    async def prefab_elimination(self, ctx: InteractionContext) -> None:
+        modal = Modal(
+            "Create a poll!",
+            components=[
+                ParagraphText(
+                    "Options: ",
+                    placeholder="Start each option with a `-` ie: \n-Option 1\n-Option 2",
+                    custom_id="options",
+                )
+            ],
+        )
+        await ctx.send_modal(modal)
+
+        m_ctx = await self.bot.wait_for_modal(modal, ctx.author)
+        if not m_ctx.kwargs["options"].strip():
+            return await m_ctx.send("You did not provide any options!", ephemeral=True)
+
+        poll = await EliminationPoll.from_ctx(ctx, m_ctx)
+        if not poll:
+            return
+
+        msg = await poll.send(ctx)
+        await self.bot.set_poll(poll)
+        await m_ctx.send("To close the poll, react to it with 🔴", ephemeral=True)
 
     async def on_error(self, error: Exception, ctx: InteractionContext, *args, **kwargs) -> None:
         await ctx.send(f"**Error:** {error}", ephemeral=True)
