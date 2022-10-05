@@ -36,11 +36,20 @@ from poll_cache import PollCache
 
 __all__ = ("Bot",)
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(
+    format="%(asctime)s %(levelname)-8s %(name)-15s %(filename)-20s|| %(message)s",
+    level=logging.INFO,
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 log = logging.getLogger("Inquiry")
-
 ap_log = logging.getLogger("apscheduler")
 ap_log.setLevel(logging.WARNING)
+naff_log = logging.getLogger("naff")
+naff_log.setLevel(logging.INFO)
+matplotlib_log = logging.getLogger("matplotlib")
+matplotlib_log.setLevel(logging.WARNING)
+asyncio_log = logging.getLogger("asyncio")
+asyncio_log.setLevel(logging.WARNING)
 
 
 class Bot(StatsClient):
