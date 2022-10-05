@@ -19,6 +19,7 @@ from naff import (
     ThreadChannel,
     EMBED_MAX_NAME_LENGTH,
     to_optional_snowflake,
+    Member,
 )
 from naff.models import (
     Snowflake_Type,
@@ -37,7 +38,7 @@ from naff.models.discord.emoji import emoji_regex, PartialEmoji
 
 from const import process_duration
 from models.emoji import default_emoji
-from models.events import PollCreate, PollClose
+from models.events import PollCreate, PollClose, PollVote
 
 if TYPE_CHECKING:
     pass
@@ -465,3 +466,51 @@ class PollData(ClientObject):
 
     def get_user_votes(self, user_id: int) -> list[PollOption]:
         return [option for option in self.poll_options if option.has_voted(user_id)]
+
+    def __vote(self, option: PollOption, user: Member) -> bool:
+        option.vote(user.id)
+
+    async def vote(self, ctx: InteractionContext):
+        if self.expired:
+            message = await self._client.cache.fetch_message(self.channel_id, self.message_id)
+            await message.edit(components=self.get_components(disable=True))
+            await ctx.send("This poll is closing - your vote will not be counted", ephemeral=True)
+            return
+        else:
+            async with self.lock:
+                if self.voting_role and self.voting_role != ctx.guild_id and not ctx.author.has_role(self.voting_role):
+                    return await ctx.send("You do not have permission to vote in this poll", ephemeral=True)
+                option_index = int(ctx.custom_id.removeprefix("poll_option|"))
+                option = self.poll_options[option_index]
+
+                if self.single_vote:
+                    for _o in self.poll_options:
+                        if _o != option:
+                            if ctx.author.id in _o.voters:
+                                _o.voters.remove(ctx.author.id)
+                elif self.max_votes is not None:
+                    voted_options = self.get_user_votes(ctx.author.id)
+                    if len(voted_options) >= self.max_votes:
+                        log.error(
+                            f"{self.message_id}|{ctx.author.id} tried to vote for more than the max votes allowed"
+                        )
+                        embed = Embed(
+                            "You have already voted for the maximum number of options",
+                            color=BrandColors.RED,
+                        )
+                        embed.add_field("Maximum Votes", self.max_votes)
+                        embed.add_field("Your Votes", ", ".join([f"`{o.emoji} {o.text}`" for o in voted_options]))
+                        embed.add_field("To remove a vote", "Vote again for the option you want to remove")
+                        return await ctx.send(embed=embed, ephemeral=True)
+
+                if self.__vote(option, ctx.author):
+                    log.info(f"Added vote to {self.message_id}")
+                    embed = Embed("Your vote has been added", color=BrandColors.GREEN)
+                    embed.add_field("Option", f"⬆️ `{option.emoji} {option.text}`")
+                    await ctx.send(embed=embed, ephemeral=True)
+                else:
+                    log.info(f"Removed vote from {self.message_id}")
+                    embed = Embed("Your vote has been removed", color=BrandColors.GREEN)
+                    embed.add_field("Option", f"⬇️ `{option.emoji} {option.text}`")
+                    await ctx.send(embed=embed, ephemeral=True)
+                self._client.dispatch(PollVote(self, ctx.guild.id))

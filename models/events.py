@@ -21,3 +21,9 @@ class PollCreate(PollEvent):
 @define(slots=False)
 class PollClose(PollEvent):
     ...
+
+
+@define(slots=False)
+class PollVote(PollEvent):
+    poll: "PollData" = field()
+    guild_id: int = field()

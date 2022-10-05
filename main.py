@@ -30,6 +30,7 @@ from naff.models.naff.application_commands import context_menu, slash_command
 from nafftrack.client import StatsClient
 from prometheus_client import Gauge
 
+from models.events import PollVote
 from models.poll import PollData, sanity_check
 from poll_cache import PollCache
 
@@ -187,64 +188,20 @@ class Bot(StatsClient):
                 return await ctx.send("Cannot add options to that poll", ephemeral=True)
         elif "poll_option" in ctx.custom_id:
             await ctx.defer(ephemeral=True)
-
-            option_index = int(ctx.custom_id.removeprefix("poll_option|"))
-
             if poll := (
                 await self.poll_cache.get_poll(ctx.message.id) or await self.poll_cache.get_poll(ctx.channel.id)
             ):
-                if poll.expired:
-                    message = await self.cache.fetch_message(ctx.channel.id, poll.message_id)
-                    await message.edit(components=poll.get_components(disable=True))
-                    return await ctx.send("This poll is closing - your vote will not be counted", ephemeral=True)
-                async with poll.lock:
-                    if not poll.expired:
-                        if poll.voting_role:
-                            if poll.voting_role != ctx.guild_id and not ctx.author.has_role(poll.voting_role):
-                                return await ctx.send("You do not have permission to vote in this poll", ephemeral=True)
-
-                        opt = poll.poll_options[option_index]
-                        if poll.single_vote:
-                            for _o in poll.poll_options:
-                                if _o != opt:
-                                    if ctx.author.id in _o.voters:
-                                        _o.voters.remove(ctx.author.id)
-                        elif poll.max_votes is not None:
-                            voted_options = poll.get_user_votes(ctx.author.id)
-                            if opt not in voted_options:
-                                if len(voted_options) >= poll.max_votes:
-                                    log.error(
-                                        f"{poll.message_id}|{ctx.author.id} tried to vote for more than the max votes allowed"
-                                    )
-                                    embed = Embed(
-                                        "You have already voted for the maximum number of options",
-                                        color=BrandColors.RED,
-                                    )
-                                    embed.add_field("Maximum Votes", poll.max_votes)
-                                    embed.add_field(
-                                        "Your Votes", ", ".join([f"`{o.emoji} {o.text}`" for o in voted_options])
-                                    )
-                                    embed.add_field("To remove a vote", "Vote again for the option you want to remove")
-                                    return await ctx.send(embed=embed, ephemeral=True)
-
-                        if opt.vote(ctx.author.id):
-                            log.info(f"Added vote to {poll.message_id}")
-                            embed = Embed("Your vote has been added", color=BrandColors.GREEN)
-                            embed.add_field("Option", f"⬆️ `{opt.emoji} {opt.text}`")
-                            await ctx.send(embed=embed, ephemeral=True)
-                        else:
-                            log.info(f"Removed vote from {poll.message_id}")
-                            embed = Embed("Your vote has been removed", color=BrandColors.GREEN)
-                            embed.add_field("Option", f"⬇️ `{opt.emoji} {opt.text}`")
-                            await ctx.send(embed=embed, ephemeral=True)
-                        vote = self._vote_analytics.labels(guild_name=ctx.guild.name)
-                        vote.inc(1)
-
-                    self.schedule_update(poll.message_id)
+                await poll.vote(ctx)
             else:
                 # likely a legacy or deleted poll
                 log.warning(f"Could not find poll with message id {ctx.message.id} or {ctx.channel.id}")
                 await ctx.send("That poll could not be edited 😕")
+
+    @listen()
+    async def on_poll_vote(self, event: PollVote):
+        self.schedule_update(event.poll.message_id)
+        vote = self._vote_analytics.labels(guild_name=event.guild_id)
+        vote.inc(1)
 
     def schedule_update(self, message_id: Snowflake_Type) -> None:
         job_id = f"poll_update|{message_id}"
