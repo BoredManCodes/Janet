@@ -95,6 +95,7 @@ class Bot(StatsClient):
         bot.load_extension("extensions.help")
         bot.load_extension("extensions.analytics")
         bot.load_extension("extensions.moderation")
+        bot.load_extension("extensions.elimination")
 
         for command in bot.application_commands:
             # it really isnt necessary to do it like this, but im really lazy
