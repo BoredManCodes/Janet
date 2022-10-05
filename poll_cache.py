@@ -27,15 +27,15 @@ class PollCache:
         self.credentials: dict = credentials
 
         self.polls: TTLCache = TTLCache(
-            soft_limit=25,
-            hard_limit=1000,
-            ttl=120,
+            soft_limit=150,
+            hard_limit=10000,
+            ttl=1800,  # 30 minutes
             on_expire=lambda _, value: asyncio.create_task(self.__write_poll(value)),
         )
         self.guild_data: TTLCache = TTLCache(
             soft_limit=150,
             hard_limit=10000,
-            ttl=120,
+            ttl=1800,  # 30 minutes
             on_expire=lambda _, value: asyncio.create_task(self.set_guild_data(value)),
         )
         self.ready: Event = Event()
@@ -235,7 +235,6 @@ class PollCache:
     async def _update_stats(self):
         await self.bot.wait_until_ready()
 
-        log.info("Updating poll stats...")
         async with self.db.acquire() as conn:
             # print(len(self.polls))
             # print(await self.get_total_polls())
