@@ -102,6 +102,14 @@ async def sanity_check(ctx: InteractionContext) -> bool:
             await ctx.send("Thread titles cannot be longer than 100 characters", ephemeral=True)
             return False
 
+    if ctx.kwargs.get("close_message"):
+        if Permissions.SEND_MESSAGES not in channel_perms:
+            await ctx.send(
+                "Unable to use `close_message` in this channel - Please enable the `send_messages` permission in this channel",
+                ephemeral=True,
+            )
+            return False
+
     return True
 
 

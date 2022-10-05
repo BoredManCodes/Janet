@@ -25,7 +25,7 @@ from naff import (
 )
 from naff.api.events import Button, ModalResponse, GuildLeft, GuildJoin
 from naff.api.events.processors._template import Processor
-from naff.client.errors import NotFound
+from naff.client.errors import NotFound, Forbidden
 from naff.models.naff.application_commands import context_menu, slash_command
 from nafftrack.client import StatsClient
 from prometheus_client import Gauge
@@ -348,10 +348,13 @@ class Bot(StatsClient):
                         text="This is the only time Inquiry will send a message like this",
                         icon_url=self.user.avatar.url,
                     )
-                    await channel.send(embed=embed)
-                    guild_data.thank_you_sent = True
-                    await self.poll_cache.set_guild_data(guild_data)
-                    log.info(f"Sent thanks message to {channel.guild.id}")
+                    try:
+                        await channel.send(embed=embed)
+                        guild_data.thank_you_sent = True
+                        await self.poll_cache.set_guild_data(guild_data)
+                        log.info(f"Sent thanks message to {channel.guild.id}")
+                    except Forbidden:
+                        log.warning(f"Could not send thanks message to {channel.guild.id} (no permissions)")
         except Exception as e:
             log.error("Error sending thanks message", exc_info=e)
 
