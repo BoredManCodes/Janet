@@ -4,11 +4,6 @@ from naff import InteractionContext, context_menu, CommandTypes, MISSING, Embed,
 from extensions.shared import ExtensionBase
 from models.poll import PollOption, PollData
 
-THE_ALLIANCE = 853993464030298132
-INQUIRY = 1013821165191581756
-DEV_SERVER = 985991455074050078
-TESTING_SCOPES = [THE_ALLIANCE, INQUIRY, DEV_SERVER]
-
 
 class Elimination(ExtensionBase):
     async def eliminate(self, ctx: InteractionContext, poll: PollData, highest=True) -> None:
@@ -57,14 +52,14 @@ class Elimination(ExtensionBase):
         await new_poll.send(ctx)
         await self.bot.poll_cache.store_poll(new_poll)
 
-    @context_menu(name="Eliminate-Highest", context_type=CommandTypes.MESSAGE, scopes=TESTING_SCOPES)
+    @context_menu(name="Eliminate-Highest", context_type=CommandTypes.MESSAGE)
     async def eliminate_highest(self, ctx: InteractionContext):
         if poll := await self.bot.poll_cache.get_poll(ctx.target_id):
             await self.eliminate(ctx, poll, highest=True)
         else:
             await ctx.send("This is not a poll.")
 
-    @context_menu(name="Eliminate-Lowest", context_type=CommandTypes.MESSAGE, scopes=TESTING_SCOPES)
+    @context_menu(name="Eliminate-Lowest", context_type=CommandTypes.MESSAGE)
     async def eliminate_lowest(self, ctx: InteractionContext):
         if poll := await self.bot.poll_cache.get_poll(ctx.target_id):
             await self.eliminate(ctx, poll, highest=False)
