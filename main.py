@@ -38,7 +38,7 @@ __all__ = ("Bot",)
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(name)-15s %(filename)-20s|| %(message)s",
-    level=logging.INFO,
+    level=logging.DEBUG,
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 log = logging.getLogger("Inquiry")

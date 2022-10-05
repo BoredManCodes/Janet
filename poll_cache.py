@@ -17,7 +17,7 @@ from models.elimination_poll import EliminationPoll
 from models.guild_data import GuildData, GuildDataPayload
 from models.poll import PollData
 
-log = logging.getLogger("Cache")
+log = logging.getLogger("Inquiry")
 
 
 class PollCache:

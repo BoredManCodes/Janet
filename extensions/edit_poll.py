@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 __all__ = ("setup", "EditPolls")
 
-log = logging.getLogger("edit_poll")
+log = logging.getLogger("Inquiry")
 
 
 class EditPolls(ExtensionBase):

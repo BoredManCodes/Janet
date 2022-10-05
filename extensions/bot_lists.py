@@ -4,7 +4,7 @@ import os
 import aiohttp
 from naff import Extension, Task, IntervalTrigger, InteractionContext, slash_command
 
-log = logging.getLogger("bot-lists")
+log = logging.getLogger("Inquiry")
 
 
 class BotLists(Extension):

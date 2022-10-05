@@ -46,7 +46,7 @@ if TYPE_CHECKING:
 
 __all__ = ("deserialize_datetime", "PollData", "PollOption", "sanity_check")
 
-log = logging.getLogger("Poll")
+log = logging.getLogger("Inquiry")
 
 channel_mention = re.compile(r"<#(\d{17,})>")
 role_mention = re.compile(r"<@&(\d{17,})")
