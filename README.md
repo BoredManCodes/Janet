@@ -28,13 +28,14 @@ Once customised, hit submit, and a modal will appear letting you add your option
 
 
 ## Need a poll fast? 
-Use `poll_prefab`. These commands create a poll with pre-set options for you. 
+Use premade poll commands. These commands create a poll with pre-set options for you. 
 
 Currently, there are:
-- `boolean` - a poll with yes or no options
-- `opinion` - a poll with `agree`, `neutral`, `disagree` options
-- `week` - a poll with the days of the week
-- `blank` - an open poll with no starting options 
+- `poll_boolean` - a poll with yes or no options
+- `poll_opinion` - a poll with `agree`, `neutral`, `disagree` options
+- `poll_week` - a poll with the days of the week
+- `poll_blank` - an open poll with no starting options 
+- `poll_elimination` - A poll where options are *eliminated* when you vote for them
 
 ## What about custom emoji?
 Custom emoji couldnt be simpler; just put an emoji anywhere in the option text, and Inquiry will extract it for the option's emoji
