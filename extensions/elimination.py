@@ -1,5 +1,5 @@
 import attrs
-from naff import InteractionContext, context_menu, CommandTypes, MISSING, Embed, BrandColors
+from naff import InteractionContext, context_menu, CommandTypes, MISSING, Embed, BrandColors, Permissions
 
 from extensions.shared import ExtensionBase
 from models.poll import PollOption, PollData
@@ -13,6 +13,12 @@ TESTING_SCOPES = [THE_ALLIANCE, INQUIRY, DEV_SERVER]
 class Elimination(ExtensionBase):
     async def eliminate(self, ctx: InteractionContext, poll: PollData, highest=True) -> None:
         await ctx.defer()
+        if poll.author_id != ctx.author.id:
+            if ctx.author.has_permission(Permissions.MANAGE_MESSAGES):
+                pass
+            else:
+                await ctx.send("You can only eliminate options from your own polls!", ephemeral=True)
+                return
         async with poll.lock:
             new_options = poll.poll_options.copy()
             sorted_votes: list[PollOption] = sorted(poll.poll_options, key=lambda x: len(x.voters), reverse=highest)
