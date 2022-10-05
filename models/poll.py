@@ -508,6 +508,8 @@ class PollData(ClientObject):
                         if _o != option:
                             if ctx.author.id in _o.voters:
                                 _o.voters.remove(ctx.author.id)
+                                if _o.eliminated:
+                                    _o.eliminated = False
                 elif self.max_votes is not None:
                     voted_options = self.get_user_votes(ctx.author.id)
                     if len(voted_options) >= self.max_votes:
