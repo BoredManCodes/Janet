@@ -1,3 +1,4 @@
+import textwrap
 from typing import TYPE_CHECKING
 
 from naff import (
@@ -176,7 +177,7 @@ class ExtensionBase(Extension):
             await ctx.send(
                 [
                     {
-                        "name": f"{p.title} ({Timestamp.from_snowflake(p.message_id).ctime()})",
+                        "name": f"{textwrap.shorten(p.title, width=65)} ({Timestamp.from_snowflake(p.message_id).ctime()})",
                         "value": str(p.message_id),
                     }
                     for p in results
