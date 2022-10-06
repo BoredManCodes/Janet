@@ -1,8 +1,12 @@
+import logging
+
 import attrs
 from naff import InteractionContext, context_menu, CommandTypes, MISSING, Embed, BrandColors, Permissions
 
 from extensions.shared import ExtensionBase
 from models.poll import PollOption, PollData
+
+log = logging.getLogger("Inquiry")
 
 
 class Elimination(ExtensionBase):
@@ -14,43 +18,50 @@ class Elimination(ExtensionBase):
             else:
                 await ctx.send("You can only eliminate options from your own polls!", ephemeral=True)
                 return
-        async with poll.lock:
-            new_options = poll.poll_options.copy()
-            sorted_votes: list[PollOption] = sorted(poll.poll_options, key=lambda x: len(x.voters), reverse=highest)
-            top_voted = sorted_votes[0]
-            possible_ties = [o for o in sorted_votes if len(o.voters) == len(top_voted.voters)]
+        try:
+            async with poll.lock:
+                new_options = poll.poll_options.copy()
+                sorted_votes: list[PollOption] = sorted(poll.poll_options, key=lambda x: len(x.voters), reverse=highest)
+                top_voted = sorted_votes[0]
+                possible_ties = [o for o in sorted_votes if len(o.voters) == len(top_voted.voters)]
 
-            for option in possible_ties:
-                new_options.remove(option)
+                for option in possible_ties:
+                    new_options.remove(option)
 
-            if len(new_options) == 0:
-                await ctx.send("No options left to eliminate")
-                return
+                if len(new_options) == 0:
+                    await ctx.send("No options left to eliminate")
+                    return
 
-            new_poll = attrs.evolve(
-                poll,
-                closed=False,
-                expired=False,
-                expire_time=None,
-                poll_options=new_options,
-                message_id=MISSING,
-                thread_message_id=MISSING,
+                new_poll = attrs.evolve(
+                    poll,
+                    closed=False,
+                    expired=False,
+                    expire_time=None,
+                    poll_options=new_options,
+                    message_id=MISSING,
+                    thread_message_id=MISSING,
+                )
+                new_poll.reallocate_emoji()
+            if not poll.closed:
+                await self.bot.close_poll(ctx.target_id)
+
+            embed = Embed(
+                "Elimination",
+                description=f"Eliminated {', '.join(f'`{o.text}`' for o in possible_ties)} from `{poll.title}`",
+                color=BrandColors.BLURPLE,
             )
-            new_poll.reallocate_emoji()
-        if not poll.closed:
-            await self.bot.close_poll(ctx.target_id)
+            og_poll_message = await self.bot.cache.fetch_message(poll.channel_id, poll.message_id)
+            embed.add_field("Original Poll", f"[Click Here]({og_poll_message.jump_url})")
 
-        embed = Embed(
-            "Elimination",
-            description=f"Eliminated {', '.join(f'`{o.text}`' for o in possible_ties)} from `{poll.title}`",
-            color=BrandColors.BLURPLE,
-        )
-        og_poll_message = await ctx.fetch_message(poll.message_id)
-        embed.add_field("Original Poll", f"[Click Here]({og_poll_message.jump_url})")
-
-        await ctx.send(embed=embed)
-        await new_poll.send(ctx)
-        await self.bot.poll_cache.store_poll(new_poll)
+            await ctx.send(embed=embed)
+            await new_poll.send(ctx)
+            await self.bot.poll_cache.store_poll(new_poll)
+        except Exception as e:
+            await ctx.send(f"Unable to eliminate options, please contact support")
+            log.error(
+                f"Unable to eliminate options from poll {poll.message_id} in {poll.channel_id}",
+                exc_info=e,
+            )
 
     @context_menu(name="Eliminate-Highest", context_type=CommandTypes.MESSAGE)
     async def eliminate_highest(self, ctx: InteractionContext):
