@@ -287,7 +287,7 @@ class PollUtils(ExtensionBase):
             if poll.anonymous:
                 poll_config.append("Anonymous poll")
             if poll.voting_role:
-                poll_config.append(f"Voting role: <@{poll.voting_role.mention}>")
+                poll_config.append(f"Voting role: <@{poll.voting_role}>")
 
             embed.add_field("Question", value=poll.title, inline=True)
             embed.add_field("Active", value="✅" if not poll.closed else "❌", inline=True)
