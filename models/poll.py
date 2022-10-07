@@ -152,6 +152,16 @@ class PollOption:
             self.voters.remove(author_id)
             return False
 
+    @classmethod
+    def deserialize(cls, data: dict) -> "PollOption":
+        if isinstance(data, PollOption):
+            return data
+
+        if emoji := data.get("emoji"):
+            if isinstance(emoji, dict):
+                data["emoji"] = PartialEmoji.from_dict(emoji)
+        return cls(**data)
+
 
 @attr.s(auto_attribs=True, on_setattr=[attr.setters.convert, attr.setters.validate])
 class PollData(ClientObject):
@@ -168,7 +178,7 @@ class PollData(ClientObject):
 
     poll_options: list[PollOption] = attr.ib(
         factory=list,
-        converter=lambda options: [PollOption(**o) if not isinstance(o, PollOption) else o for o in options],
+        converter=lambda options: [PollOption.deserialize(o) if not isinstance(o, PollOption) else o for o in options],
     )
 
     max_votes: int | None = attr.ib(default=None)
