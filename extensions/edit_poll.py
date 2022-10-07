@@ -181,7 +181,7 @@ class EditPolls(ExtensionBase):
 
                         if not poll.closed:
                             try:
-                                await self.bot.close_poll(poll.message_id)
+                                await self.bot.close_poll(poll.message_id, store=False)
                             except Exception:
                                 pass
 

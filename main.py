@@ -259,7 +259,7 @@ class Bot(StatsClient):
                     await self.close_poll(poll.message_id)
                     log.warning(f"Poll {poll.message_id} already expired - closing immediately")
 
-    async def close_poll(self, message_id):
+    async def close_poll(self, message_id, *, store=True):
         poll = await self.poll_cache.get_poll(message_id)
         tasks = []
         if poll:
@@ -272,7 +272,8 @@ class Bot(StatsClient):
                 tasks.append(poll.send_close_message())
                 poll.closed = True
 
-                tasks.append(self.poll_cache.store_poll(poll))
+                if store:
+                    tasks.append(self.poll_cache.store_poll(poll))
                 tasks.append(self.send_thanks_message(poll.channel_id))
         else:
             log.warning(f"Poll {message_id} not found - cannot close")

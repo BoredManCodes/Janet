@@ -189,6 +189,7 @@ class PollData(ClientObject):
     expire_time: datetime = attr.ib(default=MISSING, converter=deserialize_datetime)
     poll_type: str = attr.ib(default="default")
     _expired: bool = attr.ib(default=False)
+    deleted: bool = attr.ib(default=False)
     closed: bool = attr.ib(default=False)
     lock: asyncio.Lock = attr.ib(factory=asyncio.Lock)
 
@@ -199,6 +200,7 @@ class PollData(ClientObject):
             if v != MISSING and not isinstance(v, (asyncio.Lock, naff.Client))
         }
         data["poll_options"] = orjson.dumps(data.pop("poll_options")).decode()
+        del data["deleted"]
         return data
 
     @property

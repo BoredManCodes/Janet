@@ -97,6 +97,8 @@ class PollCache:
         return query
 
     async def __write_poll(self, poll: PollData):
+        if poll.deleted:
+            return
         serialised = poll.to_dict()
         poll_query = self.assemble_query_with_dict(
             "INSERT INTO polls.poll_data ({}) VALUES ({}) ON CONFLICT(message_id) DO UPDATE SET {};", serialised
@@ -206,7 +208,10 @@ class PollCache:
         async with lock:
             async with self.db.acquire() as conn:
                 await conn.execute("DELETE FROM polls.poll_data WHERE message_id = $1", int(message_id))
-            self.polls.pop(message_id, None)
+            poll = self.polls.pop(message_id, None)
+            if poll:
+                # set a deleted flag on the poll object in case another task has a reference to it
+                poll.deleted = True
             log.info("Deleted poll: %s", message_id)
 
     async def get_total_polls(self) -> int:
