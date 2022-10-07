@@ -88,7 +88,7 @@ class Dev(Extension):
             return await ctx.send("Poll not found")
 
         file = StringIO()
-        file.write(orjson.dumps((poll.__dict__()), option=orjson.OPT_INDENT_2).decode())
+        file.write(orjson.dumps((poll.to_dict()), option=orjson.OPT_INDENT_2).decode())
         file.seek(0)
 
         await ctx.send(file=File(file, file_name="poll.json"))
@@ -143,7 +143,7 @@ class Dev(Extension):
                 if getattr(obj, "id", None) == to_snowflake(id):
                     file = StringIO()
                     if hasattr(obj, "__dict__") or hasattr(obj, "to_dict"):
-                        json = obj.to_dict() if hasattr(obj, "to_dict") else obj.__dict__()
+                        json = obj.to_dict() if hasattr(obj, "to_dict") else obj.__dict__
                         file = StringIO()
                         file.write(orjson.dumps(json, option=orjson.OPT_INDENT_2).decode())
                     else:
