@@ -167,7 +167,7 @@ class ExtensionBase(Extension):
 
         if polls:
             if not ctx.input_text:
-                results = polls[:25]
+                results = [p for p in polls if predicate(p)][:25]
             else:
                 results = process.extract(
                     ctx.input_text, {p.message_id: p.title for p in polls if predicate(p)}, limit=25

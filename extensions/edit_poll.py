@@ -1,5 +1,4 @@
 import asyncio
-import datetime
 import logging
 from typing import TYPE_CHECKING
 
@@ -14,11 +13,13 @@ from naff import (
     BrandColors,
     Button,
     ButtonStyles,
-    ComponentContext,
+    AutocompleteContext,
+    Permissions,
 )
 from naff.api.events import Component
 
 from extensions.shared import ExtensionBase, OPT_find_poll, OPT_find_option
+from models.poll import PollData
 
 if TYPE_CHECKING:
     from main import Bot
@@ -37,6 +38,20 @@ class EditPolls(ExtensionBase):
         self.close_poll.autocomplete("poll")(self.poll_autocomplete)
         self.delete_poll.autocomplete("poll")(self.poll_autocomplete)
         self.remove_option.autocomplete("option")(self.option_autocomplete)
+
+    @staticmethod
+    def poll_autocomplete_predicate(ctx: AutocompleteContext):
+        def predicate(poll: PollData):
+            if poll.open_poll and ctx.command.sub_cmd_name == "add_option":
+                # show open polls in add_option
+                return True
+            if poll.author_id == ctx.author.id:
+                return True
+            if ctx.author.has_permission(Permissions.MANAGE_MESSAGES):
+                return True
+            return False
+
+        return predicate
 
     @slash_command("edit_poll", description="Edit a given poll")
     async def edit_poll(self, ctx: InteractionContext) -> None:
@@ -91,7 +106,7 @@ class EditPolls(ExtensionBase):
         await ctx.defer(ephemeral=True)
 
         if poll := await self.process_poll_option(ctx, poll):
-            if poll.author_id == ctx.author.id:
+            if poll.author_id == ctx.author.id or poll.open_poll:
 
                 message = await self.bot.cache.fetch_message(poll.channel_id, poll.message_id)
                 if message:
