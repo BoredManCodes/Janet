@@ -126,6 +126,7 @@ class PollOption:
         return f"{self.text[:15].strip()}" + ("..." if len(self.text) > 15 else "")
 
     def create_bar(self, total_votes, *, size: int = 12) -> str:
+        show_counters = total_votes < 1000
         if total_votes != 0:
             percentage = len(self.voters) / total_votes
             filled_length = size * percentage
@@ -136,8 +137,9 @@ class PollOption:
                 prog_bar_str += "░" * (size - len(prog_bar_str))
         else:
             prog_bar_str = "░" * size
-            return f"{prog_bar_str} - 0%"
-        return f"{prog_bar_str} - {percentage:.0%}"
+            return f"{prog_bar_str} - 0% (0 votes)"
+        vote_string = f" ({len(self.voters):,} vote{'s' if len(self.voters) != 1 else ''})"
+        return f"{prog_bar_str} - {percentage:.0%}{vote_string if show_counters else ''}"
 
     def has_voted(self, user_id: Snowflake_Type) -> bool:
         return user_id in self.voters
