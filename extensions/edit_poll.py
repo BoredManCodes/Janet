@@ -42,7 +42,8 @@ class EditPolls(ExtensionBase):
     @staticmethod
     def poll_autocomplete_predicate(ctx: AutocompleteContext):
         def predicate(poll: PollData):
-            if poll.open_poll and ctx.command.sub_cmd_name == "add_option":
+            if poll.open_poll and str(ctx.command.sub_cmd_name) == "add_option":
+                # todo: future polls you will need to handle localization here
                 # show open polls in add_option
                 return True
             if poll.author_id == ctx.author.id:
