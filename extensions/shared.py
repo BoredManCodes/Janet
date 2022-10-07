@@ -114,6 +114,12 @@ def_options = [
         required=False,
     ),
     SlashCommandOption(
+        "proportional_results",
+        OptionTypes.BOOLEAN,
+        "Show the proportion of voters who voted for each option (default False)",
+        required=False,
+    ),
+    SlashCommandOption(
         "inline",
         OptionTypes.BOOLEAN,
         "Make options appear inline, in the embed (default False)",

@@ -179,6 +179,7 @@ class PollData(ClientObject):
     inline: bool = attr.ib(default=False)
     thread: bool = attr.ib(default=False)
     close_message: bool = attr.ib(default=False)
+    proportional_results: bool = attr.ib(default=False)
 
     colour: str = attr.ib(default="BLURPLE", converter=lambda x: x.upper())
     image_url: str = attr.ib(default=MISSING)
@@ -268,14 +269,30 @@ class PollData(ClientObject):
     @property
     def option_fields(self) -> list[EmbedField]:
         fields = []
-        for i in range(len(self.poll_options)):
-            option = self.poll_options[i]
-            name = textwrap.shorten(f"{option.emoji} {option.text}", width=EMBED_MAX_NAME_LENGTH)
-            if not self.expired and self.hide_results:
-                fields.append(EmbedField(name=name, value="‏", inline=self.inline))
-            else:
-                fields.append(EmbedField(name=name, value=option.create_bar(self.total_votes), inline=self.inline))
-        return fields
+        if not self.proportional_results:
+            for o in self.poll_options:
+                name = textwrap.shorten(f"{o.emoji} {o.text}", width=EMBED_MAX_NAME_LENGTH)
+                if not self.expired and self.hide_results:
+                    fields.append(EmbedField(name=name, value="‏", inline=self.inline))
+                else:
+                    fields.append(EmbedField(name=name, value=o.create_bar(self.total_votes), inline=self.inline))
+            return fields
+        else:
+            all_voters = {v for o in self.poll_options for v in o.voters}
+            for o in self.poll_options:
+                name = textwrap.shorten(f"{o.emoji} {o.text}", width=EMBED_MAX_NAME_LENGTH)
+
+                if not self.expired and self.hide_results:
+                    fields.append(EmbedField(name=name, value="‏", inline=self.inline))
+                else:
+                    fields.append(
+                        EmbedField(
+                            name=name,
+                            value=o.create_bar(len(all_voters)),
+                            inline=self.inline,
+                        )
+                    )
+            return fields
 
     @property
     def embed(self) -> Embed:
@@ -301,6 +318,8 @@ class PollData(ClientObject):
 
         if self.single_vote:
             description.append("• One Vote Per User")
+        if self.proportional_results:
+            description.append("• Proportional Results")
         elif self.max_votes:
             description.append(f"• {self.max_votes} Votes Per User")
         if self.hide_results:
@@ -411,6 +430,7 @@ class PollData(ClientObject):
             close_message=kwargs.get("close_message", False),
             voting_role=to_optional_snowflake(kwargs.get("voting_role", None)),
             anonymous=kwargs.get("anonymous", False),
+            proportional_results=kwargs.get("proportional_results", False),
         )
 
         # handle discord not allowing mentions in titles
