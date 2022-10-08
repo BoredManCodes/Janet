@@ -7,11 +7,9 @@ from naff import (
     InteractionContext,
     Modal,
     ParagraphText,
-    SlashCommandOption,
-    OptionTypes,
 )
 
-from extensions.shared import def_options
+from extensions.shared import get_options_list
 from models.elimination_poll import EliminationPoll
 from models.emoji import opinion_emoji
 from models.poll import PollData
@@ -23,17 +21,6 @@ __all__ = ("setup", "CreatePolls")
 
 log = logging.getLogger("Inquiry")
 
-in_line_options = def_options.copy()
-in_line_options.insert(
-    1,
-    SlashCommandOption(
-        "options",
-        OptionTypes.STRING,
-        "Options for your poll. Separated with `|`. ie 'opt1 | opt2 | opt3'",
-        required=True,
-    ),
-)
-
 
 class CreatePolls(Extension):
     def __init__(self, bot: "Bot") -> None:
@@ -44,7 +31,7 @@ class CreatePolls(Extension):
     @slash_command(
         "poll",
         description="Create a poll",
-        options=def_options,
+        options=get_options_list(),
     )
     async def poll(self, ctx: InteractionContext) -> None:
         modal = Modal(
@@ -74,7 +61,7 @@ class CreatePolls(Extension):
     @slash_command(
         "poll_inline",
         description="Create a poll with inline options; this is to help with using emoji in polls",
-        options=in_line_options,
+        options=get_options_list(inline_options=True),
     )
     async def poll_inline(self, ctx: InteractionContext) -> None:
         raw_options = ctx.kwargs["options"]
@@ -89,7 +76,7 @@ class CreatePolls(Extension):
     @slash_command(
         "poll_boolean",
         description="A poll with yes and no options",
-        options=def_options,
+        options=get_options_list(),
     )
     async def prefab_boolean(self, ctx: InteractionContext) -> None:
         poll = await PollData.from_ctx(ctx)
@@ -105,7 +92,7 @@ class CreatePolls(Extension):
     @slash_command(
         "poll_week",
         description="A poll with options for each day of the week",
-        options=def_options,
+        options=get_options_list(),
     )
     async def prefab_week(self, ctx: InteractionContext) -> None:
         poll = await PollData.from_ctx(ctx)
@@ -130,7 +117,7 @@ class CreatePolls(Extension):
     @slash_command(
         "poll_opinion",
         description="A poll with agree, neutral, and disagree options",
-        options=def_options,
+        options=get_options_list(),
     )
     async def prefab_opinion(self, ctx: InteractionContext) -> None:
         poll = await PollData.from_ctx(ctx)
@@ -147,7 +134,7 @@ class CreatePolls(Extension):
     @slash_command(
         "poll_blank",
         description="An open poll with no starting options",
-        options=[o for o in def_options if str(o.name) != "open_poll"],
+        options=get_options_list(open_poll=False),
     )
     async def prefab_blank(self, ctx: InteractionContext) -> None:
         poll = await PollData.from_ctx(ctx)
@@ -159,7 +146,9 @@ class CreatePolls(Extension):
         await self.bot.set_poll(poll)
 
     @slash_command(
-        "poll_elimination", description="A poll where options are removed when they're voted for", options=def_options
+        "poll_elimination",
+        description="A poll where options are removed when they're voted for",
+        options=get_options_list(anonymous=False, open_poll=False, proportional=False),
     )
     async def prefab_elimination(self, ctx: InteractionContext) -> None:
         modal = Modal(

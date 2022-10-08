@@ -20,7 +20,7 @@ from models.poll import PollData
 if TYPE_CHECKING:
     from main import Bot
 
-__all__ = ("ExtensionBase", "OPT_find_poll", "OPT_find_option", "colours", "def_options")
+__all__ = ("ExtensionBase", "OPT_find_poll", "OPT_find_option", "colours", "get_options_list")
 
 OPT_find_poll = SlashCommandOption(
     name="poll",
@@ -48,96 +48,147 @@ colours = sorted(
     ]
 )
 
-def_options = [
-    SlashCommandOption(
-        "title",
-        OptionTypes.STRING,
-        "The title for your poll",
-        required=True,
-        max_length=100,
-    ),
-    SlashCommandOption(
-        "colour",
-        OptionTypes.STRING,
-        "Choose the colour of the embed (default 'blurple')",
-        choices=[SlashCommandChoice(c.replace("_", " "), c) for c in colours],
-        required=False,
-    ),
-    SlashCommandOption(
-        "description",
-        OptionTypes.STRING,
-        "The description for your poll",
-        required=False,
-        max_length=512,
-    ),
-    SlashCommandOption(
-        "duration",
-        OptionTypes.STRING,
-        "Choose the duration of the poll (example: '1w 3d 7h 5m 20s')",
-        required=False,
-    ),
-    SlashCommandOption(
-        "max_votes",
-        OptionTypes.INTEGER,
-        "The maximum number of votes per user (default unlimited)",
-        min_value=1,
-        required=False,
-    ),
-    SlashCommandOption(
-        "voting_role",
-        OptionTypes.ROLE,
-        "Restrict voting to this role (default unrestricted)",
-        required=False,
-    ),
-    SlashCommandOption(
-        "hide_results",
-        OptionTypes.BOOLEAN,
-        "Hide results until the poll is closed (default False)",
-        required=False,
-    ),
-    SlashCommandOption(
-        "anonymous",
-        OptionTypes.BOOLEAN,
-        "Prevent anyone from seeing who voted for what (default False)",
-        required=False,
-    ),
-    SlashCommandOption(
-        "open_poll",
-        OptionTypes.BOOLEAN,
-        "Allow anybody to add options to the poll (default False)",
-        required=False,
-    ),
-    SlashCommandOption(
-        "thread",
-        OptionTypes.BOOLEAN,
-        "Create a thread attached to this poll.",
-        required=False,
-    ),
-    SlashCommandOption(
-        "proportional_results",
-        OptionTypes.BOOLEAN,
-        "Show the proportion of voters who voted for each option (default False)",
-        required=False,
-    ),
-    SlashCommandOption(
-        "inline",
-        OptionTypes.BOOLEAN,
-        "Make options appear inline, in the embed (default False)",
-        required=False,
-    ),
-    SlashCommandOption(
-        "image",
-        OptionTypes.ATTACHMENT,
-        "Attach an image to the embed",
-        required=False,
-    ),
-    SlashCommandOption(
-        "close_message",
-        OptionTypes.BOOLEAN,
-        "Send a message when the poll is closed (default False)",
-        required=False,
-    ),
+OPT_TITLE = SlashCommandOption(
+    "title",
+    OptionTypes.STRING,
+    "The title for your poll",
+    required=True,
+    max_length=100,
+)
+OPT_DESCRIPTION = SlashCommandOption(
+    "description",
+    OptionTypes.STRING,
+    "The description for your poll",
+    required=False,
+    max_length=512,
+)
+OPT_COLOUR = SlashCommandOption(
+    "colour",
+    OptionTypes.STRING,
+    "Choose the colour of the embed (default 'blurple')",
+    choices=[SlashCommandChoice(c.replace("_", " "), c) for c in colours],
+    required=False,
+)
+OPT_DURATION = SlashCommandOption(
+    "duration",
+    OptionTypes.STRING,
+    "Choose the duration of the poll (example: '1w 3d 7h 5m 20s')",
+    required=False,
+)
+OPT_MAX_VOTES = SlashCommandOption(
+    "max_votes",
+    OptionTypes.INTEGER,
+    "The maximum number of votes per user (default unlimited)",
+    min_value=1,
+    required=False,
+)
+OPT_VOTING_ROLE = SlashCommandOption(
+    "voting_role",
+    OptionTypes.ROLE,
+    "Restrict voting to this role (default unrestricted)",
+    required=False,
+)
+OPT_HIDE_RESULTS = SlashCommandOption(
+    "hide_results",
+    OptionTypes.BOOLEAN,
+    "Hide results until the poll is closed (default False)",
+    required=False,
+)
+OPT_ANONYMOUS = SlashCommandOption(
+    "anonymous",
+    OptionTypes.BOOLEAN,
+    "Prevent anyone from seeing who voted for what (default False)",
+    required=False,
+)
+OPT_OPEN_POLL = SlashCommandOption(
+    "open_poll",
+    OptionTypes.BOOLEAN,
+    "Allow anybody to add options to the poll (default False)",
+    required=False,
+)
+OPT_THREAD = SlashCommandOption(
+    "thread",
+    OptionTypes.BOOLEAN,
+    "Create a thread attached to this poll.",
+    required=False,
+)
+OPT_PROPORTIONAL = SlashCommandOption(
+    "proportional_results",
+    OptionTypes.BOOLEAN,
+    "Show the proportion of voters who voted for each option (default False)",
+    required=False,
+)
+OPT_INLINE = SlashCommandOption(
+    "inline",
+    OptionTypes.BOOLEAN,
+    "Make options appear inline, in the embed (default False)",
+    required=False,
+)
+OPT_IMAGE = SlashCommandOption(
+    "image",
+    OptionTypes.ATTACHMENT,
+    "Attach an image to the embed",
+    required=False,
+)
+OPT_CLOSE_MESSAGE = SlashCommandOption(
+    "close_message",
+    OptionTypes.BOOLEAN,
+    "Send a message when the poll is closed (default False)",
+    required=False,
+)
+OPT_INLINE_OPTIONS = SlashCommandOption(
+    "options",
+    OptionTypes.STRING,
+    "Options for your poll. Separated with `|`. ie 'opt1 | opt2 | opt3'",
+    required=True,
+)
+
+get_options_list = [
+    OPT_TITLE,
+    OPT_DESCRIPTION,
+    OPT_COLOUR,
+    OPT_DURATION,
+    OPT_MAX_VOTES,
+    OPT_VOTING_ROLE,
+    OPT_HIDE_RESULTS,
+    OPT_ANONYMOUS,
+    OPT_OPEN_POLL,
+    OPT_THREAD,
+    OPT_PROPORTIONAL,
+    OPT_INLINE,
+    OPT_IMAGE,
+    OPT_CLOSE_MESSAGE,
 ]
+
+
+def get_options_list(
+    title: bool = True,
+    inline_options: bool = False,
+    description: bool = True,
+    colour: bool = True,
+    duration: bool = True,
+    max_votes: bool = True,
+    voting_role: bool = True,
+    hide_results: bool = True,
+    anonymous: bool = True,
+    open_poll: bool = True,
+    thread: bool = True,
+    proportional: bool = True,
+    inline: bool = True,
+    image: bool = True,
+    close_message: bool = True,
+) -> list[SlashCommandOption]:
+    to_process = locals()
+
+    options = []
+    for option, state in to_process.copy().items():
+        if state is True:
+            try:
+                _o = eval(f"OPT_{option.upper()}")
+                options.append(_o)
+            except NameError:
+                pass
+    return options
 
 
 class ExtensionBase(Extension):

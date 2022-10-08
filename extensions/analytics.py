@@ -3,7 +3,7 @@ import os
 from naff import Extension, Context, BrandColors, InteractionContext, Embed, slash_command, listen, Timestamp
 from naff.api.events import GuildJoin, GuildLeft
 
-from extensions.shared import def_options as poll_options
+from extensions.shared import get_options_list
 
 
 class Analytics(Extension):
@@ -22,7 +22,7 @@ class Analytics(Extension):
             if "analytics" not in command.resolved_name:
                 if command.callback:
                     self.command_usage[command.resolved_name] = 0
-        for option in poll_options:
+        for option in get_options_list(inline_options=True):
             if not option.required:
                 self.option_usage[str(option.name)] = 0
 
