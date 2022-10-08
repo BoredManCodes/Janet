@@ -194,16 +194,16 @@ class ExtensionBase(Extension):
             await ctx.send([])
 
     async def option_autocomplete(self, ctx: AutocompleteContext, **kwargs) -> None:
-        poll = await self.bot.poll_cache.get_poll(to_snowflake(kwargs.get("poll")))
-        if poll:
-            p_options = list(poll.poll_options)
-            p_options = sorted(
-                p_options,
-                key=lambda x: fuzz.partial_ratio(x.text, ctx.input_text),
-                reverse=True,
-            )[:25]
+        if kwargs.get("poll"):
+            poll = await self.bot.poll_cache.get_poll(to_snowflake(kwargs.get("poll")))
+            if poll:
+                p_options = list(poll.poll_options)
+                p_options = sorted(
+                    p_options,
+                    key=lambda x: fuzz.partial_ratio(x.text, ctx.input_text),
+                    reverse=True,
+                )[:25]
 
-            await ctx.send([p.text for p in p_options])
+                return await ctx.send([p.text for p in p_options])
 
-        else:
-            await ctx.send([])
+        await ctx.send([])
