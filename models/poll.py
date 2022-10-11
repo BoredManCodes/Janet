@@ -124,6 +124,7 @@ class PollOption:
     voters: set[Snowflake_Type] = attr.ib(factory=set, converter=set)
     style: int = attr.ib(default=1)
     eliminated: bool = attr.ib(default=False)
+    author_id: Snowflake_Type = None
 
     @property
     def inline_text(self) -> str:
@@ -191,6 +192,7 @@ class PollData(ClientObject):
     vote_to_view: bool = attr.ib(default=False)
     anonymous: bool = attr.ib(default=False)
     open_poll: bool = attr.ib(default=False)
+    show_option_author: bool = attr.ib(default=False)
     inline: bool = attr.ib(default=False)
     thread: bool = attr.ib(default=False)
     close_message: bool = attr.ib(default=False)
@@ -289,23 +291,28 @@ class PollData(ClientObject):
         if not self.proportional_results:
             for o in self.poll_options:
                 name = textwrap.shorten(f"{o.emoji} {o.text}", width=EMBED_MAX_NAME_LENGTH)
+                author = f" - <@{o.author_id}>" if self.show_option_author else ""
+
                 if not self.expired and hide_results:
-                    fields.append(EmbedField(name=name, value="‏", inline=self.inline))
+                    fields.append(EmbedField(name=name, value=author if author else "‏", inline=self.inline))
                 else:
-                    fields.append(EmbedField(name=name, value=o.create_bar(self.total_votes), inline=self.inline))
+                    fields.append(
+                        EmbedField(name=name, value=f"{o.create_bar(self.total_votes)}{author}", inline=self.inline)
+                    )
             return fields
         else:
             all_voters = {v for o in self.poll_options for v in o.voters}
             for o in self.poll_options:
                 name = textwrap.shorten(f"{o.emoji} {o.text}", width=EMBED_MAX_NAME_LENGTH)
+                author = f" - <@{o.author_id}>" if self.show_option_author else ""
 
                 if not self.expired and hide_results:
-                    fields.append(EmbedField(name=name, value="‏", inline=self.inline))
+                    fields.append(EmbedField(name=name, value=author if author else "‏", inline=self.inline))
                 else:
                     fields.append(
                         EmbedField(
                             name=name,
-                            value=o.create_bar(len(all_voters)),
+                            value=f"{o.create_bar(len(all_voters))}{author}",
                             inline=self.inline,
                         )
                     )
@@ -406,7 +413,7 @@ class PollData(ClientObject):
 
         return spread_to_rows(*buttons)
 
-    def add_option(self, opt_name: str, _emoji: str | None = None) -> None:
+    def add_option(self, author: Snowflake_Type, opt_name: str, _emoji: str | None = None) -> None:
         if len(self.poll_options) >= len(default_emoji):
             raise ValueError("Poll has reached max options")
         if not _emoji:
@@ -430,7 +437,11 @@ class PollData(ClientObject):
                     _emoji = _emoji_list[0]
                     opt_name = emoji_lib.replace_emoji(opt_name, replace="")
 
-        self.poll_options.append(PollOption(opt_name.strip(), _emoji or default_emoji[len(self.poll_options)]))
+        self.poll_options.append(
+            PollOption(
+                opt_name.strip(), _emoji or default_emoji[len(self.poll_options)], author_id=to_snowflake(author)
+            )
+        )
 
     def parse_message(self, msg: Message) -> None:
         self.channel_id = msg.channel.id
@@ -453,6 +464,7 @@ class PollData(ClientObject):
             hide_results=kwargs.get("hide_results", False),
             vote_to_view=kwargs.get("vote_to_view", False),
             open_poll=kwargs.get("open_poll", False),
+            show_option_author=kwargs.get("show_option_author", False),
             inline=kwargs.get("inline", False),
             colour=kwargs.get("colour", "BLURPLE"),
             thread=kwargs.get("thread", False),
@@ -485,7 +497,7 @@ class PollData(ClientObject):
 
             for o in options:
                 if o:
-                    new_cls.add_option(o.strip().removeprefix("-"))
+                    new_cls.add_option(ctx.author, o.strip().removeprefix("-"))
 
         if new_cls.vote_to_view and not new_cls.hide_results:
             new_cls.hide_results = True

@@ -112,6 +112,12 @@ OPT_OPEN_POLL = SlashCommandOption(
     "Allow anybody to add options to the poll (default False)",
     required=False,
 )
+OPT_SHOW_OPTION_AUTHOR = SlashCommandOption(
+    "show_option_author",
+    OptionTypes.BOOLEAN,
+    "Show who added each option (default False)",
+    required=False,
+)
 OPT_THREAD = SlashCommandOption(
     "thread",
     OptionTypes.BOOLEAN,
@@ -160,6 +166,7 @@ get_options_list = [
     OPT_VOTE_TO_VIEW,
     OPT_ANONYMOUS,
     OPT_OPEN_POLL,
+    OPT_SHOW_OPTION_AUTHOR,
     OPT_THREAD,
     OPT_PROPORTIONAL,
     OPT_INLINE,
@@ -180,6 +187,7 @@ def get_options_list(
     vote_to_view: bool = True,
     anonymous: bool = True,
     open_poll: bool = True,
+    show_option_author: bool = True,
     thread: bool = True,
     proportional: bool = True,
     inline: bool = True,

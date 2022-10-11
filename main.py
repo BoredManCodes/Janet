@@ -160,7 +160,7 @@ class Bot(StatsClient):
             message_id = ctx.custom_id.split("|")[1]
             if poll := await self.poll_cache.get_poll(message_id):
                 async with poll.lock:
-                    poll.add_option(ctx.responses["new_option"])
+                    poll.add_option(ctx.author, ctx.responses["new_option"])
 
                     self.schedule_update(poll.message_id)
                 log.info(f"Added option to {message_id}")

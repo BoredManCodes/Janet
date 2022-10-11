@@ -83,8 +83,8 @@ class CreatePolls(Extension):
         if not poll:
             return
 
-        poll.add_option("Yes", "✅")
-        poll.add_option("No", "❌")
+        poll.add_option(ctx.author, "Yes", "✅")
+        poll.add_option(ctx.author, "No", "❌")
 
         msg = await poll.send(ctx)
         await self.bot.set_poll(poll)
@@ -109,7 +109,7 @@ class CreatePolls(Extension):
             "Sunday",
         ]
         for opt in options:
-            poll.add_option(opt)
+            poll.add_option(ctx.author, opt)
 
         msg = await poll.send(ctx)
         await self.bot.set_poll(poll)
@@ -124,9 +124,9 @@ class CreatePolls(Extension):
         if not poll:
             return
 
-        poll.add_option("Agree", opinion_emoji[0])
-        poll.add_option("Neutral", opinion_emoji[1])
-        poll.add_option("Disagree", opinion_emoji[2])
+        poll.add_option(ctx.author, "Agree", opinion_emoji[0])
+        poll.add_option(ctx.author, "Neutral", opinion_emoji[1])
+        poll.add_option(ctx.author, "Disagree", opinion_emoji[2])
 
         msg = await poll.send(ctx)
         await self.bot.set_poll(poll)
