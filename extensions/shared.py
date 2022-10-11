@@ -94,6 +94,12 @@ OPT_HIDE_RESULTS = SlashCommandOption(
     "Hide results until the poll is closed (default False)",
     required=False,
 )
+OPT_VOTE_TO_VIEW = SlashCommandOption(
+    "vote_to_view",
+    OptionTypes.BOOLEAN,
+    "Only show results to voters (default False)",
+    required=False,
+)
 OPT_ANONYMOUS = SlashCommandOption(
     "anonymous",
     OptionTypes.BOOLEAN,
@@ -151,6 +157,7 @@ get_options_list = [
     OPT_MAX_VOTES,
     OPT_VOTING_ROLE,
     OPT_HIDE_RESULTS,
+    OPT_VOTE_TO_VIEW,
     OPT_ANONYMOUS,
     OPT_OPEN_POLL,
     OPT_THREAD,
@@ -170,6 +177,7 @@ def get_options_list(
     max_votes: bool = True,
     voting_role: bool = True,
     hide_results: bool = True,
+    vote_to_view: bool = True,
     anonymous: bool = True,
     open_poll: bool = True,
     thread: bool = True,

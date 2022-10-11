@@ -21,6 +21,7 @@ from naff import (
     to_optional_snowflake,
     Member,
     EmbedField,
+    to_snowflake,
 )
 from naff.models import (
     Snowflake_Type,
@@ -110,6 +111,9 @@ async def sanity_check(ctx: InteractionContext) -> bool:
             )
             return False
 
+    if ctx.kwargs.get("vote_to_view", None) is True and ctx.kwargs.get("hide_results") is False:
+        await ctx.send("You cannot enable `vote_to_view` and disable `hide_results`", ephemeral=True)
+        return False
     return True
 
 
@@ -184,6 +188,7 @@ class PollData(ClientObject):
     max_votes: int | None = attr.ib(default=None)
     voting_role: Snowflake_Type | None = attr.ib(default=None)
     hide_results: bool = attr.ib(default=False)
+    vote_to_view: bool = attr.ib(default=False)
     anonymous: bool = attr.ib(default=False)
     open_poll: bool = attr.ib(default=False)
     inline: bool = attr.ib(default=False)
@@ -278,13 +283,13 @@ class PollData(ClientObject):
         embed.set_footer(text=f"Poll ID: {self.message_id}")
         return embed
 
-    @property
-    def option_fields(self) -> list[EmbedField]:
+    def get_option_fields(self, *, force_display: bool = False) -> list[EmbedField]:
         fields = []
+        hide_results = self.hide_results and not force_display
         if not self.proportional_results:
             for o in self.poll_options:
                 name = textwrap.shorten(f"{o.emoji} {o.text}", width=EMBED_MAX_NAME_LENGTH)
-                if not self.expired and self.hide_results:
+                if not self.expired and hide_results:
                     fields.append(EmbedField(name=name, value="‏", inline=self.inline))
                 else:
                     fields.append(EmbedField(name=name, value=o.create_bar(self.total_votes), inline=self.inline))
@@ -294,7 +299,7 @@ class PollData(ClientObject):
             for o in self.poll_options:
                 name = textwrap.shorten(f"{o.emoji} {o.text}", width=EMBED_MAX_NAME_LENGTH)
 
-                if not self.expired and self.hide_results:
+                if not self.expired and hide_results:
                     fields.append(EmbedField(name=name, value="‏", inline=self.inline))
                 else:
                     fields.append(
@@ -307,6 +312,12 @@ class PollData(ClientObject):
             return fields
 
     @property
+    def results_embed(self) -> Embed:
+        embed = Embed("Poll Results", color=self.get_colour())
+        embed.fields = self.get_option_fields(force_display=True)
+        return embed
+
+    @property
     def embed(self) -> Embed:
         e = Embed(
             f"{self.title}" if self.title else "Poll:",
@@ -315,7 +326,7 @@ class PollData(ClientObject):
         )
         total_votes = self.total_votes
 
-        e.fields = self.option_fields
+        e.fields = self.get_option_fields()
 
         if self.image_url:
             e.set_image(url=self.image_url)
@@ -334,7 +345,9 @@ class PollData(ClientObject):
             description.append("• Proportional Results")
         elif self.max_votes:
             description.append(f"• {self.max_votes} Votes Per User")
-        if self.hide_results:
+        if self.vote_to_view:
+            description.append("• Vote To View Results")
+        elif self.hide_results:
             if self.expired:
                 description.append("• Results were hidden until the poll ended")
             else:
@@ -376,14 +389,21 @@ class PollData(ClientObject):
         if self.expired and not disable:
             return []
         buttons = []
+        extra_buttons = []
+
         for i in range(len(self.poll_options)):
             buttons.append(
                 Button(1, emoji=self.poll_options[i].emoji, custom_id=f"poll_option|{i}", disabled=self.expired),
             )
-        if self.open_poll and len(self.poll_options) < len(default_emoji):
+        if self.vote_to_view and len(self.poll_options) < 25:
+            buttons.append(
+                Button(ButtonStyles.GREEN, emoji="\U0001f441", custom_id="vote_to_view"),
+            )
+        if self.open_poll and len(self.poll_options) < 25:
             buttons.append(
                 Button(ButtonStyles.SUCCESS, emoji="\U00002795", custom_id="add_option", disabled=self.expired)
             )
+
         return spread_to_rows(*buttons)
 
     def add_option(self, opt_name: str, _emoji: str | None = None) -> None:
@@ -431,6 +451,7 @@ class PollData(ClientObject):
             author_id=ctx.author.id,
             max_votes=kwargs.get("max_votes", None),
             hide_results=kwargs.get("hide_results", False),
+            vote_to_view=kwargs.get("vote_to_view", False),
             open_poll=kwargs.get("open_poll", False),
             inline=kwargs.get("inline", False),
             colour=kwargs.get("colour", "BLURPLE"),
@@ -465,6 +486,9 @@ class PollData(ClientObject):
             for o in options:
                 if o:
                     new_cls.add_option(o.strip().removeprefix("-"))
+
+        if new_cls.vote_to_view and not new_cls.hide_results:
+            new_cls.hide_results = True
 
         if attachment := kwargs.get("image"):
             new_cls.image_url = attachment.url
@@ -581,3 +605,7 @@ class PollData(ClientObject):
                     embed.add_field("Option", f"⬇️ `{option.emoji} {option.text}`")
                     await ctx.send(embed=embed, ephemeral=True)
                 self._client.dispatch(PollVote(self, ctx.guild.id))
+
+    def has_voted(self, user: Snowflake_Type) -> bool:
+        user = to_snowflake(user)
+        return any([option.has_voted(user) for option in self.poll_options])

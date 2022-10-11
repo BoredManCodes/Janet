@@ -43,8 +43,7 @@ class EliminationPoll(PollData):
             )
         return spread_to_rows(*buttons)
 
-    @property
-    def option_fields(self) -> list[EmbedField]:
+    def get_option_fields(self, **kwargs) -> list[EmbedField]:
         fields = []
         for option in self.poll_options:
             name = textwrap.shorten(f"{option.emoji} {option.text}", width=EMBED_MAX_NAME_LENGTH)

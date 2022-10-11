@@ -205,6 +205,14 @@ class Bot(StatsClient):
                 # likely a legacy or deleted poll
                 log.warning(f"Could not find poll with message id {ctx.message.id} or {ctx.channel.id}")
                 await ctx.send("That poll could not be edited 😕")
+        elif "vote_to_view" in ctx.custom_id:
+            await ctx.defer(ephemeral=True)
+            if poll := (
+                await self.poll_cache.get_poll(ctx.message.id) or await self.poll_cache.get_poll(ctx.channel.id)
+            ):
+                if not poll.has_voted(ctx.author):
+                    return await ctx.send("You must vote to view the results", ephemeral=True)
+                await ctx.send(embed=poll.results_embed)
 
     @listen()
     async def on_poll_vote(self, event: PollVote):
