@@ -27,7 +27,7 @@ class Analytics(Extension):
                 self.option_usage[str(option.name)] = 0
 
     async def on_command(self, ctx: Context, *args, **kwargs):
-        if "analytics" not in ctx.command.resolved_name:
+        if "analytics" not in ctx.command.resolved_name and ctx.command.resolved_name in self.command_usage:
             self.command_usage[ctx.command.resolved_name] += 1
         if kwargs:
             for option in kwargs:

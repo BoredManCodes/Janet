@@ -96,6 +96,7 @@ class Bot(StatsClient):
         signal.signal(signal.SIGTERM, lambda *_: asyncio.create_task(bot.stop()))
 
         bot.load_extension("nafftrack.extension")
+        bot.load_extension("extensions.inquiry_server")
         bot.load_extension("extensions.dev")
         bot.load_extension("extensions.create_poll")
         bot.load_extension("extensions.edit_poll")
