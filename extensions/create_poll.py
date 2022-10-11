@@ -149,7 +149,12 @@ class CreatePolls(Extension):
         "poll_elimination",
         description="A poll where options are removed when they're voted for",
         options=get_options_list(
-            anonymous=False, open_poll=False, proportional=False, vote_to_view=False, hide_results=False
+            anonymous=False,
+            open_poll=False,
+            proportional=False,
+            vote_to_view=False,
+            hide_results=False,
+            show_option_author=False,
         ),
     )
     async def prefab_elimination(self, ctx: InteractionContext) -> None:
