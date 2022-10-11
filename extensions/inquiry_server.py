@@ -16,7 +16,7 @@ from extensions.shared import ExtensionBase
 class InquiryServer(ExtensionBase):
     @slash_command("init", description="Initialize reaction roles", scopes=[1013821165191581756, 985991455074050078])
     async def init(self, ctx: InteractionContext) -> None:
-        await ctx.defer(ephemeral=True)
+        await ctx.defer()
         poll_ping = get(ctx.guild.roles, name="poll_pings")
         news_ping = get(ctx.guild.roles, name="news_pings")
 
