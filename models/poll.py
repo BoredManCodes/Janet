@@ -495,6 +495,22 @@ class PollData(ClientObject):
                 if o:
                     new_cls.add_option(ctx.author, o.strip().removeprefix("-"))
 
+        if view_state := kwargs.get("view_results"):
+            match view_state:
+                # these don't need to be so explicit but clarity is nice
+                case "always":
+                    new_cls.hide_results = False
+                    new_cls.vote_to_view = False
+                case "after_voting":
+                    new_cls.hide_results = True
+                    new_cls.vote_to_view = True
+                case "after_voting_closed":
+                    new_cls.hide_results = True
+                    new_cls.vote_to_view = False
+                case _:
+                    new_cls.hide_results = False
+                    new_cls.vote_to_view = False
+
         if new_cls.vote_to_view and not new_cls.hide_results:
             new_cls.hide_results = True
 

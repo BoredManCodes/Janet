@@ -152,8 +152,7 @@ class CreatePolls(Extension):
             anonymous=False,
             open_poll=False,
             proportional=False,
-            vote_to_view=False,
-            hide_results=False,
+            view_results=False,
             show_option_author=False,
         ),
     )

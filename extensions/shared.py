@@ -88,16 +88,15 @@ OPT_VOTING_ROLE = SlashCommandOption(
     "Restrict voting to this role (default unrestricted)",
     required=False,
 )
-OPT_HIDE_RESULTS = SlashCommandOption(
-    "hide_results",
-    OptionTypes.BOOLEAN,
-    "Hide results until the poll is closed (default False)",
-    required=False,
-)
-OPT_VOTE_TO_VIEW = SlashCommandOption(
-    "vote_to_view",
-    OptionTypes.BOOLEAN,
-    "Only show results to voters (default False)",
+OPT_VIEW_RESULTS = SlashCommandOption(
+    "view_results",
+    OptionTypes.STRING,
+    "Choose when to show the results (default 'always')",
+    choices=[
+        SlashCommandChoice("Always", "always"),
+        SlashCommandChoice("Show results to voters", "after_voting"),
+        SlashCommandChoice("After the poll has closed", "after_voting_closed"),
+    ],
     required=False,
 )
 OPT_ANONYMOUS = SlashCommandOption(
@@ -162,8 +161,7 @@ get_options_list = [
     OPT_DURATION,
     OPT_MAX_VOTES,
     OPT_VOTING_ROLE,
-    OPT_HIDE_RESULTS,
-    OPT_VOTE_TO_VIEW,
+    OPT_VIEW_RESULTS,
     OPT_ANONYMOUS,
     OPT_OPEN_POLL,
     OPT_SHOW_OPTION_AUTHOR,
@@ -183,8 +181,7 @@ def get_options_list(
     duration: bool = True,
     max_votes: bool = True,
     voting_role: bool = True,
-    hide_results: bool = True,
-    vote_to_view: bool = True,
+    view_results: bool = True,
     anonymous: bool = True,
     open_poll: bool = True,
     show_option_author: bool = True,
