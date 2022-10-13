@@ -119,6 +119,7 @@ class Dev(Extension):
         poll.expire_time = MISSING
         poll._expired = False
         poll.closed = False
+        poll._sent_close_message = False
 
         await poll.update_messages()
 
