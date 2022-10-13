@@ -241,8 +241,8 @@ class PollData(ClientObject):
             votes += len(o.voters)
         return votes
 
-    def get_colour(self) -> Color:
-        if self.expired:
+    def get_colour(self, *, ignore_expired: bool = False) -> Color:
+        if self.expired and not ignore_expired:
             return MaterialColors.GREY
         if self.colour in MaterialColors.__members__:
             return MaterialColors[self.colour]
@@ -250,6 +250,10 @@ class PollData(ClientObject):
             return BrandColors[self.colour]
         else:
             return BrandColors.BLURPLE
+
+    @property
+    def voters(self) -> set[Snowflake_Type]:
+        return {v for o in self.poll_options for v in o.voters}
 
     @property
     def close_embed(self) -> Embed:
@@ -301,7 +305,7 @@ class PollData(ClientObject):
                     )
             return fields
         else:
-            all_voters = {v for o in self.poll_options for v in o.voters}
+            all_voters = self.voters
             for o in self.poll_options:
                 name = textwrap.shorten(f"{o.emoji} {o.text}", width=EMBED_MAX_NAME_LENGTH)
                 author = f" - <@{o.author_id}>" if self.show_option_author else ""
@@ -341,7 +345,12 @@ class PollData(ClientObject):
         description = []
         if self.description:
             description.append(self.description)
-        description.append(f"• {total_votes:,} vote{'s' if total_votes != 1 else ''}")
+        if self.single_vote:
+            description.append(f"• {total_votes:,} vote{'s' if total_votes != 1 else ''}")
+        else:
+            description.append(
+                f"• {total_votes:,} vote{'s' if total_votes != 1 else ''} cast by {len(self.voters):,} user{'s' if len(self.voters) != 1 else ''}"
+            )
 
         if self.poll_type != "default":
             description.append(f"• {self.poll_type.title()} Poll")
@@ -535,6 +544,27 @@ class PollData(ClientObject):
             if origin_message:
                 await origin_message.reply(embed=self.close_embed)
                 self._sent_close_message = True
+
+            # ping all users who voted
+            all_voters = self.voters
+            if all_voters:
+                fields = self.get_option_fields(force_display=True)
+                tasks = []
+
+                log.info(f"Sending close message to {len(all_voters)} voters")
+                for voter in all_voters:
+                    user = await self._client.cache.fetch_user(voter)
+                    if user:
+                        votes = [f"{o.emoji} {o.text}" for o in self.poll_options if voter in o.voters]
+                        embed = Embed(
+                            title=f'"{self.title}" has ended',
+                            description=f"**You voted for:** {', '.join(votes)}",
+                            color=self.get_colour(ignore_expired=True),
+                        )
+                        embed.fields = fields
+                        embed.set_footer(text="You are receiving this message because you voted in this poll.")
+                        tasks.append(user.send(embed=embed))
+                await asyncio.gather(*tasks)
 
     async def update_messages(self):
         self.reallocate_emoji()
