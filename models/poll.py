@@ -266,19 +266,18 @@ class PollData(ClientObject):
 
         if self.total_votes != 0:
             sorted_votes: list[PollOption] = sorted(self.poll_options, key=lambda x: len(x.voters), reverse=True)
-            top_voted = sorted_votes[0]
-            possible_ties = [o for o in sorted_votes if len(o.voters) == len(top_voted.voters)]
+            possible_ties = [o for o in sorted_votes if len(o.voters) == len(sorted_votes[0].voters)]
             if len(possible_ties) == 1:
                 embed.add_field(
                     name="Highest Voted Option",
-                    value=f"{sorted_votes[0].emoji} {sorted_votes[0].text} - {len(sorted_votes[0].voters)} votes ({len(sorted_votes[0].voters) / self.total_votes:.0%})",
+                    value=f"{possible_ties[0].emoji} {possible_ties[0].text} - {possible_ties[0].create_bar(len(self.voters) if self.proportional_results else self.total_votes)}",
                 )
             else:
                 embed.add_field(
                     name="Tied Highest Voted Options",
                     value="\n".join(
                         [
-                            f"{o.emoji} {o.text} - {len(o.voters)} votes ({len(sorted_votes[0].voters) / self.total_votes:.0%})"
+                            f"{o.emoji} {o.text}\n{o.create_bar(len(self.voters) if self.proportional_results else self.total_votes)}"
                             for o in possible_ties
                         ]
                     ),
@@ -291,36 +290,24 @@ class PollData(ClientObject):
 
     def get_option_fields(self, *, force_display: bool = False) -> list[EmbedField]:
         fields = []
+        all_voters = self.voters
         hide_results = self.hide_results and not force_display
-        if not self.proportional_results:
-            for o in self.poll_options:
-                name = textwrap.shorten(f"{o.emoji} {o.text}", width=EMBED_MAX_NAME_LENGTH)
-                author = f" - <@{o.author_id}>" if self.show_option_author else ""
 
-                if not self.expired and hide_results:
-                    fields.append(EmbedField(name=name, value=author if author else "‏", inline=self.inline))
-                else:
-                    fields.append(
-                        EmbedField(name=name, value=f"{o.create_bar(self.total_votes)}{author}", inline=self.inline)
-                    )
-            return fields
-        else:
-            all_voters = self.voters
-            for o in self.poll_options:
-                name = textwrap.shorten(f"{o.emoji} {o.text}", width=EMBED_MAX_NAME_LENGTH)
-                author = f" - <@{o.author_id}>" if self.show_option_author else ""
+        for o in self.poll_options:
+            name = textwrap.shorten(f"{o.emoji} {o.text}", width=EMBED_MAX_NAME_LENGTH)
+            author = f" - <@{o.author_id}>" if self.show_option_author else ""
 
-                if not self.expired and hide_results:
-                    fields.append(EmbedField(name=name, value=author if author else "‏", inline=self.inline))
-                else:
-                    fields.append(
-                        EmbedField(
-                            name=name,
-                            value=f"{o.create_bar(len(all_voters))}{author}",
-                            inline=self.inline,
-                        )
+            if not self.expired and hide_results:
+                fields.append(EmbedField(name=name, value=author if author else "‏", inline=self.inline))
+            else:
+                fields.append(
+                    EmbedField(
+                        name=name,
+                        value=f"{o.create_bar(len(all_voters) if self.proportional_results else self.total_votes)}{author}",
+                        inline=self.inline,
                     )
-            return fields
+                )
+        return fields
 
     @property
     def results_embed(self) -> Embed:
