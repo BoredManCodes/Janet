@@ -332,6 +332,7 @@ class PollData(ClientObject):
         description = []
         if self.description:
             description.append(self.description)
+
         if self.single_vote:
             description.append(f"• {total_votes:,} vote{'s' if total_votes != 1 else ''}")
         else:
@@ -344,10 +345,12 @@ class PollData(ClientObject):
 
         if self.single_vote:
             description.append("• One Vote Per User")
-        if self.proportional_results:
-            description.append("• Proportional Results")
         elif self.max_votes:
             description.append(f"• {self.max_votes} Votes Per User")
+
+        if self.proportional_results:
+            description.append("• Proportional Results")
+
         if self.vote_to_view:
             description.append("• Vote To View Results")
         elif self.hide_results:
@@ -355,8 +358,10 @@ class PollData(ClientObject):
                 description.append("• Results were hidden until the poll ended")
             else:
                 description.append("• Results are hidden until the poll ends")
+
         if self.anonymous:
             description.append("• Anonymous Voting")
+
         if self.voting_role:
             description.append(f"• Required Role: <@&{self.voting_role}>")
 
