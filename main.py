@@ -94,7 +94,9 @@ class Bot(StatsClient):
 
         signal.signal(signal.SIGINT, lambda *_: asyncio.create_task(bot.stop()))
         signal.signal(signal.SIGTERM, lambda *_: asyncio.create_task(bot.stop()))
-
+        if sentry_token := os.getenv("SENTRY_TOKEN"):
+            log.debug("Sentry Token found - enabling sentry")
+            bot.load_extension("naff.ext.sentry", token=sentry_token)
         bot.load_extension("nafftrack.extension")
         bot.load_extension("extensions.inquiry_server")
         bot.load_extension("extensions.dev")
