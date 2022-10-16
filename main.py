@@ -133,7 +133,8 @@ class Bot(StatsClient):
 
     async def stop(self) -> None:
         log.info("Stopping...")
-        self.scheduler.shutdown()
+        if self.scheduler.running:
+            self.scheduler.shutdown()
         await self.poll_cache.stop()
         await super().stop()
 
