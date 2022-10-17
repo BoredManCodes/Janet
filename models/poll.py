@@ -23,7 +23,7 @@ from naff import (
     EmbedField,
     to_snowflake,
 )
-from naff.client.errors import NotFound
+from naff.client.errors import NotFound, Forbidden
 from naff.models import (
     Snowflake_Type,
     Embed,
@@ -558,22 +558,27 @@ class PollData(ClientObject):
             all_voters = self.voters
             if all_voters:
                 fields = self.get_option_fields(force_display=True)
-                tasks = []
+                sem = asyncio.Semaphore(10)
+
+                async def send_message(user_id: int) -> None:
+                    async with sem:
+                        user = await self._client.cache.fetch_user(user_id)
+                        if user:
+                            votes = [f"{o.emoji} {o.text}" for o in self.poll_options if user_id in o.voters]
+                            embed = Embed(
+                                title=f'"{self.title}" has ended',
+                                description=f"**You voted for:** {', '.join(votes)}",
+                                color=self.get_colour(ignore_expired=True),
+                            )
+                            embed.fields = fields
+                            embed.set_footer(text="You are receiving this message because you voted in this poll.")
+                            try:
+                                await user.send(embed=embed)
+                            except Forbidden:
+                                pass
 
                 log.info(f"Sending close message to {len(all_voters)} voters")
-                for voter in all_voters:
-                    user = await self._client.cache.fetch_user(voter)
-                    if user:
-                        votes = [f"{o.emoji} {o.text}" for o in self.poll_options if voter in o.voters]
-                        embed = Embed(
-                            title=f'"{self.title}" has ended',
-                            description=f"**You voted for:** {', '.join(votes)}",
-                            color=self.get_colour(ignore_expired=True),
-                        )
-                        embed.fields = fields
-                        embed.set_footer(text="You are receiving this message because you voted in this poll.")
-                        tasks.append(user.send(embed=embed))
-                await asyncio.gather(*tasks)
+                await asyncio.gather(*[send_message(voter) for voter in all_voters])
 
     async def update_messages(self):
         self.reallocate_emoji()
