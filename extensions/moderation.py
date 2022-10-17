@@ -113,7 +113,7 @@ class Moderation(ExtensionBase):
             await ctx.send("No users have had voting revoked!")
             return
 
-        users = [f"<@{user_id}>" for user_id in guild_data["blacklisted_users"]]
+        users = [f"<@{user_id}>" for user_id in guild_data.blacklisted_users]
         embed = Embed(title="Users with revoked voting perms", description=", ".join(users), color=BrandColors.RED)
         await ctx.send(embed=embed)
 
