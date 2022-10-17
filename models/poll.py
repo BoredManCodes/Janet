@@ -23,6 +23,7 @@ from naff import (
     EmbedField,
     to_snowflake,
 )
+from naff.client.errors import NotFound
 from naff.models import (
     Snowflake_Type,
     Embed,
@@ -578,15 +579,18 @@ class PollData(ClientObject):
         self.reallocate_emoji()
 
         message = await self._client.cache.fetch_message(self.channel_id, self.message_id)
-        await message.edit(embeds=self.embed, components=self.get_components())
+        try:
+            await message.edit(embeds=self.embed, components=self.get_components())
 
-        if self.thread:
-            try:
-                thread_msg = await self._client.cache.fetch_message(self.message_id, self.thread_message_id)
-                await thread_msg.edit(components=self.get_components(disable=True))
-            except Exception as e:
-                log.error(f"Failed to update thread message: {e}")
-                pass
+            if self.thread:
+                try:
+                    thread_msg = await self._client.cache.fetch_message(self.message_id, self.thread_message_id)
+                    await thread_msg.edit(components=self.get_components(disable=True))
+                except Exception as e:
+                    log.error(f"Failed to update thread message: {e}")
+                    pass
+        except NotFound:
+            log.warning(f"Poll {self.message_id} was not found in channel {self.channel_id} -- likely deleted by user")
 
     def get_user_votes(self, user_id: int) -> list[PollOption]:
         return [option for option in self.poll_options if option.has_voted(user_id)]
@@ -629,7 +633,7 @@ class PollData(ClientObject):
                 elif self.max_votes is not None:
                     voted_options = self.get_user_votes(ctx.author.id)
                     if len(voted_options) >= self.max_votes:
-                        log.error(
+                        log.warning(
                             f"{self.message_id}|{ctx.author.id} tried to vote for more than the max votes allowed"
                         )
                         embed = Embed(
