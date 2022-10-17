@@ -596,6 +596,10 @@ class PollData(ClientObject):
                     pass
         except NotFound:
             log.warning(f"Poll {self.message_id} was not found in channel {self.channel_id} -- likely deleted by user")
+        except Forbidden:
+            log.warning(
+                f"Poll {self.message_id} in channel {self.channel_id} cannot be edited -- likely permissions issue"
+            )
 
     def get_user_votes(self, user_id: int) -> list[PollOption]:
         return [option for option in self.poll_options if option.has_voted(user_id)]
