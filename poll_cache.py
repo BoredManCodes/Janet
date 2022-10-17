@@ -236,13 +236,14 @@ class PollCache:
         return out
 
     async def set_guild_data(self, data: GuildData) -> None:
-        payload: GuildDataPayload = data.to_dict()
-        query = self.assemble_query_with_dict(
-            "INSERT INTO polls.guild_data ({}) VALUES ({}) ON CONFLICT(id) DO UPDATE SET {};", payload
-        )
-        async with self.db.acquire() as conn:
-            await conn.execute(query, *payload.values())
-            log.debug("Updated guild data: %s", payload["id"])
+        if data:
+            payload: GuildDataPayload = data.to_dict()
+            query = self.assemble_query_with_dict(
+                "INSERT INTO polls.guild_data ({}) VALUES ({}) ON CONFLICT(id) DO UPDATE SET {};", payload
+            )
+            async with self.db.acquire() as conn:
+                await conn.execute(query, *payload.values())
+                log.debug("Updated guild data: %s", payload["id"])
 
     async def _update_stats(self):
         await self.bot.wait_until_ready()
