@@ -301,7 +301,10 @@ class PollUtils(ExtensionBase):
             if poll.description:
                 embed.add_field("Description", value=poll.description)
 
-            embed.add_field("Choices", value="\n".join(f"{opt.emoji} {opt.text}" for opt in poll.poll_options))
+            if poll.poll_options:
+                embed.add_field("Choices", value="\n".join(f"{opt.emoji} {opt.text}" for opt in poll.poll_options))
+            else:
+                embed.add_field("Choices", value="No choices have been added yet!")
 
             embed.add_field(
                 "Results",
