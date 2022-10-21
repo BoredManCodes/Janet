@@ -83,6 +83,7 @@ class PollUtils(ExtensionBase):
                 return
 
             await ctx.defer()
+            await poll.cache_all_voters()
 
             def write_buffer(_poll: PollData):
                 def rotate(input_list: list[list]) -> list[list]:
@@ -127,6 +128,7 @@ class PollUtils(ExtensionBase):
                 await ctx.send("Anonymous polls cannot be exported!", ephemeral=True)
                 return
             await ctx.defer()
+            await poll.cache_all_voters()
 
             def write_buffer(_poll: PollData):
                 log.debug(f"Exporting {_poll.message_id} to json")
@@ -160,6 +162,7 @@ class PollUtils(ExtensionBase):
                 await ctx.send("Anonymous polls cannot be exported!", ephemeral=True)
                 return
             await ctx.defer()
+            await poll.cache_all_voters()
 
             def write_buffer(_poll: PollData):
                 log.debug(f"Exporting {_poll.message_id} to yaml")
@@ -195,6 +198,7 @@ class PollUtils(ExtensionBase):
                 await ctx.send("Anonymous polls cannot be exported!", ephemeral=True)
                 return
             await ctx.defer()
+            await poll.cache_all_voters()
 
             def write_buffer(_poll: PollData):
                 log.debug(f"Exporting {_poll.message_id} to pie chart")
@@ -233,6 +237,7 @@ class PollUtils(ExtensionBase):
                 await ctx.send("Anonymous polls cannot be exported!", ephemeral=True)
                 return
             await ctx.defer()
+            await poll.cache_all_voters()
 
             def write_buffer(_poll: PollData):
                 log.debug(f"Exporting {_poll.message_id} to bar graph")

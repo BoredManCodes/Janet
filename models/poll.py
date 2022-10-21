@@ -256,6 +256,19 @@ class PollData(ClientObject):
     def voters(self) -> set[Snowflake_Type]:
         return {v for o in self.poll_options for v in o.voters}
 
+    async def cache_all_voters(self):
+        sem = asyncio.Semaphore(10)
+
+        uncached_voters = [v for v in self.voters if not self._client.cache.user_cache]
+        if uncached_voters:
+            log.debug(f"Caching {len(uncached_voters)} voters for poll {self.message_id}")
+
+            async def fetch_voter(v) -> None:
+                async with sem:
+                    await self._client.cache.fetch_user(v)
+
+            await asyncio.gather(*[fetch_voter(v) for v in uncached_voters])
+
     @property
     def close_embed(self) -> Embed:
         embed = Embed(
