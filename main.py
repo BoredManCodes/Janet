@@ -68,13 +68,13 @@ class Bot(StatsClient):
         self.scheduler = AsyncIOScheduler()
 
         # disable processors that we don't need for efficiency
-        # naff by default will request missing data, by removing these, the api won't be polled on every reaction
-        del self.processors["raw_message_reaction_remove"]
         del self.processors["raw_message_reaction_remove_all"]
 
         self._vote_analytics = Gauge(
             "inquiry_vote", "Analytics of how many votes have been cast", labelnames=["guild_name"]
         )
+
+    # override naff processors to prevent api calls
 
     @Processor.define()
     async def _on_raw_message_reaction_add(self, event: "RawGatewayEvent") -> None:
@@ -85,6 +85,11 @@ class Bot(StatsClient):
                 if int(data["user_id"]) == poll.author_id:
                     log.info(f"Closing poll {poll.message_id} due to reaction")
                     await self.close_poll(poll.message_id)
+        if member := event.data.get("member"):
+            self.cache.place_member_data(event.data.get("guild_id"), member)
+
+    @Processor.define()
+    async def _on_raw_message_reaction_remove(self, event: "RawGatewayEvent") -> None:
         if member := event.data.get("member"):
             self.cache.place_member_data(event.data.get("guild_id"), member)
 
