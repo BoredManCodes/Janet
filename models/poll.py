@@ -3,6 +3,7 @@ import datetime
 import logging
 import re
 import textwrap
+from contextlib import suppress
 from typing import Union, TYPE_CHECKING
 
 import attr
@@ -265,7 +266,8 @@ class PollData(ClientObject):
 
             async def fetch_voter(v) -> None:
                 async with sem:
-                    await self._client.cache.fetch_user(v)
+                    with suppress(Forbidden, NotFound):
+                        await self._client.cache.fetch_user(v)
 
             await asyncio.gather(*[fetch_voter(v) for v in uncached_voters])
 
