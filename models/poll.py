@@ -260,7 +260,7 @@ class PollData(ClientObject):
     async def cache_all_voters(self):
         sem = asyncio.Semaphore(10)
 
-        uncached_voters = [v for v in self.voters if not self._client.cache.user_cache]
+        uncached_voters = [v for v in self.voters if v not in self._client.cache.user_cache]
         if uncached_voters:
             log.debug(f"Caching {len(uncached_voters)} voters for poll {self.message_id}")
 
