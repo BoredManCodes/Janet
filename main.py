@@ -111,7 +111,6 @@ class Bot(StatsClient):
         bot.load_extension("extensions.admin")
         bot.load_extension("extensions.bot_lists")
         bot.load_extension("extensions.help")
-        bot.load_extension("extensions.analytics")
         bot.load_extension("extensions.moderation")
         bot.load_extension("extensions.elimination")
 
