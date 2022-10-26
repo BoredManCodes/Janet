@@ -662,18 +662,22 @@ class PollData(ClientObject):
                                         _o.eliminated = False
                     elif self.max_votes is not None:
                         voted_options = self.get_user_votes(ctx.author.id)
+
                         if len(voted_options) >= self.max_votes:
-                            log.warning(
-                                f"{self.message_id}|{ctx.author.id} tried to vote for more than the max votes allowed"
-                            )
-                            embed = Embed(
-                                "You have already voted for the maximum number of options",
-                                color=BrandColors.RED,
-                            )
-                            embed.add_field("Maximum Votes", self.max_votes)
-                            embed.add_field("Your Votes", ", ".join([f"`{o.emoji} {o.text}`" for o in voted_options]))
-                            embed.add_field("To remove a vote", "Vote again for the option you want to remove")
-                            return await ctx.send(embed=embed, ephemeral=True)
+                            if not option.has_voted(ctx.author.id):
+                                log.warning(
+                                    f"{self.message_id}|{ctx.author.id} tried to vote for more than the max votes allowed"
+                                )
+                                embed = Embed(
+                                    "You have already voted for the maximum number of options",
+                                    color=BrandColors.RED,
+                                )
+                                embed.add_field("Maximum Votes", self.max_votes)
+                                embed.add_field(
+                                    "Your Votes", ", ".join([f"`{o.emoji} {o.text}`" for o in voted_options])
+                                )
+                                embed.add_field("To remove a vote", "Vote again for the option you want to remove")
+                                return await ctx.send(embed=embed, ephemeral=True)
 
                     if not await self._vote_check(ctx, option):
                         return
