@@ -551,8 +551,8 @@ class PollData(ClientObject):
             self.parse_message(msg)
             if self.thread:
                 thread = await msg.create_thread(self.title, reason=f"Poll created for {context.author.username}")
-                thread_msg = await thread.send(components=self.get_components(disable=True))
-                self.thread_message_id = thread_msg.id
+                # thread_msg = await thread.send(components=self.get_components(disable=True))
+                # self.thread_message_id = thread_msg.id
 
             if self.expire_time:
                 await context.bot.schedule_close(self)
