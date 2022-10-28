@@ -25,6 +25,7 @@ from naff import (
     to_snowflake,
 )
 from naff.client.errors import NotFound, Forbidden
+from naff.client.utils import no_export_meta
 from naff.models import (
     Snowflake_Type,
     Embed,
@@ -211,6 +212,8 @@ class PollData(ClientObject):
     deleted: bool = attr.ib(default=False)
     closed: bool = attr.ib(default=False)
     lock: asyncio.Lock = attr.ib(factory=asyncio.Lock)
+    # todo: future polls: as cool as this is, its ugly. refactor pls :(
+    latest_context: InteractionContext = attr.ib(default=MISSING, init=False, metadata=no_export_meta)
 
     def as_dict(self) -> dict:
         data = {
@@ -603,15 +606,12 @@ class PollData(ClientObject):
         try:
             message = await self._client.cache.fetch_message(self.channel_id, self.message_id)
 
-            await message.edit(embeds=self.embed, components=self.get_components())
-
-            if self.thread:
-                try:
-                    thread_msg = await self._client.cache.fetch_message(self.message_id, self.thread_message_id)
-                    await thread_msg.edit(components=self.get_components(disable=True))
-                except Exception as e:
-                    log.error(f"Failed to update thread message: {e}")
-                    pass
+            try:
+                await message.edit(embeds=self.embed, components=self.get_components(), context=self.latest_context)
+            except (NotFound, Forbidden) as e:
+                if "interaction" in str(e):
+                    await message.edit(embeds=self.embed, components=self.get_components())
+                raise e from None
         except NotFound:
             log.warning(f"Poll {self.message_id} was not found in channel {self.channel_id} -- likely deleted by user")
         except Forbidden:
@@ -638,6 +638,7 @@ class PollData(ClientObject):
         return "Your vote has been removed."
 
     async def vote(self, ctx: InteractionContext):
+        self.latest_context = ctx
         try:
             if self.expired:
                 message = await self._client.cache.fetch_message(self.channel_id, self.message_id)

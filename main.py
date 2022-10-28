@@ -234,7 +234,7 @@ class Bot(StatsClient):
             return
         self.scheduler.add_job(
             self.update_poll,
-            trigger=DateTrigger(datetime.datetime.now() + datetime.timedelta(seconds=5)),
+            trigger=DateTrigger(datetime.datetime.now() + datetime.timedelta(seconds=1)),
             id=job_id,
             args=[message_id],
         )
