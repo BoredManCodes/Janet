@@ -23,7 +23,7 @@ from naff import (
     BrandColors,
     Embed,
 )
-from naff.api.events import Button, ModalResponse, GuildLeft, GuildJoin
+from naff.api.events import ButtonPressed, ModalCompletion, GuildLeft, GuildJoin, RawGatewayEvent
 from naff.api.events.processors._template import Processor
 from naff.client.errors import NotFound, Forbidden
 from naff.models.naff.application_commands import context_menu, slash_command
@@ -157,8 +157,8 @@ class Bot(StatsClient):
         await ctx.send("Thank you!\nhttps://forms.gle/6NDMJQXqmWL8fQVm6")
 
     @listen()
-    async def on_modal_response(self, event: ModalResponse) -> Any:
-        ctx = event.context
+    async def on_modal_response(self, event: ModalCompletion) -> Any:
+        ctx = event.ctx
         ids = ctx.custom_id.split("|")
         if len(ids) == 2:
             await ctx.defer(ephemeral=True)
@@ -176,8 +176,8 @@ class Bot(StatsClient):
             return await ctx.send("That poll could not be edited")
 
     @listen()
-    async def on_button(self, event: Button) -> Any:
-        ctx: ComponentContext = event.context
+    async def on_button(self, event: ButtonPressed) -> Any:
+        ctx: ComponentContext = event.ctx
         if not self.poll_cache.ready.is_set():
             return await ctx.send("Inquiry is restarting. Please try again in a few seconds", ephemeral=True)
 

@@ -174,9 +174,9 @@ class EditPolls(ExtensionBase):
                 )
                 try:
                     c: Component = await self.bot.wait_for_component(
-                        messages=[prompt], timeout=20, check=lambda c: c.context.author.id == ctx.author.id
+                        messages=[prompt], timeout=20, check=lambda c: c.ctx.author.id == ctx.author.id
                     )
-                    button_ctx = c.context
+                    button_ctx = c.ctx
                     if button_ctx.custom_id == "delete":
                         await button_ctx.defer(edit_origin=True)
 

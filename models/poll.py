@@ -170,7 +170,7 @@ class PollOption:
         return cls(**data)
 
 
-@attr.s(auto_attribs=True, on_setattr=[attr.setters.convert, attr.setters.validate])
+@attr.s(auto_attribs=True, on_setattr=[attr.setters.convert, attr.setters.validate], kw_only=True)
 class PollData(ClientObject):
     title: str
     author_id: Snowflake_Type
@@ -433,6 +433,10 @@ class PollData(ClientObject):
     def add_option(self, author: Snowflake_Type, opt_name: str, _emoji: str | None = None) -> None:
         if len(self.poll_options) >= len(default_emoji):
             raise ValueError("Poll has reached max options")
+
+        self.poll_options.append(self.option_parser(author, opt_name, _emoji))
+
+    def option_parser(self, author: Snowflake_Type, opt_name: str, _emoji: str | None = None) -> PollOption:
         if not _emoji:
             if data := emoji_regex.findall(opt_name):
                 parsed = tuple(filter(None, data[0]))
@@ -454,10 +458,8 @@ class PollData(ClientObject):
                     _emoji = _emoji_list[0]
                     opt_name = emoji_lib.replace_emoji(opt_name, replace="")
 
-        self.poll_options.append(
-            PollOption(
-                opt_name.strip(), _emoji or default_emoji[len(self.poll_options)], author_id=to_snowflake(author)
-            )
+        return PollOption(
+            opt_name.strip(), _emoji or default_emoji[len(self.poll_options)], author_id=to_snowflake(author)
         )
 
     def parse_message(self, msg: Message) -> None:
