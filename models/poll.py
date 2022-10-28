@@ -551,6 +551,7 @@ class PollData(ClientObject):
         return new_cls
 
     async def send(self, context: InteractionContext) -> Message:
+        self.latest_context = context
         try:
             msg = await context.send(embeds=self.embed, components=[] if self.expired else self.get_components())
             self.parse_message(msg)
