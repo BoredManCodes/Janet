@@ -17,8 +17,9 @@ from naff import (
     AutocompleteContext,
     slash_command,
     Embed,
+    SlashCommandOption,
+    SlashCommandChoice,
 )
-from thefuzz import process
 
 from extensions.shared import ExtensionBase, OPT_find_poll
 from models.poll import PollData
@@ -40,12 +41,9 @@ class PollUtils(ExtensionBase):
     bot: "Bot"
 
     def __init__(self, bot) -> None:
-        self.export_csv.autocomplete("poll")(self.poll_autocomplete)
-        self.export_json.autocomplete("poll")(self.poll_autocomplete)
-        self.export_yaml.autocomplete("poll")(self.poll_autocomplete)
-        self.export_pie.autocomplete("poll")(self.poll_autocomplete)
-        self.export_bar.autocomplete("poll")(self.poll_autocomplete)
         self.view_poll.autocomplete("poll")(self.poll_autocomplete)
+        self.export_text.autocomplete("poll")(self.poll_autocomplete)
+        self.export_image.autocomplete("poll")(self.poll_autocomplete)
 
     def get_user(self, user_id) -> str:
         try:
@@ -69,203 +67,179 @@ class PollUtils(ExtensionBase):
         return predicate
 
     export = SlashCommand(name="export", description="Export a poll into various formats")
-    text = export.group(name="text", description="Export a poll into a text format")
 
-    @text.subcommand(
-        sub_cmd_name="csv",
-        sub_cmd_description="Export a poll as a csv file",
-        options=[OPT_find_poll],
+    def _csv_exporter(self, poll: PollData) -> StringIO:
+        def rotate(input_list: list[list]) -> list[list]:
+            expected_len = max(map(len, input_list))
+            for sub_list in input_list:
+                if len(sub_list) < expected_len:
+                    sub_list.extend([None] * (expected_len - len(sub_list)))
+
+            return list(zip(*input_list))  # type: ignore
+
+        log.debug(f"Exporting {poll.message_id} to csv")
+        buffer = []
+        for option in poll.poll_options:
+            buffer.append([option.text] + [self.get_user(v) for v in option.voters])
+
+        buffer = rotate(buffer)
+        f = StringIO()
+
+        writer = csv.writer(f, quoting=csv.QUOTE_ALL)
+        writer.writerows(buffer)
+        f.seek(0)
+        return f
+
+    def _json_exporter(self, poll: PollData) -> StringIO:
+        log.debug(f"Exporting {poll.message_id} to json")
+        buffer = {}
+        for option in poll.poll_options:
+            buffer[option.text] = [self.get_user(v) for v in option.voters]
+        f = StringIO()
+
+        json.dump(buffer, f)
+        f.seek(0)
+        return f
+
+    def _yaml_exporter(self, poll: PollData) -> StringIO:
+        log.debug(f"Exporting {poll.message_id} to yaml")
+        buffer = {}
+        for option in poll.poll_options:
+            buffer[option.text] = [self.get_user(v) for v in option.voters]
+        f = StringIO()
+
+        yaml.dump(buffer, f, Dumper=Dumper)
+        f.seek(0)
+        return f
+
+    def _bar_exporter(self, poll: PollData) -> BytesIO:
+        log.debug(f"Exporting {poll.message_id} to bar graph")
+        buffer = {}
+        for option in poll.poll_options:
+            buffer[option.text] = [self.get_user(v) for v in option.voters]
+        f = BytesIO()
+
+        arr = np.array([len(x) for x in buffer.values()])
+        labels = list(buffer.keys())
+        fig = plt.figure()
+        plt.bar(labels, arr, width=0.4)
+        plt.xlabel("Options")
+        plt.ylabel("No. of Votes")
+        plt.title(poll.title)
+        plt.savefig(f, format="png")
+        f.seek(0)
+        return f
+
+    def _pie_exporter(self, poll: PollData) -> BytesIO:
+        log.debug(f"Exporting {poll.message_id} to pie chart")
+        buffer = {}
+        for option in poll.poll_options:
+            buffer[option.text] = [self.get_user(v) for v in option.voters]
+        f = BytesIO()
+
+        arr = np.array([len(x) for x in buffer.values()])
+        labels = list(buffer.keys())
+        fig = plt.figure()
+        plt.pie(arr, labels=labels)
+        plt.title(poll.title)
+        plt.savefig(f, format="png")
+        f.seek(0)
+        return f
+
+    @export.subcommand(
+        sub_cmd_name="text",
+        sub_cmd_description="Export a poll into a text format",
+        options=[
+            OPT_find_poll,
+            SlashCommandOption(
+                "format",
+                3,
+                "The format to export the poll as",
+                choices=[
+                    SlashCommandChoice("csv", "csv"),
+                    SlashCommandChoice("json", "json"),
+                    SlashCommandChoice("yaml", "yaml"),
+                ],
+            ),
+        ],
     )
-    async def export_csv(self, ctx: InteractionContext, poll) -> None:
-        if poll := await self.process_poll_option(ctx, poll):
-            if poll.anonymous:
-                await ctx.send("Anonymous polls cannot be exported!", ephemeral=True)
-                return
+    async def export_text(self, ctx: InteractionContext, poll: str, format: str) -> None:
+        try:
+            if poll := await self.process_poll_option(ctx, poll):
+                if poll.anonymous:
+                    await ctx.send("Anonymous polls cannot be exported", ephemeral=True)
 
-            await ctx.defer()
-            await poll.cache_all_voters()
+                await ctx.defer()
 
-            def write_buffer(_poll: PollData):
-                def rotate(input_list: list[list]) -> list[list]:
-                    expected_len = max(map(len, input_list))
-                    for sub_list in input_list:
-                        if len(sub_list) < expected_len:
-                            sub_list.extend([None] * (expected_len - len(sub_list)))
+                async with poll.lock:
+                    if all(len(opt.voters) == 0 for opt in poll.poll_options):
+                        await ctx.send("No votes have been cast yet!")
+                        return
 
-                    return list(zip(*input_list))  # type: ignore
+                    match format:
+                        case "csv":
+                            file = await asyncio.to_thread(self._csv_exporter, poll)
+                        case "json":
+                            file = await asyncio.to_thread(self._json_exporter, poll)
+                        case "yaml":
+                            file = await asyncio.to_thread(self._yaml_exporter, poll)
+                        case _:
+                            await ctx.send(f"Unknown format {format}", ephemeral=True)
+                            return
 
-                log.debug(f"Exporting {_poll.message_id} to csv")
-                buffer = []
-                for option in poll.poll_options:
-                    buffer.append([option.text] + [self.get_user(v) for v in option.voters])
+                    await ctx.send(file=File(file, file_name=f"{poll.title}.{format}"))
+                    file.close()
+                    return
 
-                buffer = rotate(buffer)
-                f = StringIO()
+        except Exception as e:
+            log.error("Error exporting poll", exc_info=e)
+        await ctx.send("That poll could not be exported", ephemeral=True)
 
-                writer = csv.writer(f, quoting=csv.QUOTE_ALL)
-                writer.writerows(buffer)
-                f.seek(0)
-                return f
-
-            async with poll.lock:
-                if all(len(opt.voters) == 0 for opt in poll.poll_options):
-                    return await ctx.send("No votes have been cast yet!")
-                file = await asyncio.to_thread(write_buffer, poll)
-                await ctx.send(file=File(file, file_name=f"{poll.title}.csv"))
-                file.close()
-
-        else:
-            await ctx.send("Unable to export the requested poll!")
-
-    @text.subcommand(
-        sub_cmd_name="json",
-        sub_cmd_description="Export a poll as a json file",
-        options=[OPT_find_poll],
+    @export.subcommand(
+        sub_cmd_name="image",
+        sub_cmd_description="Export a poll into an image format",
+        options=[
+            OPT_find_poll,
+            SlashCommandOption(
+                "format",
+                3,
+                "The format to export the poll as",
+                choices=[
+                    SlashCommandChoice("Bar Graph", "bar"),
+                    SlashCommandChoice("Pie Chart", "pie"),
+                ],
+            ),
+        ],
     )
-    async def export_json(self, ctx: InteractionContext, poll) -> None:
-        if poll := await self.process_poll_option(ctx, poll):
-            if poll.anonymous:
-                await ctx.send("Anonymous polls cannot be exported!", ephemeral=True)
-                return
-            await ctx.defer()
-            await poll.cache_all_voters()
+    async def export_image(self, ctx: InteractionContext, poll: str, format: str) -> None:
+        try:
+            if poll := await self.process_poll_option(ctx, poll):
+                if poll.anonymous:
+                    await ctx.send("Anonymous polls cannot be exported", ephemeral=True)
 
-            def write_buffer(_poll: PollData):
-                log.debug(f"Exporting {_poll.message_id} to json")
-                buffer = {}
-                for option in poll.poll_options:
-                    buffer[option.text] = [self.get_user(v) for v in option.voters]
-                f = StringIO()
+                await ctx.defer()
 
-                json.dump(buffer, f)
-                f.seek(0)
-                return f
+                async with poll.lock:
+                    if all(len(opt.voters) == 0 for opt in poll.poll_options):
+                        await ctx.send("No votes have been cast yet!")
+                        return
 
-            async with poll.lock:
-                if all(len(opt.voters) == 0 for opt in poll.poll_options):
-                    return await ctx.send("No votes have been cast yet!")
-                file = await asyncio.to_thread(write_buffer, poll)
-                await ctx.send(file=File(file, file_name=f"{poll.title}.json"))
-                file.close()
+                    match format:
+                        case "bar":
+                            file = await asyncio.to_thread(self._bar_exporter, poll)
+                        case "pie":
+                            file = await asyncio.to_thread(self._pie_exporter, poll)
+                        case _:
+                            await ctx.send(f"Unknown format {format}", ephemeral=True)
+                            return
 
-        else:
-            await ctx.send("Unable to export the requested poll!")
+                    await ctx.send(file=File(file, file_name=f"{poll.title}.png"))
+                    file.close()
+                    return
 
-    @text.subcommand(
-        sub_cmd_name="yaml",
-        sub_cmd_description="Export a poll as a yaml file",
-        options=[OPT_find_poll],
-    )
-    async def export_yaml(self, ctx: InteractionContext, poll) -> None:
-        if poll := await self.process_poll_option(ctx, poll):
-            if poll.anonymous:
-                await ctx.send("Anonymous polls cannot be exported!", ephemeral=True)
-                return
-            await ctx.defer()
-            await poll.cache_all_voters()
-
-            def write_buffer(_poll: PollData):
-                log.debug(f"Exporting {_poll.message_id} to yaml")
-                buffer = {}
-                for option in poll.poll_options:
-                    buffer[option.text] = [self.get_user(v) for v in option.voters]
-                f = StringIO()
-
-                yaml.dump(buffer, f, Dumper=Dumper)
-                f.seek(0)
-                return f
-
-            async with poll.lock:
-                if all(len(opt.voters) == 0 for opt in poll.poll_options):
-                    return await ctx.send("No votes have been cast yet!")
-                file = await asyncio.to_thread(write_buffer, poll)
-                await ctx.send(file=File(file, file_name=f"{poll.title}.yaml"))
-                file.close()
-
-        else:
-            await ctx.send("Unable to export the requested poll!")
-
-    image = export.group(name="image", description="Export a poll to an image file")
-
-    @image.subcommand(
-        sub_cmd_name="pie",
-        sub_cmd_description="Export a pie chart of the poll",
-        options=[OPT_find_poll],
-    )
-    async def export_pie(self, ctx: InteractionContext, poll) -> None:
-        if poll := await self.process_poll_option(ctx, poll):
-            if poll.anonymous:
-                await ctx.send("Anonymous polls cannot be exported!", ephemeral=True)
-                return
-            await ctx.defer()
-            await poll.cache_all_voters()
-
-            def write_buffer(_poll: PollData):
-                log.debug(f"Exporting {_poll.message_id} to pie chart")
-                buffer = {}
-                for option in poll.poll_options:
-                    buffer[option.text] = [self.get_user(v) for v in option.voters]
-                f = BytesIO()
-
-                arr = np.array([len(x) for x in buffer.values()])
-                labels = list(buffer.keys())
-                fig = plt.figure()
-                plt.pie(arr, labels=labels)
-                plt.title(_poll.title)
-                plt.savefig(f, format="png")
-                f.seek(0)
-                return f
-
-            async with poll.lock:
-                if all(len(opt.voters) == 0 for opt in poll.poll_options):
-                    return await ctx.send("No votes have been cast yet!")
-                file = await asyncio.to_thread(write_buffer, poll)
-                await ctx.send(file=File(file, file_name=f"{poll.title}.png"))
-                file.close()
-
-        else:
-            await ctx.send("Unable to export the requested poll!")
-
-    @image.subcommand(
-        sub_cmd_name="bar",
-        sub_cmd_description="Export a bar graph of the poll",
-        options=[OPT_find_poll],
-    )
-    async def export_bar(self, ctx: InteractionContext, poll) -> None:
-        if poll := await self.process_poll_option(ctx, poll):
-            if poll.anonymous:
-                await ctx.send("Anonymous polls cannot be exported!", ephemeral=True)
-                return
-            await ctx.defer()
-            await poll.cache_all_voters()
-
-            def write_buffer(_poll: PollData):
-                log.debug(f"Exporting {_poll.message_id} to bar graph")
-                buffer = {}
-                for option in poll.poll_options:
-                    buffer[option.text] = [self.get_user(v) for v in option.voters]
-                f = BytesIO()
-
-                arr = np.array([len(x) for x in buffer.values()])
-                labels = list(buffer.keys())
-                fig = plt.figure()
-                plt.bar(labels, arr, width=0.4)
-                plt.xlabel("Options")
-                plt.ylabel("No. of Votes")
-                plt.title(_poll.title)
-                plt.savefig(f, format="png")
-                f.seek(0)
-                return f
-
-            async with poll.lock:
-                if all(len(opt.voters) == 0 for opt in poll.poll_options):
-                    return await ctx.send("No votes have been cast yet!")
-                file = await asyncio.to_thread(write_buffer, poll)
-                await ctx.send(file=File(file, file_name=f"{poll.title}.png"))
-                file.close()
-
-        else:
-            await ctx.send("Unable to export the requested poll!")
+        except Exception as e:
+            log.error("Error exporting poll", exc_info=e)
+        await ctx.send("That poll could not be exported", ephemeral=True)
 
     @slash_command(
         "details",

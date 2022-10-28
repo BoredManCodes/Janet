@@ -1,8 +1,7 @@
 from typing import TYPE_CHECKING
 
-from attr import define
+from attr import define, field
 from naff.api.events import BaseEvent
-from naff.client.utils import field
 
 if TYPE_CHECKING:
     from models.poll import PollData

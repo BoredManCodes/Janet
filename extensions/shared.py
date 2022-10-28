@@ -62,6 +62,20 @@ OPT_DESCRIPTION = SlashCommandOption(
     required=False,
     max_length=512,
 )
+OPT_PRESET = SlashCommandOption(
+    "preset_options",
+    OptionTypes.STRING,
+    "Use preset options for your poll",
+    choices=[
+        SlashCommandChoice("`Yes` and `No`", "boolean"),
+        SlashCommandChoice("Agree, Disagree, Neutral", "opinion"),
+        SlashCommandChoice("Days of the week", "week"),
+        SlashCommandChoice("Months of the year", "month"),
+        SlashCommandChoice("1-10", "rating"),
+        SlashCommandChoice("1-5", "rating_5"),
+    ],
+    required=False,
+)
 OPT_COLOUR = SlashCommandOption(
     "colour",
     OptionTypes.STRING,
@@ -157,6 +171,7 @@ OPT_INLINE_OPTIONS = SlashCommandOption(
 get_options_list = [
     OPT_TITLE,
     OPT_DESCRIPTION,
+    OPT_PRESET,
     OPT_COLOUR,
     OPT_DURATION,
     OPT_MAX_VOTES,
@@ -177,6 +192,7 @@ def get_options_list(
     title: bool = True,
     inline_options: bool = False,
     description: bool = True,
+    preset: bool = True,
     colour: bool = True,
     duration: bool = True,
     max_votes: bool = True,
