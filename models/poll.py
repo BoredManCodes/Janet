@@ -75,23 +75,6 @@ async def sanity_check(ctx: InteractionContext) -> bool:
         channel = ctx.channel.parent_channel
     channel_perms = channel.permissions_for(ctx.guild.me)
 
-    if Permissions.VIEW_CHANNEL not in channel_perms:
-        await ctx.send("I can't view my messages in this channel", ephemeral=True)
-        return False
-
-    if Permissions.EMBED_LINKS not in channel_perms:
-        await ctx.send(
-            "I can't manage embeds in this channel, please give me the `Embed Links` permission", ephemeral=True
-        )
-        return False
-
-    if Permissions.READ_MESSAGE_HISTORY not in channel_perms:
-        await ctx.send(
-            "I can't read message history in this channel, please give me the `Read Message History` permission",
-            ephemeral=True,
-        )
-        return False
-
     if ctx.kwargs.get("thread"):
         if isinstance(ctx.channel, ThreadChannel):
             await ctx.send("You can't make a thread inside a thread", ephemeral=True)
@@ -110,6 +93,12 @@ async def sanity_check(ctx: InteractionContext) -> bool:
         if Permissions.SEND_MESSAGES not in channel_perms:
             await ctx.send(
                 "Unable to use `close_message` in this channel - Please enable the `send_messages` permission in this channel",
+                ephemeral=True,
+            )
+            return False
+        if Permissions.READ_MESSAGE_HISTORY not in channel_perms:
+            await ctx.send(
+                "Unable to use `close_message` in this channel - Please enable the `read_message_history` permission in this channel",
                 ephemeral=True,
             )
             return False
