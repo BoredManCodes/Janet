@@ -52,6 +52,7 @@ class CreatePolls(Extension):
                 return await m_ctx.send("You did not provide any options!", ephemeral=True)
 
             poll = await PollData.from_ctx(ctx, m_ctx)
+            await m_ctx.send("Poll created!", ephemeral=True)
         else:
             preset = ctx.kwargs["preset_options"]
             poll = await PollData.from_ctx(ctx)
