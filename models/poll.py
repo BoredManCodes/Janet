@@ -430,25 +430,11 @@ class PollData(ClientObject):
 
     def option_parser(self, author: Snowflake_Type, opt_name: str, _emoji: str | None = None) -> PollOption:
         if not _emoji:
-            if data := emoji_regex.findall(opt_name):
-                parsed = tuple(filter(None, data[0]))
-                if len(parsed) == 3:
-                    _emoji = PartialEmoji(name=parsed[1], id=parsed[2], animated=True)
-                    opt_name = opt_name.replace(str(_emoji), "")
-                elif len(parsed) == 2:
-                    _emoji = PartialEmoji(name=parsed[0], id=parsed[1], animated=False)
-                    opt_name = opt_name.replace(str(_emoji), "")
-                else:
-                    _name = emoji_lib.emojize(opt_name, language="alias")
-                    _emoji_list = emoji_lib.distinct_emoji_list(_name)
-                    if _emoji_list:
-                        _emoji = _emoji_list[0]
-                        opt_name = emoji_lib.replace_emoji(_name, replace="")
-            else:
-                _emoji_list = emoji_lib.distinct_emoji_list(opt_name)
-                if _emoji_list:
-                    _emoji = _emoji_list[0]
-                    opt_name = emoji_lib.replace_emoji(opt_name, replace="")
+            possible_emoji = opt_name.split(" ")[0]
+            _emoji = PartialEmoji.from_str(possible_emoji)
+            if _emoji:
+                _emoji = _emoji.req_format
+                opt_name = " ".join(opt_name.split(" ")[1:])
 
         return PollOption(
             opt_name.strip(), _emoji or default_emoji[len(self.poll_options)], author_id=to_snowflake(author)
