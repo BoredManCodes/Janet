@@ -25,6 +25,7 @@ from naff import (
 )
 from naff.client.errors import NotFound, Forbidden
 from naff.client.utils import no_export_meta
+from naff.client.utils.serializer import _to_dict_any
 from naff.models import (
     Snowflake_Type,
     Embed,
@@ -124,6 +125,7 @@ class PollData(ClientObject):
     poll_options: list[PollOption] = attr.ib(
         factory=list,
         converter=lambda options: [PollOption.deserialize(o) if not isinstance(o, PollOption) else o for o in options],
+        metadata={"export_converter": str},
     )
 
     max_votes: int | None = attr.ib(default=None)
@@ -148,9 +150,9 @@ class PollData(ClientObject):
 
     poll_type: str = attr.ib(default="default")
     _expired: bool = attr.ib(default=False)
-    deleted: bool = attr.ib(default=False)
+    deleted: bool = attr.ib(default=False, metadata=no_export_meta)
     closed: bool = attr.ib(default=False)
-    lock: asyncio.Lock = attr.ib(factory=asyncio.Lock)
+    lock: asyncio.Lock = attr.ib(factory=asyncio.Lock, metadata=no_export_meta)
     # todo: future polls: as cool as this is, its ugly. refactor pls :(
     latest_context: InteractionContext = attr.ib(default=MISSING, init=False, metadata=no_export_meta)
 
@@ -607,12 +609,12 @@ class PollData(ClientObject):
                     if self._vote(option, ctx.author):
                         log.info(f"Added vote to {self.message_id}")
                         embed = Embed(self.vote_added_text, color=BrandColors.GREEN)
-                        embed.add_field("Option", f"⬆️ `{option.emoji} {option.text}`")
+                        embed.add_field("Option", f"⬆️ {option.emoji} `{option.text}`")
                         await ctx.send(embed=embed, ephemeral=True)
                     else:
                         log.info(f"Removed vote from {self.message_id}")
                         embed = Embed(self.vote_removed_text, color=BrandColors.GREEN)
-                        embed.add_field("Option", f"⬇️ `{option.emoji} {option.text}`")
+                        embed.add_field("Option", f"⬇️ {option.emoji} `{option.text}`")
                         await ctx.send(embed=embed, ephemeral=True)
                     self._client.dispatch(PollVote(self, ctx.guild.id))
         except Forbidden:

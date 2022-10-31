@@ -70,7 +70,6 @@ class PollOption:
             possible_emoji = opt_name.split(" ")[0]
             _emoji = PartialEmoji.from_str(possible_emoji)
             if _emoji:
-                _emoji = _emoji.req_format
+                emoji = str(_emoji)
                 opt_name = " ".join(opt_name.split(" ")[1:])
-
         return cls(opt_name.strip(), emoji or default_emoji[len(poll.poll_options)], author_id=to_snowflake(author))
