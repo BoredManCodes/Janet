@@ -146,7 +146,6 @@ class PollData(ClientObject):
     _sent_close_message: bool = attr.ib(default=False)
 
     expire_time: datetime = attr.ib(default=MISSING, converter=deserialize_datetime)
-    schedule_time: datetime = attr.ib(default=MISSING, converter=deserialize_datetime)
 
     poll_type: str = attr.ib(default="default")
     _expired: bool = attr.ib(default=False)
@@ -458,13 +457,8 @@ class PollData(ClientObject):
         if attachment := kwargs.get("image"):
             new_cls.image_url = attachment.url
 
-        if schedule := kwargs.get("schedule"):
-            new_cls.schedule = process_duration(schedule)
-
         if duration := kwargs.get("duration"):
-            new_cls.expire_time = process_duration(
-                duration, start_time=new_cls.schedule_time if new_cls.schedule else None
-            )
+            new_cls.expire_time = process_duration(duration)
 
         new_cls._client.dispatch(PollCreate(new_cls))
 
