@@ -14,7 +14,8 @@ from naff import (
 )
 
 from models.emoji import default_emoji
-from models.poll import PollData, PollOption
+from models.poll import PollData
+from models.poll_option import PollOption
 
 
 class EliminationPoll(PollData):

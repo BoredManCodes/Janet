@@ -4,7 +4,8 @@ import attrs
 from naff import InteractionContext, context_menu, CommandTypes, MISSING, Embed, BrandColors, Permissions
 
 from extensions.shared import ExtensionBase
-from models.poll import PollOption, PollData
+from models.poll import PollData
+from models.poll_option import PollOption
 
 log = logging.getLogger("Inquiry")
 

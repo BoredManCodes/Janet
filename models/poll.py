@@ -7,7 +7,6 @@ from contextlib import suppress
 from typing import Union, TYPE_CHECKING
 
 import attr
-import emoji as emoji_lib
 import naff
 import orjson
 from naff import (
@@ -39,16 +38,16 @@ from naff.models import (
     InteractionContext,
 )
 from naff.models.discord.base import ClientObject
-from naff.models.discord.emoji import emoji_regex, PartialEmoji
 
 from const import process_duration
 from models.emoji import default_emoji
 from models.events import PollCreate, PollClose, PollVote
+from models.poll_option import PollOption
 
 if TYPE_CHECKING:
     pass
 
-__all__ = ("deserialize_datetime", "PollData", "PollOption", "sanity_check")
+__all__ = ("deserialize_datetime", "PollData", "sanity_check")
 
 log = logging.getLogger("Inquiry")
 
@@ -109,57 +108,6 @@ async def sanity_check(ctx: InteractionContext) -> bool:
     return True
 
 
-@attr.s(auto_attribs=True, on_setattr=[attr.setters.convert, attr.setters.validate])
-class PollOption:
-    text: str
-    emoji: str
-    voters: set[Snowflake_Type] = attr.ib(factory=set, converter=set)
-    style: int = attr.ib(default=1)
-    eliminated: bool = attr.ib(default=False)
-    author_id: Snowflake_Type = None
-
-    @property
-    def inline_text(self) -> str:
-        return f"{self.text[:15].strip()}" + ("..." if len(self.text) > 15 else "")
-
-    def create_bar(self, total_votes, *, size: int = 12) -> str:
-        show_counters = total_votes < 1000
-        if total_votes != 0:
-            percentage = len(self.voters) / total_votes
-            filled_length = size * percentage
-
-            prog_bar_str = "▓" * int(filled_length)
-
-            if len(prog_bar_str) != size:
-                prog_bar_str += "░" * (size - len(prog_bar_str))
-        else:
-            prog_bar_str = "░" * size
-            return f"{prog_bar_str} - 0% (0 votes)"
-        vote_string = f" ({len(self.voters):,} vote{'s' if len(self.voters) != 1 else ''})"
-        return f"{prog_bar_str} - {percentage:.0%}{vote_string if show_counters else ''}"
-
-    def has_voted(self, user_id: Snowflake_Type) -> bool:
-        return user_id in self.voters
-
-    def vote(self, author_id: Snowflake_Type) -> bool:
-        if author_id not in self.voters:
-            self.voters.add(author_id)
-            return True
-        else:
-            self.voters.remove(author_id)
-            return False
-
-    @classmethod
-    def deserialize(cls, data: dict) -> "PollOption":
-        if isinstance(data, PollOption):
-            return data
-
-        if emoji := data.get("emoji"):
-            if isinstance(emoji, dict):
-                data["emoji"] = PartialEmoji.from_dict(emoji)
-        return cls(**data)
-
-
 @attr.s(auto_attribs=True, on_setattr=[attr.setters.convert, attr.setters.validate], kw_only=True)
 class PollData(ClientObject):
     title: str
@@ -196,6 +144,8 @@ class PollData(ClientObject):
     _sent_close_message: bool = attr.ib(default=False)
 
     expire_time: datetime = attr.ib(default=MISSING, converter=deserialize_datetime)
+    schedule_time: datetime = attr.ib(default=MISSING, converter=deserialize_datetime)
+
     poll_type: str = attr.ib(default="default")
     _expired: bool = attr.ib(default=False)
     deleted: bool = attr.ib(default=False)
@@ -426,19 +376,7 @@ class PollData(ClientObject):
         if len(self.poll_options) >= len(default_emoji):
             raise ValueError("Poll has reached max options")
 
-        self.poll_options.append(self.option_parser(author, opt_name, _emoji))
-
-    def option_parser(self, author: Snowflake_Type, opt_name: str, _emoji: str | None = None) -> PollOption:
-        if not _emoji:
-            possible_emoji = opt_name.split(" ")[0]
-            _emoji = PartialEmoji.from_str(possible_emoji)
-            if _emoji:
-                _emoji = _emoji.req_format
-                opt_name = " ".join(opt_name.split(" ")[1:])
-
-        return PollOption(
-            opt_name.strip(), _emoji or default_emoji[len(self.poll_options)], author_id=to_snowflake(author)
-        )
+        self.poll_options.append(PollOption.parse(self, author, opt_name, _emoji))
 
     def parse_message(self, msg: Message) -> None:
         self.channel_id = msg.channel.id
@@ -518,8 +456,13 @@ class PollData(ClientObject):
         if attachment := kwargs.get("image"):
             new_cls.image_url = attachment.url
 
+        if schedule := kwargs.get("schedule"):
+            new_cls.schedule = process_duration(schedule)
+
         if duration := kwargs.get("duration"):
-            new_cls.expire_time = process_duration(duration)
+            new_cls.expire_time = process_duration(
+                duration, start_time=new_cls.schedule_time if new_cls.schedule else None
+            )
 
         new_cls._client.dispatch(PollCreate(new_cls))
 
