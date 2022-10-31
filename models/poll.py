@@ -23,7 +23,7 @@ from naff import (
     EmbedField,
     to_snowflake,
 )
-from naff.client.errors import NotFound, Forbidden
+from naff.client.errors import NotFound, Forbidden, HTTPException
 from naff.client.utils import no_export_meta
 from naff.client.utils.serializer import _to_dict_any
 from naff.models import (
@@ -153,7 +153,7 @@ class PollData(ClientObject):
     closed: bool = attr.ib(default=False)
     lock: asyncio.Lock = attr.ib(factory=asyncio.Lock, metadata=no_export_meta)
     # todo: future polls: as cool as this is, its ugly. refactor pls :(
-    latest_context: InteractionContext = attr.ib(default=MISSING, init=False, metadata=no_export_meta)
+    latest_context: InteractionContext | None = attr.ib(default=MISSING, init=False, metadata=no_export_meta)
 
     def as_dict(self) -> dict:
         data = {
@@ -523,8 +523,9 @@ class PollData(ClientObject):
 
             try:
                 await message.edit(embeds=self.embed, components=self.get_components(), context=self.latest_context)
-            except (NotFound, Forbidden) as e:
+            except (NotFound, Forbidden, HTTPException) as e:
                 if "interaction" in str(e):
+                    self.latest_context = MISSING
                     await message.edit(embeds=self.embed, components=self.get_components())
                 raise e from None
         except NotFound:
