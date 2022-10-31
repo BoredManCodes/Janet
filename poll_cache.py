@@ -10,8 +10,7 @@ from asyncpg import Record, Pool
 from naff import Snowflake_Type, Task, IntervalTrigger
 from naff.client.errors import Forbidden
 from naff.client.utils import TTLCache
-from nafftrack.stats import BUCKETS
-from prometheus_client import Gauge, Histogram
+from prometheus_client import Gauge
 
 from models.elimination_poll import EliminationPoll
 from models.guild_data import GuildData, GuildDataPayload

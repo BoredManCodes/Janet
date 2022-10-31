@@ -59,9 +59,9 @@ class Dev(Extension):
 
         try:
             out = await self.bot.wait_for_component(
-                messages=[message], check=lambda c: c.context.author.id == ctx.author.id
+                messages=[message], check=lambda c: c.ctx.author.id == ctx.author.id
             )
-            button_ctx = out.context
+            button_ctx = out.ctx
 
             if button_ctx.custom_id == "yes":
                 await button_ctx.defer()

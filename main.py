@@ -23,7 +23,7 @@ from naff import (
     BrandColors,
     Embed,
 )
-from naff.api.events import Button, ModalResponse, GuildLeft, GuildJoin
+from naff.api.events import ButtonPressed, ModalCompletion, GuildLeft, GuildJoin, RawGatewayEvent
 from naff.api.events.processors._template import Processor
 from naff.client.errors import NotFound, Forbidden
 from naff.models.naff.application_commands import context_menu, slash_command
@@ -111,7 +111,6 @@ class Bot(StatsClient):
         bot.load_extension("extensions.admin")
         bot.load_extension("extensions.bot_lists")
         bot.load_extension("extensions.help")
-        bot.load_extension("extensions.analytics")
         bot.load_extension("extensions.moderation")
         bot.load_extension("extensions.elimination")
 
@@ -158,8 +157,8 @@ class Bot(StatsClient):
         await ctx.send("Thank you!\nhttps://forms.gle/6NDMJQXqmWL8fQVm6")
 
     @listen()
-    async def on_modal_response(self, event: ModalResponse) -> Any:
-        ctx = event.context
+    async def on_modal_response(self, event: ModalCompletion) -> Any:
+        ctx = event.ctx
         ids = ctx.custom_id.split("|")
         if len(ids) == 2:
             await ctx.defer(ephemeral=True)
@@ -177,8 +176,8 @@ class Bot(StatsClient):
             return await ctx.send("That poll could not be edited")
 
     @listen()
-    async def on_button(self, event: Button) -> Any:
-        ctx: ComponentContext = event.context
+    async def on_button(self, event: ButtonPressed) -> Any:
+        ctx: ComponentContext = event.ctx
         if not self.poll_cache.ready.is_set():
             return await ctx.send("Inquiry is restarting. Please try again in a few seconds", ephemeral=True)
 
@@ -235,7 +234,7 @@ class Bot(StatsClient):
             return
         self.scheduler.add_job(
             self.update_poll,
-            trigger=DateTrigger(datetime.datetime.now() + datetime.timedelta(seconds=5)),
+            trigger=DateTrigger(datetime.datetime.now() + datetime.timedelta(seconds=1)),
             id=job_id,
             args=[message_id],
         )

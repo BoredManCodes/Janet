@@ -34,29 +34,79 @@ class CreatePolls(Extension):
         options=get_options_list(),
     )
     async def poll(self, ctx: InteractionContext) -> None:
-        modal = Modal(
-            "Create a poll!",
-            components=[
-                ParagraphText(
-                    "Options: ",
-                    placeholder="Start each option with a `-` ie: \n-Option 1\n-Option 2",
-                    custom_id="options",
-                )
-            ],
-        )
-        await ctx.send_modal(modal)
+        if not ctx.kwargs.get("preset_options"):
+            modal = Modal(
+                "Create a poll!",
+                components=[
+                    ParagraphText(
+                        "Options: ",
+                        placeholder="Start each option with a `-` ie: \n-Option 1\n-Option 2",
+                        custom_id="options",
+                    )
+                ],
+            )
+            await ctx.send_modal(modal)
 
-        m_ctx = await self.bot.wait_for_modal(modal, ctx.author)
-        if not m_ctx.kwargs["options"].strip():
-            return await m_ctx.send("You did not provide any options!", ephemeral=True)
+            m_ctx = await self.bot.wait_for_modal(modal, ctx.author)
+            if not m_ctx.kwargs["options"].strip():
+                return await m_ctx.send("You did not provide any options!", ephemeral=True)
 
-        poll = await PollData.from_ctx(ctx, m_ctx)
+            poll = await PollData.from_ctx(ctx, m_ctx)
+            await m_ctx.send("Poll created!", ephemeral=True)
+        else:
+            preset = ctx.kwargs["preset_options"]
+            poll = await PollData.from_ctx(ctx)
+            log.debug(f"Creating poll from preset: {ctx.kwargs['preset_options']}")
+
+            match preset.lower():
+                case "boolean":
+                    poll.add_option(ctx.author, "Yes", "✅")
+                    poll.add_option(ctx.author, "No", "❌")
+                case "week":
+                    options = [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday",
+                    ]
+                    for opt in options:
+                        poll.add_option(ctx.author, opt)
+                case "month":
+                    options = [
+                        "January",
+                        "February",
+                        "March",
+                        "April",
+                        "May",
+                        "June",
+                        "July",
+                        "August",
+                        "September",
+                        "October",
+                        "November",
+                        "December",
+                    ]
+                    for opt in options:
+                        poll.add_option(ctx.author, opt)
+                case "opinion":
+                    poll.add_option(ctx.author, "Agree", opinion_emoji[0])
+                    poll.add_option(ctx.author, "Neutral", opinion_emoji[1])
+                    poll.add_option(ctx.author, "Disagree", opinion_emoji[2])
+                case "rating":
+                    for i in range(0, 10):
+                        poll.add_option(ctx.author, str(i + 1))
+                case "rating_5":
+                    for i in range(0, 5):
+                        poll.add_option(ctx.author, str(i + 1))
+
         if not poll:
             return
 
         msg = await poll.send(ctx)
         await self.bot.set_poll(poll)
-        await m_ctx.send("To close the poll, react to it with 🔴", ephemeral=True)
 
     @slash_command(
         "poll_inline",
@@ -70,64 +120,6 @@ class CreatePolls(Extension):
         poll = await PollData.from_ctx(ctx)
         if not poll:
             return
-        msg = await poll.send(ctx)
-        await self.bot.set_poll(poll)
-
-    @slash_command(
-        "poll_boolean",
-        description="A poll with yes and no options",
-        options=get_options_list(),
-    )
-    async def prefab_boolean(self, ctx: InteractionContext) -> None:
-        poll = await PollData.from_ctx(ctx)
-        if not poll:
-            return
-
-        poll.add_option(ctx.author, "Yes", "✅")
-        poll.add_option(ctx.author, "No", "❌")
-
-        msg = await poll.send(ctx)
-        await self.bot.set_poll(poll)
-
-    @slash_command(
-        "poll_week",
-        description="A poll with options for each day of the week",
-        options=get_options_list(),
-    )
-    async def prefab_week(self, ctx: InteractionContext) -> None:
-        poll = await PollData.from_ctx(ctx)
-        if not poll:
-            return
-
-        options = [
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-            "Sunday",
-        ]
-        for opt in options:
-            poll.add_option(ctx.author, opt)
-
-        msg = await poll.send(ctx)
-        await self.bot.set_poll(poll)
-
-    @slash_command(
-        "poll_opinion",
-        description="A poll with agree, neutral, and disagree options",
-        options=get_options_list(),
-    )
-    async def prefab_opinion(self, ctx: InteractionContext) -> None:
-        poll = await PollData.from_ctx(ctx)
-        if not poll:
-            return
-
-        poll.add_option(ctx.author, "Agree", opinion_emoji[0])
-        poll.add_option(ctx.author, "Neutral", opinion_emoji[1])
-        poll.add_option(ctx.author, "Disagree", opinion_emoji[2])
-
         msg = await poll.send(ctx)
         await self.bot.set_poll(poll)
 

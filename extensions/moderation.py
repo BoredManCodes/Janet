@@ -52,9 +52,9 @@ class Moderation(ExtensionBase):
         prompt = await ctx.send(embed=embed, components=buttons, ephemeral=True)
         try:
             event: Component = await self.bot.wait_for_component(
-                messages=[prompt], timeout=20, check=lambda c: c.context.author.id == ctx.author.id
+                messages=[prompt], timeout=20, check=lambda c: c.ctx.author.id == ctx.author.id
             )
-            context = event.context
+            context = event.ctx
             if context.custom_id == "yes":
                 await context.defer(edit_origin=True)
                 return context

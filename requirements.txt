@@ -1,6 +1,7 @@
 asyncpg
 matplotlib
-git+https://github.com/NAFTeam/NAFF.git@dev#egg=naff
+git+https://github.com/artem30801/nafftrack.git
+git+https://github.com/NAFTeam/NAFF.git@2.x#egg=naff
 numpy
 orjson
 python-dotenv
@@ -8,5 +9,4 @@ pyyaml
 thefuzz[speedup]
 emoji
 apscheduler
-git+https://github.com/artem30801/nafftrack.git
 sentry_sdk
