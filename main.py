@@ -26,6 +26,7 @@ from naff import (
 from naff.api.events import ButtonPressed, ModalCompletion, GuildLeft, GuildJoin, RawGatewayEvent
 from naff.api.events.processors._template import Processor
 from naff.client.errors import NotFound, Forbidden
+from naff.client.smart_cache import create_cache
 from naff.models.naff.application_commands import context_menu, slash_command
 from nafftrack.client import StatsClient
 from prometheus_client import Gauge
@@ -60,6 +61,7 @@ class Bot(StatsClient):
             delete_unused_application_cmds=False,
             activity="with an update...",
             status=Status.DND,
+            voice_state_cache=create_cache(0, 0, 0),
         )
         self.poll_cache: PollCache = MISSING
 
