@@ -39,18 +39,15 @@ __all__ = ("Bot",)
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(name)-15s %(filename)-20s|| %(message)s",
-    level=logging.DEBUG,
+    level=logging.INFO,
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 log = logging.getLogger("Inquiry")
-ap_log = logging.getLogger("apscheduler")
-ap_log.setLevel(logging.WARNING)
-naff_log = logging.getLogger("naff")
-naff_log.setLevel(logging.INFO)
-matplotlib_log = logging.getLogger("matplotlib")
-matplotlib_log.setLevel(logging.WARNING)
-asyncio_log = logging.getLogger("asyncio")
-asyncio_log.setLevel(logging.WARNING)
+logging.getLogger("apscheduler").setLevel(logging.WARNING)
+logging.getLogger("naff").setLevel(logging.INFO)
+logging.getLogger("matplotlib").setLevel(logging.WARNING)
+logging.getLogger("asyncio").setLevel(logging.WARNING)
+logging.getLogger("uvicorn.error").propagate = False  # this library really needs to learn how to use logging properly
 
 
 class Bot(StatsClient):
