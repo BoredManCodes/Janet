@@ -524,10 +524,11 @@ class PollData(ClientObject):
             try:
                 await message.edit(embeds=self.embed, components=self.get_components(), context=self.latest_context)
             except (NotFound, Forbidden, HTTPException) as e:
-                if "interaction" in str(e):
+                try:
                     self.latest_context = MISSING
                     await message.edit(embeds=self.embed, components=self.get_components())
-                raise e from None
+                except Exception as ex:
+                    raise ex from e
         except NotFound:
             log.warning(f"Poll {self.message_id} was not found in channel {self.channel_id} -- likely deleted by user")
         except Forbidden:
