@@ -1,6 +1,15 @@
 import attrs
 import yaml
-from naff import Extension, slash_command, InteractionContext, AutocompleteContext, slash_option, Embed, BrandColours
+from naff import (
+    Extension,
+    slash_command,
+    InteractionContext,
+    AutocompleteContext,
+    slash_option,
+    Embed,
+    BrandColours,
+    File,
+)
 from thefuzz import process
 
 
@@ -33,8 +42,10 @@ class HelpExtension(Extension):
                 _t = self.topics[topic]
                 embed = Embed(title=f"{_t.emoji} {_t.title}", description=_t.content, color=BrandColours.BLURPLE)
                 if _t.image:
-                    embed.set_image(url=_t.image)
-                await ctx.send(embed=embed)
+                    embed.set_image(url=f"attachment://{_t.image}")
+                await ctx.send(
+                    embed=embed, file=File(f"resources/{_t.image}", file_name=_t.image) if _t.image else None
+                )
 
             else:
                 await ctx.send(f"Unable to find the requested help topic: {topic}")

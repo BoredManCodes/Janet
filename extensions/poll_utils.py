@@ -156,9 +156,9 @@ class PollUtils(ExtensionBase):
                 3,
                 "The format to export the poll as",
                 choices=[
-                    SlashCommandChoice("csv", "csv"),
-                    SlashCommandChoice("json", "json"),
-                    SlashCommandChoice("yaml", "yaml"),
+                    SlashCommandChoice("csv  -- Spreadsheet formatting", "csv"),
+                    SlashCommandChoice("yaml -- Human-readable formatting", "yaml"),
+                    SlashCommandChoice("json -- Programmer formatting", "json"),
                 ],
             ),
         ],
@@ -206,7 +206,7 @@ class PollUtils(ExtensionBase):
                 3,
                 "The format to export the poll as",
                 choices=[
-                    SlashCommandChoice("Bar Graph", "bar"),
+                    SlashCommandChoice("Bar Chart", "bar"),
                     SlashCommandChoice("Pie Chart", "pie"),
                 ],
             ),
