@@ -82,6 +82,7 @@ class Admin(Extension):
 
         embed.add_field(name="Guilds", value=str(len(self.bot.guilds)), inline=True)
         embed.add_field(name="Cached Users", value=str(len(self.bot.cache.user_cache)), inline=True)
+        embed.add_field(name="Approx Users", value=f"{sum(g.member_count for g in self.bot.guilds):,}", inline=True)
         embed.add_field(name="Cached Polls", value=str(len(self.bot.poll_cache.polls)), inline=True)
         embed.add_field(name="Total Polls", value=str(await self.bot.poll_cache.get_total_polls()), inline=True)
         embed.add_field(name="Polls From This Guild", value=str(total_polls), inline=True)

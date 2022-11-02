@@ -131,7 +131,7 @@ class Bot(StatsClient):
     async def on_startup(self) -> Any:
         await self.poll_cache.ready.wait()
         log.info(f"Logged in as {self.user.username}")
-        log.info(f"Currently in {len(self.guilds)} guilds")
+        log.info(f"Currently in {len(self.guilds)} guilds | Approx {sum(g.member_count for g in self.guilds)} users")
         await self.change_presence(activity="with polls", status=Status.ONLINE)
 
     async def stop(self) -> None:
