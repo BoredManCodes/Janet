@@ -176,50 +176,55 @@ class Bot(StatsClient):
 
     @listen()
     async def on_button(self, event: ButtonPressed) -> Any:
-        ctx: ComponentContext = event.ctx
-        if not self.poll_cache.ready.is_set():
-            return await ctx.send("Inquiry is restarting. Please try again in a few seconds", ephemeral=True)
+        try:
+            ctx: ComponentContext = event.ctx
+            if not self.poll_cache.ready.is_set():
+                return await ctx.send("Inquiry is restarting. Please try again in a few seconds", ephemeral=True)
 
-        guild_data = await self.poll_cache.get_guild_data(ctx.guild.id)
-        if guild_data.blacklisted_users:
-            if ctx.author.id in guild_data.blacklisted_users:
-                return await ctx.send("This server's moderators have disabled your ability to vote", ephemeral=True)
+            guild_data = await self.poll_cache.get_guild_data(ctx.guild.id)
+            if guild_data.blacklisted_users:
+                if ctx.author.id in guild_data.blacklisted_users:
+                    return await ctx.send("This server's moderators have disabled your ability to vote", ephemeral=True)
 
-        if ctx.custom_id == "add_option":
-            if poll := (
-                await self.poll_cache.get_poll(ctx.message.id) or await self.poll_cache.get_poll(ctx.channel.id)
-            ):
-                if poll.voting_role:
-                    if not ctx.author.has_role(poll.voting_role):
-                        return await ctx.send("You do not have permission to add options to this poll", ephemeral=True)
-                log.info("Opening add-option modal")
-                return await ctx.send_modal(
-                    Modal(
-                        "Add Option",
-                        [ShortText(label="Option", custom_id="new_option")],
-                        custom_id="add_option_modal|{}".format(poll.message_id),
+            if ctx.custom_id == "add_option":
+                if poll := (
+                    await self.poll_cache.get_poll(ctx.message.id) or await self.poll_cache.get_poll(ctx.channel.id)
+                ):
+                    if poll.voting_role:
+                        if not ctx.author.has_role(poll.voting_role):
+                            return await ctx.send(
+                                "You do not have permission to add options to this poll", ephemeral=True
+                            )
+                    log.info("Opening add-option modal")
+                    return await ctx.send_modal(
+                        Modal(
+                            "Add Option",
+                            [ShortText(label="Option", custom_id="new_option")],
+                            custom_id="add_option_modal|{}".format(poll.message_id),
+                        )
                     )
-                )
-            else:
-                return await ctx.send("Cannot add options to that poll", ephemeral=True)
-        elif "poll_option" in ctx.custom_id:
-            await ctx.defer(ephemeral=True)
-            if poll := (
-                await self.poll_cache.get_poll(ctx.message.id) or await self.poll_cache.get_poll(ctx.channel.id)
-            ):
-                await poll.vote(ctx)
-            else:
-                # likely a legacy or deleted poll
-                log.warning(f"Could not find poll with message id {ctx.message.id} or {ctx.channel.id}")
-                await ctx.send("That poll could not be edited 😕")
-        elif "vote_to_view" in ctx.custom_id:
-            await ctx.defer(ephemeral=True)
-            if poll := (
-                await self.poll_cache.get_poll(ctx.message.id) or await self.poll_cache.get_poll(ctx.channel.id)
-            ):
-                if not poll.has_voted(ctx.author):
-                    return await ctx.send("You must vote to view the results", ephemeral=True)
-                await ctx.send(embed=poll.results_embed)
+                else:
+                    return await ctx.send("Cannot add options to that poll", ephemeral=True)
+            elif "poll_option" in ctx.custom_id:
+                await ctx.defer(ephemeral=True)
+                if poll := (
+                    await self.poll_cache.get_poll(ctx.message.id) or await self.poll_cache.get_poll(ctx.channel.id)
+                ):
+                    await poll.vote(ctx)
+                else:
+                    # likely a legacy or deleted poll
+                    log.warning(f"Could not find poll with message id {ctx.message.id} or {ctx.channel.id}")
+                    await ctx.send("That poll could not be edited 😕")
+            elif "vote_to_view" in ctx.custom_id:
+                await ctx.defer(ephemeral=True)
+                if poll := (
+                    await self.poll_cache.get_poll(ctx.message.id) or await self.poll_cache.get_poll(ctx.channel.id)
+                ):
+                    if not poll.has_voted(ctx.author):
+                        return await ctx.send("You must vote to view the results", ephemeral=True)
+                    await ctx.send(embed=poll.results_embed)
+        except Forbidden as e:
+            log.warning(f"Could not respond to button press | Likely archived thread", exc_info=e)
 
     @listen()
     async def on_poll_vote(self, event: PollVote):
@@ -380,6 +385,8 @@ class Bot(StatsClient):
                         log.info(f"Sent thanks message to {channel.guild.id}")
                     except Forbidden:
                         log.warning(f"Could not send thanks message to {channel.guild.id} (no permissions)")
+        except NotFound as e:
+            log.warning(f"Could not send thanks message to {channel_id}", exc_info=e)
         except Exception as e:
             log.error("Error sending thanks message", exc_info=e)
 
