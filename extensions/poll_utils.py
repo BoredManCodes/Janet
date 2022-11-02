@@ -172,6 +172,7 @@ class PollUtils(ExtensionBase):
                 await ctx.defer()
 
                 async with poll.lock:
+                    await poll.cache_all_voters()
                     if all(len(opt.voters) == 0 for opt in poll.poll_options):
                         await ctx.send("No votes have been cast yet!")
                         return
@@ -220,6 +221,8 @@ class PollUtils(ExtensionBase):
                 await ctx.defer()
 
                 async with poll.lock:
+                    await poll.cache_all_voters()
+
                     if all(len(opt.voters) == 0 for opt in poll.poll_options):
                         await ctx.send("No votes have been cast yet!")
                         return
