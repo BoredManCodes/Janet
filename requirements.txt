@@ -1,7 +1,7 @@
 asyncpg
 matplotlib
 git+https://github.com/artem30801/nafftrack.git
-git+https://github.com/NAFTeam/NAFF.git@2.x#egg=naff
+git+https://github.com/NAFTeam/NAFF.git@emoji-tweaks#egg=naff
 numpy
 orjson
 python-dotenv
