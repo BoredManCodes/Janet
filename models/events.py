@@ -5,6 +5,7 @@ from naff.api.events import BaseEvent
 
 if TYPE_CHECKING:
     from models.poll import PollData
+    from naff import InteractionContext
 
 
 @define(slots=False)
@@ -14,6 +15,7 @@ class PollEvent(BaseEvent):
 
 @define(slots=False)
 class PollCreate(PollEvent):
+    ctx: "InteractionContext" = field()
     ...
 
 

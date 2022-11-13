@@ -2,7 +2,19 @@ import logging
 import os
 
 import aiohttp
-from naff import Extension, Task, IntervalTrigger, InteractionContext, slash_command
+from naff import (
+    Extension,
+    Task,
+    IntervalTrigger,
+    InteractionContext,
+    slash_command,
+    listen,
+    Embed,
+    Button,
+    ButtonStyles,
+)
+
+from models.events import PollCreate
 
 log = logging.getLogger("Inquiry")
 
@@ -21,6 +33,8 @@ class BotLists(Extension):
             self.top_gg.start()
         else:
             log.warning("No top_gg_token provided, not posting to top.gg")
+
+        self.pester_throttle: dict[int, int] = {}
 
     @Task.create(IntervalTrigger(minutes=5))
     async def discord_bots_gg(self) -> None:
@@ -64,6 +78,44 @@ class BotLists(Extension):
             )
         else:
             await ctx.send("Voting has been temporarily disabled", ephemeral=True)
+
+    @listen("on_poll_create")
+    async def vote_beg(self, event: PollCreate):
+        if self.top_gg_token:
+            async with aiohttp.ClientSession(headers={"Authorization": self.top_gg_token}) as session:
+                resp = await session.get(
+                    f"https://top.gg/api/bots/{self.bot.app.id}/check?userId={event.poll.author_id}"
+                )
+                if resp.status == 200:
+                    data = await resp.json()
+                    if data["voted"] == 0:
+                        if self.pester_throttle.get(event.poll.author_id, 0) >= 3:
+                            log.info(f"3 polls created by {event.poll.author_id} without voting, pestering")
+                            embed = Embed(
+                                "We all hate vote begging, but...",
+                                description="Votes help keep the bot alive and growing; and it looks like you can vote for the bot right now!",
+                                color=0xD23358,
+                            )
+                            embed.set_footer(
+                                "Inquiry will never restrict features based on votes - but votes are necessary"
+                            )
+                            button = Button(
+                                ButtonStyles.LINK,
+                                label="Vote",
+                                url="https://top.gg/bot/{}/vote".format(self.bot.app.id),
+                                emoji="<a:top_gg_spin:1041471838108258324>",
+                            )
+                            await event.ctx.send(embed=embed, components=button, ephemeral=True)
+                            self.pester_throttle[event.poll.author_id] = 0
+                        else:
+                            # keep from pestering the user
+                            if not self.pester_throttle.get(event.poll.author_id, 0):
+                                self.pester_throttle[event.poll.author_id] = 1
+                            else:
+                                self.pester_throttle[event.poll.author_id] += 1
+
+                    else:
+                        self.pester_throttle[event.poll.author_id] = 0
 
 
 def setup(bot):
