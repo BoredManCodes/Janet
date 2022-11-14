@@ -580,58 +580,86 @@ class PollData(ClientObject):
                 await ctx.send("This poll is closing - your vote will not be counted", ephemeral=True)
                 return
             else:
-                async with self.lock:
-                    if (
-                        self.voting_role
-                        and self.voting_role != ctx.guild_id
-                        and not ctx.author.has_role(self.voting_role)
-                    ):
-                        return await ctx.send("You do not have permission to vote in this poll", ephemeral=True)
-                    option_index = int(ctx.custom_id.removeprefix("poll_option|"))
-                    option = self.poll_options[option_index]
+                if self.voting_role and self.voting_role != ctx.guild_id and not ctx.author.has_role(self.voting_role):
+                    return await ctx.send("You do not have permission to vote in this poll", ephemeral=True)
+                option_index = int(ctx.custom_id.removeprefix("poll_option|"))
+                option = self.poll_options[option_index]
 
-                    if self.single_vote:
+                if self.single_vote:
+                    async with self.lock:
                         for _o in self.poll_options:
                             if _o != option:
                                 if ctx.author.id in _o.voters:
                                     _o.voters.remove(ctx.author.id)
                                     if _o.eliminated:
                                         _o.eliminated = False
-                    elif self.max_votes is not None:
-                        voted_options = self.get_user_votes(ctx.author.id)
+                elif self.max_votes is not None:
+                    voted_options = self.get_user_votes(ctx.author.id)
 
-                        if len(voted_options) >= self.max_votes:
-                            if not option.has_voted(ctx.author.id):
-                                log.warning(
-                                    f"{self.message_id}|{ctx.author.id} tried to vote for more than the max votes allowed"
-                                )
-                                embed = Embed(
-                                    "You have already voted for the maximum number of options",
-                                    color=BrandColors.RED,
-                                )
-                                embed.add_field("Maximum Votes", self.max_votes)
-                                embed.add_field(
-                                    "Your Votes", ", ".join([f"`{o.emoji} {o.text}`" for o in voted_options])
-                                )
-                                embed.add_field("To remove a vote", "Vote again for the option you want to remove")
-                                return await ctx.send(embed=embed, ephemeral=True)
+                    if len(voted_options) >= self.max_votes:
+                        if not option.has_voted(ctx.author.id):
+                            log.warning(
+                                f"{self.message_id}|{ctx.author.id} tried to vote for more than the max votes allowed"
+                            )
+                            embed = Embed(
+                                "You have already voted for the maximum number of options",
+                                color=BrandColors.RED,
+                            )
+                            embed.add_field("Maximum Votes", self.max_votes)
+                            embed.add_field("Your Votes", ", ".join([f"`{o.emoji} {o.text}`" for o in voted_options]))
+                            embed.add_field("To remove a vote", "Vote again for the option you want to remove")
+                            return await ctx.send(embed=embed, ephemeral=True)
 
-                    if not await self._vote_check(ctx, option):
-                        return
+                if not await self._vote_check(ctx, option):
+                    return
 
-                    if self._vote(option, ctx.author):
-                        log.info(f"Added vote to {self.message_id}")
-                        embed = Embed(self.vote_added_text, color=BrandColors.GREEN)
-                        embed.add_field("Option", f"⬆️ {option.emoji} `{option.text}`")
-                        await ctx.send(embed=embed, ephemeral=True)
-                    else:
-                        log.info(f"Removed vote from {self.message_id}")
-                        embed = Embed(self.vote_removed_text, color=BrandColors.GREEN)
-                        embed.add_field("Option", f"⬇️ {option.emoji} `{option.text}`")
-                        await ctx.send(embed=embed, ephemeral=True)
-                    self._client.dispatch(PollVote(self, ctx.guild.id))
+                if option.has_voted(ctx.author.id):
+                    await self.remove_vote_confirmation(ctx, option)
+                else:
+                    async with self.lock:
+                        self._vote(option, ctx.author)
+                    log.info(f"Added vote to {self.message_id}")
+                    embed = Embed(self.vote_added_text, color=BrandColors.GREEN)
+                    embed.add_field("Option", f"⬆️ {option.emoji} `{option.text}`")
+                    await ctx.send(embed=embed, ephemeral=True)
+                self._client.dispatch(PollVote(self, ctx.guild.id))
         except Forbidden:
             pass
+
+    async def remove_vote_confirmation(self, ctx: InteractionContext, option: PollOption):
+        embed = Embed(
+            color=BrandColors.RED,
+            description=f"You have already voted for {option.emoji} {option.text}\nWould you like to remove your vote?",
+        )
+        message = await ctx.send(
+            embed=embed,
+            components=[
+                Button(ButtonStyles.GREEN, label="Yes", custom_id="poll_remove_vote|yes"),
+                Button(ButtonStyles.RED, label="No", custom_id="poll_remove_vote|no"),
+            ],
+            ephemeral=True,
+        )
+        try:
+            out = await self._client.wait_for_component(
+                [message], timeout=30, check=lambda i: i.ctx.author.id == ctx.author.id
+            )
+        except asyncio.TimeoutError:
+            await ctx.edit(message, embed=Embed("Timed out", color=BrandColors.RED), components=[])
+        else:
+            if out.ctx.custom_id == "poll_remove_vote|yes":
+                async with self.lock:
+                    self._vote(option, ctx.author)
+                    log.info(f"Removed vote from {self.message_id}")
+                embed = Embed(self.vote_removed_text, color=BrandColors.GREEN)
+                embed.add_field("Option", f"⬇️ {option.emoji} `{option.text}`")
+
+                await ctx.edit(
+                    message,
+                    embed=embed,
+                    components=[],
+                )
+            else:
+                await ctx.edit(message, embed=Embed("Vote not removed", color=BrandColors.RED), components=[])
 
     def has_voted(self, user: Snowflake_Type) -> bool:
         user = to_snowflake(user)
