@@ -106,6 +106,13 @@ async def sanity_check(ctx: InteractionContext) -> bool:
     if ctx.kwargs.get("vote_to_view", None) is True and ctx.kwargs.get("hide_results") is False:
         await ctx.send("You cannot enable `vote_to_view` and disable `hide_results`", ephemeral=True)
         return False
+
+    if ctx.kwargs.get("hide_author", False) is True:
+        user_perms = ctx.channel.permissions_for(ctx.author)
+        if Permissions.MANAGE_MESSAGES not in user_perms:
+            await ctx.send("You must have the `manage_messages` permission to hide the author", ephemeral=True)
+            return False
+
     return True
 
 
@@ -121,6 +128,7 @@ class PollData(ClientObject):
 
     author_name: str = attr.ib(default=MISSING)
     author_avatar: str = attr.ib(default=MISSING)
+    author_hidden: bool = attr.ib(default=False)
 
     poll_options: list[PollOption] = attr.ib(
         factory=list,
@@ -338,7 +346,10 @@ class PollData(ClientObject):
 
         e.description = "\n".join(description)
 
-        e.set_footer(f"Asked by {self.author_name}", icon_url=self.author_avatar)
+        if self.author_hidden:
+            e.set_footer(text=f"Asked by Server Staff", icon_url=self.author_avatar)
+        else:
+            e.set_footer(f"Asked by {self.author_name}", icon_url=self.author_avatar)
 
         if self.expired:
             name = f" • Asked by {self.author_name}" if self.author_name else ""
@@ -412,7 +423,13 @@ class PollData(ClientObject):
             voting_role=to_optional_snowflake(kwargs.get("voting_role", None)),
             anonymous=kwargs.get("anonymous", False),
             proportional_results=kwargs.get("proportional_results", False),
+            author_hidden=kwargs.get("hide_author", False),
         )
+        if new_cls.author_hidden:
+            if ctx.guild.icon:
+                new_cls.author_avatar = ctx.guild.icon.url
+            else:
+                new_cls.author_avatar = ctx.bot.user.avatar.url
 
         # handle discord not allowing mentions in titles
         for channel_id in channel_mention.findall(new_cls.title):

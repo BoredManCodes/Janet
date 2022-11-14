@@ -167,6 +167,12 @@ OPT_INLINE_OPTIONS = SlashCommandOption(
     "Options for your poll. Separated with `|`. ie 'opt1 | opt2 | opt3'",
     required=True,
 )
+OPT_HIDE_AUTHOR = SlashCommandOption(
+    "hide_author",
+    OptionTypes.BOOLEAN,
+    "Hide the author of the poll (default False)",
+    required=False,
+)
 
 get_options_list = [
     OPT_TITLE,
@@ -185,6 +191,7 @@ get_options_list = [
     OPT_INLINE,
     OPT_IMAGE,
     OPT_CLOSE_MESSAGE,
+    OPT_HIDE_AUTHOR,
 ]
 
 
@@ -206,6 +213,7 @@ def get_options_list(
     inline: bool = True,
     image: bool = True,
     close_message: bool = True,
+    hide_author: bool = True,
 ) -> list[SlashCommandOption]:
     to_process = locals()
 
