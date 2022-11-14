@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import logging
 import os
 from asyncio import Event
@@ -243,6 +244,18 @@ class PollCache:
             async with self.db.acquire() as conn:
                 await conn.execute(query, *payload.values())
                 log.debug("Updated guild data: %s", payload["id"])
+
+    async def get_user(self, user_id: Snowflake_Type) -> dict:
+        data = await self.db.fetchrow("SELECT * FROM polls.users WHERE id = $1", int(user_id))
+        if data:
+            return dict(data)
+
+    async def set_user(self, user_id: Snowflake_Type, last_vote: datetime.datetime | None) -> None:
+        await self.db.execute(
+            "INSERT INTO polls.users (id, last_vote) VALUES ($1, $2) ON CONFLICT(id) DO UPDATE SET last_vote = $2;",
+            int(user_id),
+            last_vote,
+        )
 
     async def _update_stats(self):
         await self.bot.wait_until_ready()

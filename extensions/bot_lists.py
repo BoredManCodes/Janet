@@ -1,3 +1,4 @@
+import datetime
 import logging
 import os
 
@@ -33,8 +34,6 @@ class BotLists(Extension):
             self.top_gg.start()
         else:
             log.warning("No top_gg_token provided, not posting to top.gg")
-
-        self.pester_throttle: dict[int, int] = {}
 
     @Task.create(IntervalTrigger(minutes=5))
     async def discord_bots_gg(self) -> None:
@@ -79,43 +78,48 @@ class BotLists(Extension):
         else:
             await ctx.send("Voting has been temporarily disabled", ephemeral=True)
 
+    async def has_voted(self, user_id: int) -> bool:
+        data = await self.bot.poll_cache.get_user(user_id)
+        if data:
+            # if last_vote within the last 3 days
+            if data["last_vote"] and (datetime.datetime.now() - data["last_vote"]).days < 7:
+                return True
+            return False
+
+        # fallback to REST
+        async with aiohttp.ClientSession(headers={"Authorization": self.top_gg_token}) as session:
+            resp = await session.get(f"https://top.gg/api/bots/{self.bot.app.id}/check?userId={user_id}")
+            if resp.status == 200:
+                data = await resp.json()
+                if data["voted"] == 1:
+                    await self.bot.poll_cache.set_user(user_id, datetime.datetime.now())
+                    return True
+                else:
+                    await self.bot.poll_cache.set_user(user_id, None)
+                    return False
+            else:
+                log.warning(f"Failed to check top.gg vote status: {resp.status} {resp.reason}")
+                return True
+
     @listen("on_poll_create")
     async def vote_beg(self, event: PollCreate):
         if self.top_gg_token:
-            async with aiohttp.ClientSession(headers={"Authorization": self.top_gg_token}) as session:
-                resp = await session.get(
-                    f"https://top.gg/api/bots/{self.bot.app.id}/check?userId={event.poll.author_id}"
+            if not await self.has_voted(event.poll.author_id):
+                embed = Embed(
+                    "We all hate vote begging, but...",
+                    description="Votes help keep the bot alive and growing; and it looks like you can vote for the bot right now!",
+                    color=0xD23358,
                 )
-                if resp.status == 200:
-                    data = await resp.json()
-                    if data["voted"] == 0:
-                        if self.pester_throttle.get(event.poll.author_id, 0) >= 3:
-                            log.info(f"3 polls created by {event.poll.author_id} without voting, pestering")
-                            embed = Embed(
-                                "We all hate vote begging, but...",
-                                description="Votes help keep the bot alive and growing; and it looks like you can vote for the bot right now!",
-                                color=0xD23358,
-                            )
-                            embed.set_footer(
-                                "Inquiry will never restrict features based on votes - but votes are necessary"
-                            )
-                            button = Button(
-                                ButtonStyles.LINK,
-                                label="Vote",
-                                url="https://top.gg/bot/{}/vote".format(self.bot.app.id),
-                                emoji="<a:top_gg_spin:1041471838108258324>",
-                            )
-                            await event.ctx.send(embed=embed, components=button, ephemeral=True)
-                            self.pester_throttle[event.poll.author_id] = 0
-                        else:
-                            # keep from pestering the user
-                            if not self.pester_throttle.get(event.poll.author_id, 0):
-                                self.pester_throttle[event.poll.author_id] = 1
-                            else:
-                                self.pester_throttle[event.poll.author_id] += 1
-
-                    else:
-                        self.pester_throttle[event.poll.author_id] = 0
+                embed.set_footer(
+                    "Inquiry will never restrict features based on votes - voting will disable this message for 7 days."
+                )
+                button = Button(
+                    ButtonStyles.LINK,
+                    label="Vote",
+                    url="https://top.gg/bot/{}/vote".format(self.bot.app.id),
+                    emoji="<a:top_gg_spin:1041471838108258324>",
+                )
+                await event.ctx.send(embed=embed, components=button, ephemeral=True)
 
 
 def setup(bot):

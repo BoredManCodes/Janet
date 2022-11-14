@@ -460,8 +460,6 @@ class PollData(ClientObject):
         if duration := kwargs.get("duration"):
             new_cls.expire_time = process_duration(duration)
 
-        new_cls._client.dispatch(PollCreate(new_cls))
-
         return new_cls
 
     async def send(self, context: InteractionContext) -> Message:
@@ -476,6 +474,8 @@ class PollData(ClientObject):
 
             if self.expire_time:
                 await context.bot.schedule_close(self)
+
+            self._client.dispatch(PollCreate(self, context))
 
             return msg
         except Exception:
