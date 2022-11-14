@@ -1,0 +1,22 @@
+FROM python:3.11.0
+
+# we want stdout
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# add the path to pythonpath
+ENV PYTHONPATH "${PYTHONPATH}:/app"
+
+# install uvloop for faster asyncio
+RUN pip3.11 install uvloop
+
+# install the requirements
+COPY ./requirements.txt /app/requirements.txt
+RUN pip3.11 install -r /app/requirements.txt --upgrade
+
+# copy over the source files
+COPY webhook_rcv.py /app/webhook_rcv.py
+
+# start the bot
+WORKDIR /app
+ENTRYPOINT ["python3.11", "webhook_rcv.py"]
