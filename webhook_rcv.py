@@ -32,7 +32,7 @@ class DB:
         try:
             cursor = self.db.cursor()
             cursor.execute(
-                "INSERT INTO polls.users (id, last_vote) VALUES (%s, %s) ON CONFLICT (id) DO UPDATE SET last_vote = %s",
+                "INSERT INTO polls.users (id, last_vote, webhook) VALUES (%s, %s, true) ON CONFLICT (id) DO UPDATE SET last_vote = %s, webhook = true;",
                 (id, last_vote, last_vote),
             )
             self.db.commit()
