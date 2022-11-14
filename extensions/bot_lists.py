@@ -81,7 +81,7 @@ class BotLists(Extension):
     async def has_voted(self, user_id: int) -> bool:
         data = await self.bot.poll_cache.get_user(user_id)
         if data:
-            # if last_vote within the last 3 days
+            # if last_vote within the last 7 days
             if data["last_vote"] and (datetime.datetime.now() - data["last_vote"]).days < 7:
                 return True
             return False
@@ -91,6 +91,7 @@ class BotLists(Extension):
             resp = await session.get(f"https://top.gg/api/bots/{self.bot.app.id}/check?userId={user_id}")
             if resp.status == 200:
                 data = await resp.json()
+                log.debug(f"Polled vote state for {user_id} over REST: {data}")
                 if data["voted"] == 1:
                     await self.bot.poll_cache.set_user(user_id, datetime.datetime.now())
                     return True
@@ -104,6 +105,10 @@ class BotLists(Extension):
     @listen("on_poll_create")
     async def vote_beg(self, event: PollCreate):
         if self.top_gg_token:
+            if (datetime.datetime.now(datetime.timezone.utc) - event.ctx.guild.me.joined_at).days < 5:
+                # if the bot joined less than 5 days ago, don't pester for votes
+                return
+
             if not await self.has_voted(event.poll.author_id):
                 embed = Embed(
                     "We all hate vote begging, but...",
