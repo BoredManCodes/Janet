@@ -15,7 +15,7 @@ COPY ./requirements.txt /app/requirements.txt
 RUN pip3.11 install -r /app/requirements.txt --upgrade
 
 # copy over the source files
-COPY webhook_rcv.py /app/webhook_rcv.py
+COPY ./ /app/
 
 # start the bot
 WORKDIR /app
