@@ -43,6 +43,7 @@ class PollCache:
         self._polls_cached = Gauge("cached_polls", "How many polls are in the cache")
         self._total_polls = Gauge("total_polls", "How many polls are in the database")
         self._thanked_guilds = Gauge("thanked_guilds", "How many guilds have received a thank you message")
+        self._votes_this_week = Gauge("voters_this_week", "How many users have cast votes this week")
 
         task = Task.create(IntervalTrigger(seconds=30))(self._update_stats)
         task.start()
@@ -267,4 +268,7 @@ class PollCache:
             self._total_polls.set(await conn.fetchval("SELECT COUNT(*) FROM polls.poll_data"))
             self._thanked_guilds.set(
                 await conn.fetchval("SELECT COUNT(*) FROM polls.guild_data WHERE thank_you_sent is true")
+            )
+            self._votes_this_week.set(
+                await conn.fetchval("SELECT COUNT(*) FROM polls.users WHERE last_vote > NOW() - INTERVAL '7 days'")
             )

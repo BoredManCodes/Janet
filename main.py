@@ -72,6 +72,7 @@ class Bot(StatsClient):
         self._vote_analytics = Gauge(
             "inquiry_vote", "Analytics of how many votes have been cast", labelnames=["guild_name"]
         )
+        self.approx_users = Gauge("inquiry_users", "Approximate number of users")
 
     # override naff processors to prevent api calls
 
@@ -132,6 +133,7 @@ class Bot(StatsClient):
         await self.poll_cache.ready.wait()
         log.info(f"Logged in as {self.user.username}")
         log.info(f"Currently in {len(self.guilds)} guilds | Approx {sum(g.member_count for g in self.guilds)} users")
+        self.approx_users.set(sum(g.member_count for g in self.guilds))
         await self.change_presence(activity="with polls", status=Status.ONLINE)
 
     async def stop(self) -> None:
@@ -393,6 +395,7 @@ class Bot(StatsClient):
     @listen()
     async def on_guild_remove(self, event: GuildLeft) -> None:
         if self.is_ready:
+            self.approx_users.set(sum(g.member_count for g in self.guilds))
             try:
                 async with self.poll_cache.db.acquire() as conn:
                     total_polls = await conn.fetchval(
@@ -411,6 +414,8 @@ class Bot(StatsClient):
             # this guild is blacklisted, leave
             await event.guild.leave()
             log.warning(f"Bot was invited to blacklisted guild {event.guild.id} - leaving")
+        if self.is_ready:
+            self.approx_users.set(sum(g.member_count for g in self.guilds))
 
 
 if __name__ == "__main__":
