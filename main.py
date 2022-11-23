@@ -22,6 +22,8 @@ from naff import (
     Status,
     BrandColors,
     Embed,
+    GuildText,
+    Permissions,
 )
 from naff.api.events import ButtonPressed, ModalCompletion, GuildLeft, GuildJoin, RawGatewayEvent
 from naff.api.events.processors._template import Processor
@@ -350,7 +352,7 @@ class Bot(StatsClient):
 
     async def send_thanks_message(self, channel_id: Snowflake_Type) -> None:
         try:
-            channel = await self.cache.fetch_channel(channel_id)
+            channel: GuildText = await self.cache.fetch_channel(channel_id)
             if channel:
                 guild_data = await self.poll_cache.get_guild_data(channel.guild.id)
                 if guild_data is None or guild_data.thank_you_sent:
@@ -360,33 +362,36 @@ class Bot(StatsClient):
                 )
 
                 if total_polls >= 3:
-                    embed = Embed(title="Thanks for using Inquiry!", color=BrandColors.BLURPLE)
-                    vote_command = self.interactions[0].get("vote")
-                    help_command = self.interactions[0].get("help")
+                    if Permissions.SEND_MESSAGES in channel.permissions_for(channel.guild.me):
+                        embed = Embed(title="Thanks for using Inquiry!", color=BrandColors.BLURPLE)
+                        vote_command = self.interactions[0].get("vote")
+                        help_command = self.interactions[0].get("help")
 
-                    description = [
-                        "I hope you've enjoyed using it so far. Please excuse this shameless plug message.",
-                        "",
-                        f"If you have any questions; use {self.server.mention()}",
-                        f"If you have feedback; use {self.feedback.mention()}",
-                        f"If you want to help the bot grow; use {vote_command.mention()}",
-                        f"For help guides; use {help_command.mention()}",
-                        "",
-                        "Otherwise, enjoy the bot!",
-                    ]
+                        description = [
+                            "I hope you've enjoyed using it so far. Please excuse this shameless plug message.",
+                            "",
+                            f"If you have any questions; use {self.server.mention()}",
+                            f"If you have feedback; use {self.feedback.mention()}",
+                            f"If you want to help the bot grow; use {vote_command.mention()}",
+                            f"For help guides; use {help_command.mention()}",
+                            "",
+                            "Otherwise, enjoy the bot!",
+                        ]
 
-                    embed.description = "\n".join(description)
-                    embed.set_footer(
-                        text="This is the only time Inquiry will send a message like this",
-                        icon_url=self.user.avatar.url,
-                    )
-                    try:
-                        await channel.send(embed=embed)
-                        guild_data.thank_you_sent = True
-                        await self.poll_cache.set_guild_data(guild_data)
-                        log.info(f"Sent thanks message to {channel.guild.id}")
-                    except Forbidden:
-                        log.warning(f"Could not send thanks message to {channel.guild.id} (no permissions)")
+                        embed.description = "\n".join(description)
+                        embed.set_footer(
+                            text="This is the only time Inquiry will send a message like this",
+                            icon_url=self.user.avatar.url,
+                        )
+                        try:
+                            await channel.send(embed=embed)
+                            guild_data.thank_you_sent = True
+                            await self.poll_cache.set_guild_data(guild_data)
+                            log.info(f"Sent thanks message to {channel.guild.id}")
+                            return
+                        except Forbidden:
+                            pass
+                    log.warning(f"Could not send thanks message to {channel.guild.id} (no permissions)")
         except NotFound as e:
             log.warning(f"Could not send thanks message to {channel_id}", exc_info=e)
         except Exception as e:
