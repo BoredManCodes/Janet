@@ -112,8 +112,11 @@ class EditPolls(ExtensionBase):
                 message = await self.bot.cache.fetch_message(poll.channel_id, poll.message_id)
                 if message:
                     async with poll.lock:
-                        poll.add_option(ctx.author, option)
-
+                        try:
+                            poll.add_option(ctx.author, option)
+                        except ValueError:
+                            await ctx.send("This poll cannot have any more options", ephemeral=True)
+                            return
                         await poll.update_messages()
 
                         await ctx.send(f"Added `{option}` to `{poll.title}`")

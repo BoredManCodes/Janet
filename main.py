@@ -171,7 +171,14 @@ class Bot(StatsClient):
             message_id = ctx.custom_id.split("|")[1]
             if poll := await self.poll_cache.get_poll(message_id):
                 async with poll.lock:
-                    poll.add_option(ctx.author, ctx.responses["new_option"])
+                    try:
+                        poll.add_option(ctx.author, ctx.responses["new_option"])
+                    except ValueError:
+                        await ctx.send(
+                            f"This poll already has {len(poll.poll_options)} options. You cannot add another",
+                            ephemeral=True,
+                        )
+                        return
 
                     self.schedule_update(poll.message_id)
                 log.info(f"Added option to {message_id}")
@@ -199,14 +206,17 @@ class Bot(StatsClient):
                             return await ctx.send(
                                 "You do not have permission to add options to this poll", ephemeral=True
                             )
-                    log.info("Opening add-option modal")
-                    return await ctx.send_modal(
-                        Modal(
-                            "Add Option",
-                            [ShortText(label="Option", custom_id="new_option")],
-                            custom_id="add_option_modal|{}".format(poll.message_id),
+                    if len(poll.poll_options) != poll.maximum_options:
+                        log.info("Opening add-option modal")
+                        return await ctx.send_modal(
+                            Modal(
+                                "Add Option",
+                                [ShortText(label="Option", custom_id="new_option")],
+                                custom_id="add_option_modal|{}".format(poll.message_id),
+                            )
                         )
-                    )
+                    else:
+                        return await ctx.send("This poll already has the maximum number of options", ephemeral=True)
                 else:
                     return await ctx.send("Cannot add options to that poll", ephemeral=True)
             elif "poll_option" in ctx.custom_id:

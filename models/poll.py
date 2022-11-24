@@ -194,6 +194,10 @@ class PollData(ClientObject):
             votes += len(o.voters)
         return votes
 
+    @property
+    def maximum_options(self) -> int:
+        return len(default_emoji)
+
     def get_colour(self, *, ignore_expired: bool = False) -> Color:
         if self.expired and not ignore_expired:
             return MaterialColors.GREY
@@ -385,7 +389,7 @@ class PollData(ClientObject):
         return spread_to_rows(*buttons)
 
     def add_option(self, author: Snowflake_Type, opt_name: str, _emoji: str | None = None) -> None:
-        if len(self.poll_options) >= len(default_emoji):
+        if len(self.poll_options) >= self.maximum_options:
             raise ValueError("Poll has reached max options")
 
         self.poll_options.append(PollOption.parse(self, author, opt_name, _emoji))
