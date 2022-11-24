@@ -534,18 +534,21 @@ class PollData(ClientObject):
 
     async def update_messages(self):
         self.reallocate_emoji()
+        interaction_context = None
+
+        if self.latest_context:
+            age = (Timestamp.now() - Timestamp.from_snowflake(self.latest_context.interaction_id)).total_seconds()
+            if age < 890:  # 15 minutes minus 10 seconds
+                interaction_context = self.latest_context
 
         try:
             message = await self._client.cache.fetch_message(self.channel_id, self.message_id)
 
             try:
-                await message.edit(embeds=self.embed, components=self.get_components(), context=self.latest_context)
-            except (NotFound, Forbidden, HTTPException) as e:
-                try:
-                    self.latest_context = MISSING
+                await message.edit(embeds=self.embed, components=self.get_components(), context=interaction_context)
+            except (NotFound, Forbidden, HTTPException):
+                if interaction_context:
                     await message.edit(embeds=self.embed, components=self.get_components())
-                except Exception as ex:
-                    raise ex from e
         except NotFound:
             log.warning(f"Poll {self.message_id} was not found in channel {self.channel_id} -- likely deleted by user")
         except Forbidden:
