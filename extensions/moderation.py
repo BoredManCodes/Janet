@@ -20,7 +20,7 @@ from naff import (
 from naff.api.events import Component
 
 from extensions.shared import ExtensionBase, OPT_find_poll
-from models.poll import PollData
+from models.poll_default import DefaultPoll
 
 
 class Moderation(ExtensionBase):
@@ -29,7 +29,7 @@ class Moderation(ExtensionBase):
 
     @staticmethod
     def poll_autocomplete_predicate(ctx: AutocompleteContext):
-        def predicate(poll: PollData):
+        def predicate(poll: DefaultPoll):
             return not poll.expired
 
         return predicate

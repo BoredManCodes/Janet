@@ -4,14 +4,14 @@ import attrs
 from naff import InteractionContext, context_menu, CommandTypes, MISSING, Embed, BrandColors, Permissions
 
 from extensions.shared import ExtensionBase
-from models.poll import PollData
+from models.poll_default import DefaultPoll
 from models.poll_option import PollOption
 
 log = logging.getLogger("Inquiry")
 
 
 class Elimination(ExtensionBase):
-    async def eliminate(self, ctx: InteractionContext, poll: PollData, highest=True) -> None:
+    async def eliminate(self, ctx: InteractionContext, poll: DefaultPoll, highest=True) -> None:
         await ctx.defer()
         if poll.author_id != ctx.author.id:
             if ctx.author.has_permission(Permissions.MANAGE_MESSAGES):

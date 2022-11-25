@@ -34,7 +34,7 @@ from nafftrack.client import StatsClient
 from prometheus_client import Gauge
 
 from models.events import PollVote
-from models.poll import PollData, sanity_check
+from models.poll_default import DefaultPoll, sanity_check
 from poll_cache import PollCache
 
 __all__ = ("Bot",)
@@ -127,7 +127,7 @@ class Bot(StatsClient):
 
         await bot.astart(token)
 
-    async def set_poll(self, poll: PollData) -> None:
+    async def set_poll(self, poll: DefaultPoll) -> None:
         await self.poll_cache.store_poll(poll)
 
     @listen()
@@ -274,7 +274,7 @@ class Bot(StatsClient):
             log.error(f"Error updating poll {message_id}", exc_info=e)
             return
 
-    async def schedule_open(self, poll: PollData) -> None:
+    async def schedule_open(self, poll: DefaultPoll) -> None:
         if poll.open_time and poll.pending:
             if poll.open_time < datetime.datetime.now():
                 log.warning(f"Poll {poll.message_id} was scheduled to open in the past - opening now")
@@ -290,7 +290,7 @@ class Bot(StatsClient):
             )
             log.info(f"Scheduled poll {poll.message_id} to open at {poll.open_time}")
 
-    async def schedule_close(self, poll: PollData) -> None:
+    async def schedule_close(self, poll: DefaultPoll) -> None:
         if poll.expire_time and not poll.closed:
             try:
                 self.scheduler.reschedule_job(job_id=str(poll.message_id), trigger=DateTrigger(poll.expire_time))

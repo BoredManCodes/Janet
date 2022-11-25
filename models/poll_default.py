@@ -48,7 +48,7 @@ from models.poll_option import PollOption
 if TYPE_CHECKING:
     pass
 
-__all__ = ("deserialize_datetime", "PollData", "sanity_check")
+__all__ = ("deserialize_datetime", "DefaultPoll", "sanity_check")
 
 log = logging.getLogger("Inquiry")
 
@@ -120,7 +120,7 @@ async def sanity_check(ctx: InteractionContext) -> bool:
 
 
 @attr.s(auto_attribs=True, on_setattr=[attr.setters.convert, attr.setters.validate], kw_only=True)
-class PollData(ClientObject):
+class DefaultPoll(ClientObject):
     title: str
     author_id: Snowflake_Type
     description: str = attr.ib(default=None)
@@ -412,14 +412,14 @@ class PollData(ClientObject):
         self.poll_options.append(PollOption.parse(self, author, opt_name, _emoji))
 
     @classmethod
-    async def from_ctx(cls, ctx: InteractionContext, m_ctx: ModalContext | None = None) -> Union["PollData", bool]:
+    async def from_ctx(cls, ctx: InteractionContext, m_ctx: ModalContext | None = None) -> Union["DefaultPoll", bool]:
         if not await sanity_check(ctx):
             return False
 
         kwargs = ctx.kwargs
         if m_ctx:
             kwargs |= m_ctx.kwargs
-        new_cls: "PollData" = cls(
+        new_cls: "DefaultPoll" = cls(
             client=ctx.bot,
             title=kwargs.get("title"),
             description=kwargs.get("description", None),

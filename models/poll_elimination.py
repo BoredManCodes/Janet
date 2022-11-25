@@ -14,13 +14,13 @@ from naff import (
 )
 
 from models.emoji import default_emoji
-from models.poll import PollData
+from models.poll_default import DefaultPoll
 from models.poll_option import PollOption
 
 
-class EliminationPoll(PollData):
+class EliminationPoll(DefaultPoll):
     @classmethod
-    async def from_ctx(cls, *args, **kwargs) -> Union["PollData", bool]:
+    async def from_ctx(cls, *args, **kwargs) -> Union["DefaultPoll", bool]:
         new_cls = await super().from_ctx(*args, **kwargs)
         new_cls.poll_type = "elimination"
         return new_cls

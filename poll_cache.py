@@ -13,9 +13,9 @@ from naff.client.errors import Forbidden
 from naff.client.utils import TTLCache, TTLItem
 from prometheus_client import Gauge
 
-from models.elimination_poll import EliminationPoll
+from models.poll_elimination import EliminationPoll
 from models.guild_data import GuildData, GuildDataPayload
-from models.poll import PollData
+from models.poll_default import DefaultPoll
 
 log = logging.getLogger("Inquiry")
 
@@ -61,7 +61,7 @@ class PollCache:
 
             log.info(f"Connected to postgres as {db_credentials['user']}")
             log.debug("Writing sanity check to database")
-            test_poll = PollData(
+            test_poll = DefaultPoll(
                 client=bot,
                 title="test",
                 author_id=1234,
@@ -97,7 +97,7 @@ class PollCache:
         )
         return query
 
-    async def __write_poll(self, poll: PollData):
+    async def __write_poll(self, poll: DefaultPoll):
         if isinstance(poll, TTLItem):
             # edge case where a TTLItem is passed in
             poll = poll.value
@@ -149,7 +149,7 @@ class PollCache:
             data["poll_type"] = "default"
         return data
 
-    async def deserialize_poll(self, data: Record, *, store: bool = True) -> PollData:
+    async def deserialize_poll(self, data: Record, *, store: bool = True) -> DefaultPoll:
         try:
             if poll := self.polls.get(data["message_id"]):
                 # prevent edge case data loss
@@ -163,7 +163,7 @@ class PollCache:
                 case "elimination":
                     poll = EliminationPoll.from_dict(data, self.bot)
                 case _:
-                    poll = PollData.from_dict(data, self.bot)
+                    poll = DefaultPoll.from_dict(data, self.bot)
 
             if not poll.author_name or not poll.author_avatar or poll.author_name == "Unknown":
                 try:
@@ -187,7 +187,7 @@ class PollCache:
         except (ValueError, KeyError, TypeError) as e:
             log.warning(f"Failed to fetch poll: {data['message_id']}", exc_info=e)
 
-    async def __fetch_poll(self, message_id: Snowflake_Type) -> PollData | None:
+    async def __fetch_poll(self, message_id: Snowflake_Type) -> DefaultPoll | None:
         async with self.db.acquire() as conn:
             poll = await conn.fetchrow("SELECT * FROM polls.poll_data WHERE message_id = $1", int(message_id))
         if poll:
@@ -195,17 +195,17 @@ class PollCache:
             return await self.deserialize_poll(poll)
         return None
 
-    async def get_poll(self, message_id: Snowflake_Type) -> PollData | None:
+    async def get_poll(self, message_id: Snowflake_Type) -> DefaultPoll | None:
         if poll := self.polls.get(message_id):
             return poll
         return await self.__fetch_poll(message_id)
 
-    async def get_polls_by_guild(self, guild_id: Snowflake_Type) -> list[PollData]:
+    async def get_polls_by_guild(self, guild_id: Snowflake_Type) -> list[DefaultPoll]:
         async with self.db.acquire() as conn:
             polls = await conn.fetch("SELECT * FROM polls.poll_data WHERE guild_id = $1", int(guild_id))
         return [await self.deserialize_poll(p, store=True) for p in polls]
 
-    async def store_poll(self, poll: PollData) -> None:
+    async def store_poll(self, poll: DefaultPoll) -> None:
         async with poll.lock:
             self.polls[poll.message_id] = poll
             await self.__write_poll(poll)

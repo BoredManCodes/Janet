@@ -10,9 +10,9 @@ from naff import (
 )
 
 from extensions.shared import get_options_list
-from models.elimination_poll import EliminationPoll
+from models.poll_elimination import EliminationPoll
 from models.emoji import opinion_emoji
-from models.poll import PollData
+from models.poll_default import DefaultPoll
 
 if TYPE_CHECKING:
     from main import Bot
@@ -51,13 +51,13 @@ class CreatePolls(Extension):
             if not m_ctx.kwargs["options"].strip():
                 return await m_ctx.send("You did not provide any options!", ephemeral=True)
 
-            poll = await PollData.from_ctx(ctx, m_ctx)
+            poll = await DefaultPoll.from_ctx(ctx, m_ctx)
             if not poll:
                 return
             await m_ctx.send("Poll created!", ephemeral=True)
         else:
             preset = ctx.kwargs["preset_options"]
-            poll = await PollData.from_ctx(ctx)
+            poll = await DefaultPoll.from_ctx(ctx)
             if not poll:
                 return
             log.debug(f"Creating poll from preset: {ctx.kwargs['preset_options']}")
@@ -121,7 +121,7 @@ class CreatePolls(Extension):
         raw_options = ctx.kwargs["options"]
         ctx.kwargs["options"] = [o.strip() for o in raw_options.split("|")]
 
-        poll = await PollData.from_ctx(ctx)
+        poll = await DefaultPoll.from_ctx(ctx)
         if not poll:
             return
         msg = await poll.send(ctx)
@@ -133,7 +133,7 @@ class CreatePolls(Extension):
         options=get_options_list(open_poll=False),
     )
     async def prefab_blank(self, ctx: InteractionContext) -> None:
-        poll = await PollData.from_ctx(ctx)
+        poll = await DefaultPoll.from_ctx(ctx)
         if not poll:
             return
 

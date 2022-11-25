@@ -17,7 +17,7 @@ from naff import (
 )
 from naff.models.naff import checks
 
-from models.poll import PollData
+from models.poll_default import DefaultPoll
 
 
 class Dev(Extension):
@@ -111,7 +111,7 @@ class Dev(Extension):
     async def reopen(self, ctx: InteractionContext, poll_id: int):
         await ctx.defer()
 
-        poll: PollData = await self.bot.poll_cache.get_poll(poll_id)
+        poll: DefaultPoll = await self.bot.poll_cache.get_poll(poll_id)
 
         if not poll:
             return await ctx.send("Poll not found")

@@ -15,7 +15,7 @@ from naff import (
 )
 from thefuzz import fuzz, process
 
-from models.poll import PollData
+from models.poll_default import DefaultPoll
 
 if TYPE_CHECKING:
     from main import Bot
@@ -239,20 +239,20 @@ def get_options_list(
 class ExtensionBase(Extension):
     bot: "Bot"
 
-    async def process_poll_option(self, ctx: InteractionContext, poll: str) -> PollData | None:
+    async def process_poll_option(self, ctx: InteractionContext, poll: str) -> DefaultPoll | None:
         try:
             poll = await self.bot.poll_cache.get_poll(to_snowflake(poll))
         except AttributeError as e:
             pass
         finally:
-            if not isinstance(poll, PollData):
+            if not isinstance(poll, DefaultPoll):
                 await ctx.send("Unable to find the requested poll!")
                 return None
             return poll
 
     @staticmethod
     def poll_autocomplete_predicate(ctx: AutocompleteContext):
-        def predicate(poll: PollData):
+        def predicate(poll: DefaultPoll):
             if poll.author_id == ctx.author.id:
                 return True
             if ctx.author.has_permission(Permissions.MANAGE_MESSAGES):
