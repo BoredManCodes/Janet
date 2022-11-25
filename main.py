@@ -34,7 +34,7 @@ from nafftrack.client import StatsClient
 from prometheus_client import Gauge
 
 from models.events import PollVote
-from models.poll_default import DefaultPoll, sanity_check
+from models.poll_default import DefaultPoll
 from poll_cache import PollCache
 
 __all__ = ("Bot",)
