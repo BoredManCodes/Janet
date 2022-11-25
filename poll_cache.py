@@ -132,10 +132,14 @@ class PollCache:
             await self.bot.wait_until_ready()
         log.info("Loading polls from database...")
         async with self.db.acquire() as conn:
-            polls = await conn.fetch("SELECT * FROM polls.poll_data WHERE expire_time IS NOT NULL AND EXPIRED IS FALSE")
+            polls = await conn.fetch(
+                "SELECT * FROM polls.poll_data WHERE (expire_time IS NOT NULL AND EXPIRED IS false) or (open_time IS NOT NULL AND pending IS true)"
+            )
 
         polls = [await self.deserialize_poll(p, store=False) for p in polls]
-        await asyncio.gather(*(self.bot.schedule_close(poll) for poll in polls))
+        await asyncio.gather(
+            *(self.bot.schedule_open(poll) if poll.pending else self.bot.schedule_close(poll) for poll in polls)
+        )
         self.ready.set()
 
     @staticmethod

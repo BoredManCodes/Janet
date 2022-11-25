@@ -274,6 +274,22 @@ class Bot(StatsClient):
             log.error(f"Error updating poll {message_id}", exc_info=e)
             return
 
+    async def schedule_open(self, poll: PollData) -> None:
+        if poll.open_time and poll.pending:
+            if poll.open_time < datetime.datetime.now():
+                log.warning(f"Poll {poll.message_id} was scheduled to open in the past - opening now")
+                await self.open_poll(poll.message_id)
+                return
+
+            self.scheduler.add_job(
+                self.open_poll,
+                trigger=DateTrigger(poll.open_time),
+                id=f"poll_open|{poll.message_id}",
+                args=[poll.message_id],
+                replace_existing=True,
+            )
+            log.info(f"Scheduled poll {poll.message_id} to open at {poll.open_time}")
+
     async def schedule_close(self, poll: PollData) -> None:
         if poll.expire_time and not poll.closed:
             try:
@@ -292,6 +308,19 @@ class Bot(StatsClient):
                 else:
                     await self.close_poll(poll.message_id)
                     log.warning(f"Poll {poll.message_id} already expired - closing immediately")
+
+    async def open_poll(self, message_id: Snowflake_Type) -> None:
+        poll = await self.poll_cache.get_poll(message_id)
+        if poll:
+            async with poll.lock:
+                poll._pending = False  # pylint: disable=protected-access
+                await poll.update_messages()
+            await self.poll_cache.store_poll(poll)
+
+            if poll.expire_time:
+                await self.schedule_close(poll)
+
+            log.info(f"Opened poll {poll.message_id}")
 
     async def close_poll(self, message_id, *, store=True, failed=False) -> None:
         poll = await self.poll_cache.get_poll(message_id)

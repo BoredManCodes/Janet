@@ -157,9 +157,11 @@ class PollData(ClientObject):
     _sent_close_message: bool = attr.ib(default=False)
 
     expire_time: datetime = attr.ib(default=MISSING, converter=deserialize_datetime)
+    open_time: datetime = attr.ib(default=MISSING, converter=deserialize_datetime)
 
     poll_type: str = attr.ib(default="default")
     _expired: bool = attr.ib(default=False)
+    _pending: bool = attr.ib(default=False)
     deleted: bool = attr.ib(default=False, metadata=no_export_meta)
     closed: bool = attr.ib(default=False)
     lock: asyncio.Lock = attr.ib(factory=asyncio.Lock, metadata=no_export_meta)
@@ -175,6 +177,15 @@ class PollData(ClientObject):
         data["poll_options"] = orjson.dumps(data.pop("poll_options")).decode()
         del data["deleted"]
         return data
+
+    @property
+    def pending(self) -> bool:
+        if self._pending:
+            return True
+        if self.open_time:
+            if self.open_time > datetime.datetime.now():
+                return True
+        return False
 
     @property
     def expired(self) -> bool:
@@ -345,7 +356,9 @@ class PollData(ClientObject):
         if len(self.poll_options) == 0:
             e.add_field("This poll has no options", "Be the first to add one with the `+` button!", inline=False)
 
-        if self.expire_time:
+        if self.open_time and self.pending:
+            description.append(f"• Opens {Timestamp.fromdatetime(self.open_time).format(TimestampStyles.RelativeTime)}")
+        elif self.expire_time:
             _c = "Closed" if self.expired else "Closes"
             description.append(
                 f"• {_c} {Timestamp.fromdatetime(self.expire_time).format(TimestampStyles.RelativeTime)}"
@@ -373,12 +386,13 @@ class PollData(ClientObject):
     def get_components(self, *, disable: bool = False) -> list[ActionRow]:
         if self.expired and not disable:
             return []
+        disable_buttons = self.expired or self.pending
+
         buttons = []
-        extra_buttons = []
 
         for i in range(len(self.poll_options)):
             buttons.append(
-                Button(1, emoji=self.poll_options[i].emoji, custom_id=f"poll_option|{i}", disabled=self.expired),
+                Button(1, emoji=self.poll_options[i].emoji, custom_id=f"poll_option|{i}", disabled=disable_buttons),
             )
         if self.vote_to_view and len(self.poll_options) < 25:
             buttons.append(
@@ -386,7 +400,7 @@ class PollData(ClientObject):
             )
         if self.open_poll and len(self.poll_options) < 25:
             buttons.append(
-                Button(ButtonStyles.SUCCESS, emoji="\U00002795", custom_id="add_option", disabled=self.expired)
+                Button(ButtonStyles.SUCCESS, emoji="\U00002795", custom_id="add_option", disabled=disable_buttons)
             )
 
         return spread_to_rows(*buttons)
@@ -477,8 +491,12 @@ class PollData(ClientObject):
         if attachment := kwargs.get("image"):
             new_cls.image_url = attachment.url
 
+        if open_time := kwargs.get("open_in"):
+            new_cls.open_time = process_duration(open_time)
+            new_cls._pending = True
+
         if duration := kwargs.get("duration"):
-            new_cls.expire_time = process_duration(duration)
+            new_cls.expire_time = process_duration(duration, start_time=new_cls.open_time)
 
         return new_cls
 
@@ -498,7 +516,9 @@ class PollData(ClientObject):
             if self.thread:
                 await msg.create_thread(self.title, reason=f"Poll created for {context.author.username}")
 
-            if self.expire_time:
+            if self.open_time:
+                await context.bot.schedule_open(self)
+            elif self.expire_time:
                 await context.bot.schedule_close(self)
 
             self._client.dispatch(PollCreate(self, context))
