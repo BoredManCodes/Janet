@@ -10,7 +10,7 @@ import orjson
 from asyncpg import Record, Pool
 from naff import Snowflake_Type, Task, IntervalTrigger
 from naff.client.errors import Forbidden
-from naff.client.utils import TTLCache
+from naff.client.utils import TTLCache, TTLItem
 from prometheus_client import Gauge
 
 from models.elimination_poll import EliminationPoll
@@ -98,6 +98,12 @@ class PollCache:
         return query
 
     async def __write_poll(self, poll: PollData):
+        if isinstance(poll, TTLItem):
+            # edge case where a TTLItem is passed in
+            poll = poll.value
+            if not poll:
+                return
+
         if poll.deleted:
             return
         serialised = poll.to_dict()
