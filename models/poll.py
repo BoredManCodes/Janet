@@ -112,6 +112,9 @@ async def sanity_check(ctx: InteractionContext) -> bool:
         if Permissions.MANAGE_MESSAGES not in user_perms:
             await ctx.send("You must have the `manage_messages` permission to hide the author", ephemeral=True)
             return False
+        if Permissions.SEND_MESSAGES not in channel_perms:
+            await ctx.send("I cannot hide the author if I cannot send messages", ephemeral=True)
+            return False
 
     return True
 
@@ -390,10 +393,6 @@ class PollData(ClientObject):
 
         self.poll_options.append(PollOption.parse(self, author, opt_name, _emoji))
 
-    def parse_message(self, msg: Message) -> None:
-        self.channel_id = msg.channel.id
-        self.message_id = msg.id
-
     @classmethod
     async def from_ctx(cls, ctx: InteractionContext, m_ctx: ModalContext | None = None) -> Union["PollData", bool]:
         if not await sanity_check(ctx):
@@ -482,12 +481,18 @@ class PollData(ClientObject):
     async def send(self, context: InteractionContext) -> Message:
         self.latest_context = context
         try:
-            msg = await context.send(embeds=self.embed, components=[] if self.expired else self.get_components())
-            self.parse_message(msg)
+            if self.author_hidden:
+                msg = await context.channel.send(
+                    embeds=self.embed, components=[] if self.expired else self.get_components()
+                )
+                await context.send(f"[Poll created]({msg.jump_url})", ephemeral=True)
+            else:
+                msg = await context.send(embeds=self.embed, components=[] if self.expired else self.get_components())
+
+            self.channel_id = msg.channel.id
+            self.message_id = msg.id
             if self.thread:
-                thread = await msg.create_thread(self.title, reason=f"Poll created for {context.author.username}")
-                # thread_msg = await thread.send(components=self.get_components(disable=True))
-                # self.thread_message_id = thread_msg.id
+                await msg.create_thread(self.title, reason=f"Poll created for {context.author.username}")
 
             if self.expire_time:
                 await context.bot.schedule_close(self)
@@ -496,6 +501,7 @@ class PollData(ClientObject):
 
             return msg
         except Exception:
+            await self._client.close_poll(self, failed=True)  # poll failed to send, close it
             raise
 
     async def send_close_message(self) -> None:

@@ -279,7 +279,7 @@ class Bot(StatsClient):
                     await self.close_poll(poll.message_id)
                     log.warning(f"Poll {poll.message_id} already expired - closing immediately")
 
-    async def close_poll(self, message_id, *, store=True):
+    async def close_poll(self, message_id, *, store=True, failed=False) -> None:
         poll = await self.poll_cache.get_poll(message_id)
         tasks = []
         if poll:
@@ -289,7 +289,8 @@ class Bot(StatsClient):
                 poll.expire_time = datetime.datetime.now()
 
                 tasks.append(poll.update_messages())
-                tasks.append(poll.send_close_message())
+                if not failed:
+                    tasks.append(poll.send_close_message())
                 poll.closed = True
 
                 if store:
