@@ -19,11 +19,14 @@ class InquiryServer(ExtensionBase):
         await ctx.defer()
         poll_ping = get(ctx.guild.roles, name="poll_pings")
         news_ping = get(ctx.guild.roles, name="news_pings")
+        preview_ping = get(ctx.guild.roles, name="preview_pings")
 
         if not poll_ping:
             poll_ping = await ctx.guild.create_role(name="poll_pings")
         if not news_ping:
             news_ping = await ctx.guild.create_role(name="news_pings")
+        if not preview_ping:
+            preview_ping = await ctx.guild.create_role(name="preview_pings")
 
         embed = Embed(
             "Roles", description="Press the buttons below to get pinged for polls and news!", color=BrandColors.BLURPLE
@@ -31,8 +34,9 @@ class InquiryServer(ExtensionBase):
         await ctx.send(
             embed=embed,
             components=[
-                Button(label="Poll Pings", custom_id="poll_pings", style=ButtonStyles.PRIMARY),
-                Button(label="News Pings", custom_id="news_pings", style=ButtonStyles.PRIMARY),
+                Button(label="Poll Pings", custom_id="poll_pings", style=ButtonStyles.PRIMARY, emoji="📊"),
+                Button(label="News Pings", custom_id="news_pings", style=ButtonStyles.PRIMARY, emoji="📰"),
+                Button(label="Preview Pings", custom_id="preview_pings", style=ButtonStyles.PRIMARY, emoji="🔮"),
             ],
         )
 
@@ -59,6 +63,18 @@ class InquiryServer(ExtensionBase):
         else:
             await ctx.author.add_role(news_ping)
             await ctx.send("Added news pings!")
+
+    @component_callback("preview_pings")
+    async def preview_pings(self, ctx: ComponentContext) -> None:
+        await ctx.defer(ephemeral=True)
+        preview_ping = get(ctx.guild.roles, name="preview_pings")
+
+        if preview_ping in ctx.author.roles:
+            await ctx.author.remove_role(preview_ping)
+            await ctx.send("Removed preview pings!")
+        else:
+            await ctx.author.add_role(preview_ping)
+            await ctx.send("Added preview pings!")
 
 
 def setup(bot):
