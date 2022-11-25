@@ -165,7 +165,7 @@ class Bot(StatsClient):
         ids = ctx.custom_id.split("|")
         if len(ids) == 2:
             await ctx.defer(ephemeral=True)
-            if not await sanity_check(ctx):
+            if not await self.sanity_check(ctx):
                 return
 
             message_id = ctx.custom_id.split("|")[1]

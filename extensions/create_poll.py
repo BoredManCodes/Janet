@@ -150,6 +150,7 @@ class CreatePolls(Extension):
             proportional=False,
             view_results=False,
             show_option_author=False,
+            preset=False,
         ),
     )
     async def prefab_elimination(self, ctx: InteractionContext) -> None:
