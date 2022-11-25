@@ -60,52 +60,11 @@ class CreatePolls(Extension):
             poll = await DefaultPoll.from_ctx(ctx)
             if not poll:
                 return
-            log.debug(f"Creating poll from preset: {ctx.kwargs['preset_options']}")
-
-            match preset.lower():
-                case "boolean":
-                    poll.add_option(ctx.author, "Yes", "✅")
-                    poll.add_option(ctx.author, "No", "❌")
-                case "week":
-                    options = [
-                        "Monday",
-                        "Tuesday",
-                        "Wednesday",
-                        "Thursday",
-                        "Friday",
-                        "Saturday",
-                        "Sunday",
-                    ]
-                    for opt in options:
-                        poll.add_option(ctx.author, opt)
-                case "month":
-                    options = [
-                        "January",
-                        "February",
-                        "March",
-                        "April",
-                        "May",
-                        "June",
-                        "July",
-                        "August",
-                        "September",
-                        "October",
-                        "November",
-                        "December",
-                    ]
-                    for opt in options:
-                        poll.add_option(ctx.author, opt)
-                case "opinion":
-                    poll.add_option(ctx.author, "Agree", opinion_emoji[0])
-                    poll.add_option(ctx.author, "Neutral", opinion_emoji[1])
-                    poll.add_option(ctx.author, "Disagree", opinion_emoji[2])
-                case "rating":
-                    for i in range(0, 10):
-                        poll.add_option(ctx.author, str(i + 1))
-                case "rating_5":
-                    for i in range(0, 5):
-                        poll.add_option(ctx.author, str(i + 1))
-
+            try:
+                poll.add_preset_options(preset, ctx.author)
+            except ValueError:
+                await ctx.send(f"{preset} is not a valid preset option!", ephemeral=True)
+                return
         if not poll:
             return
 
@@ -115,7 +74,7 @@ class CreatePolls(Extension):
     @slash_command(
         "poll_inline",
         description="Create a poll with inline options; this is to help with using emoji in polls",
-        options=get_options_list(inline_options=True),
+        options=get_options_list(inline_options=True, preset=False),
     )
     async def poll_inline(self, ctx: InteractionContext) -> None:
         raw_options = ctx.kwargs["options"]
@@ -130,7 +89,7 @@ class CreatePolls(Extension):
     @slash_command(
         "poll_blank",
         description="An open poll with no starting options",
-        options=get_options_list(open_poll=False),
+        options=get_options_list(open_poll=False, preset=False),
     )
     async def prefab_blank(self, ctx: InteractionContext) -> None:
         poll = await DefaultPoll.from_ctx(ctx)

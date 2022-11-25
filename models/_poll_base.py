@@ -38,7 +38,7 @@ from naff.client.utils import no_export_meta
 from naff.models.discord.base import ClientObject
 
 from const import process_duration
-from models.emoji import default_emoji
+from models.emoji import default_emoji, opinion_emoji
 from models.events import PollClose, PollCreate, PollVote
 from models.poll_option import PollOption
 
@@ -604,3 +604,52 @@ class BasePoll(ClientObject):
                 )
             else:
                 await ctx.edit(message, embed=Embed("Vote not removed", color=BrandColors.RED), components=[])
+
+    def add_preset_options(self, preset: str, author: Member):
+        log.debug(f"Creating poll from preset: {preset}")
+
+        match preset.lower():
+            case "boolean":
+                self.add_option(author, "Yes", "✅")
+                self.add_option(author, "No", "❌")
+            case "week":
+                options = [
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday",
+                    "Sunday",
+                ]
+                for opt in options:
+                    self.add_option(author, opt)
+            case "month":
+                options = [
+                    "January",
+                    "February",
+                    "March",
+                    "April",
+                    "May",
+                    "June",
+                    "July",
+                    "August",
+                    "September",
+                    "October",
+                    "November",
+                    "December",
+                ]
+                for opt in options:
+                    self.add_option(author, opt)
+            case "opinion":
+                self.add_option(author, "Agree", opinion_emoji[0])
+                self.add_option(author, "Neutral", opinion_emoji[1])
+                self.add_option(author, "Disagree", opinion_emoji[2])
+            case "rating":
+                for i in range(0, 10):
+                    self.add_option(author, str(i + 1))
+            case "rating_5":
+                for i in range(0, 5):
+                    self.add_option(author, str(i + 1))
+            case _:
+                raise ValueError("Invalid preset")
