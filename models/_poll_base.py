@@ -5,6 +5,7 @@ import re
 import textwrap
 from abc import abstractmethod
 from contextlib import suppress
+from enum import IntEnum
 from typing import TypeVar
 
 import attr
@@ -32,6 +33,8 @@ from naff import (
     Message,
     to_snowflake,
     Member,
+    StringSelectMenu,
+    SelectOption,
 )
 from naff.client.errors import Forbidden, NotFound, HTTPException
 from naff.client.utils import no_export_meta
@@ -48,6 +51,12 @@ log = logging.getLogger("Inquiry")
 channel_mention = re.compile(r"<#(\d{17,})>")
 role_mention = re.compile(r"<@&(\d{17,})")
 user_mention = re.compile(r"<@!?(\d{17,})>")
+
+
+class VoteInterface(IntEnum):
+    BUTTONS = 1
+    SELECT = 2
+    OPEN_TEXT = 3
 
 
 def deserialize_datetime(date) -> datetime.datetime:
@@ -98,6 +107,7 @@ class BasePoll(ClientObject):
     thread: bool = attr.ib(default=False)
     vote_to_view: bool = attr.ib(default=False)
     voting_role: Snowflake_Type | None = attr.ib(default=None)
+    vote_interface: VoteInterface = attr.ib(default=VoteInterface.BUTTONS, converter=VoteInterface)
 
     # time
     expire_time: datetime.datetime = attr.ib(default=MISSING, converter=deserialize_datetime)
@@ -365,24 +375,52 @@ class BasePoll(ClientObject):
     def get_components(self, *, disable: bool = False) -> list[ActionRow]:
         if self.expired and not disable:
             return []
-        disable_buttons = self.expired or self.pending
+        disable_components = self.expired or self.pending
 
-        buttons = []
+        components = []
+        match self.vote_interface:
+            case VoteInterface.BUTTONS:
+                for i in range(len(self.poll_options)):
+                    components.append(
+                        Button(
+                            1,
+                            emoji=self.poll_options[i].emoji,
+                            custom_id=f"poll_option|{i}",
+                            disabled=disable_components,
+                        ),
+                    )
 
-        for i in range(len(self.poll_options)):
-            buttons.append(
-                Button(1, emoji=self.poll_options[i].emoji, custom_id=f"poll_option|{i}", disabled=disable_buttons),
-            )
-        if self.vote_to_view and len(self.poll_options) < 25:
-            buttons.append(
-                Button(ButtonStyles.GREEN, emoji="\U0001f441", custom_id="vote_to_view"),
-            )
-        if self.open_poll and len(self.poll_options) < 25:
-            buttons.append(
-                Button(ButtonStyles.SUCCESS, emoji="\U00002795", custom_id="add_option", disabled=disable_buttons)
-            )
+            case VoteInterface.SELECT:
+                components.append(
+                    StringSelectMenu(
+                        options=[
+                            SelectOption(label=value.text, emoji=value.emoji, value=str(index))
+                            for index, value in enumerate(self.poll_options)
+                        ],
+                        disabled=disable_components,
+                        custom_id="poll_option",
+                        max_values=self.max_votes if self.max_votes else len(self.poll_options),
+                    )
+                )
+            case VoteInterface.OPEN_TEXT:
+                raise NotImplementedError("Open text polls are not yet implemented")
 
-        return spread_to_rows(*buttons)
+        if self.vote_interface != VoteInterface.OPEN_TEXT:
+            if self.vote_to_view and len(self.poll_options) < 25:
+                components.append(
+                    Button(ButtonStyles.GREEN, emoji="\U0001f441", custom_id="vote_to_view"),
+                )
+            if self.open_poll and len(self.poll_options) < 25:
+                components.append(
+                    Button(
+                        ButtonStyles.SUCCESS,
+                        emoji="\U00002795",
+                        custom_id="add_option",
+                        disabled=disable_components,
+                    )
+                )
+
+        return spread_to_rows(*components)
 
     def as_dict(self) -> dict:
         """Convert the poll to a dict"""
@@ -515,7 +553,7 @@ class BasePoll(ClientObject):
         """A placeholder for future checks in subclasses"""
         return True
 
-    async def vote(self, ctx: InteractionContext):
+    async def vote(self, ctx: InteractionContext, *, option: int = None):
         self.latest_context = ctx
         try:
             if self.expired:
@@ -526,7 +564,10 @@ class BasePoll(ClientObject):
             else:
                 if self.voting_role and self.voting_role != ctx.guild_id and not ctx.author.has_role(self.voting_role):
                     return await ctx.send("You do not have permission to vote in this poll", ephemeral=True)
-                option_index = int(ctx.custom_id.removeprefix("poll_option|"))
+                if not option:
+                    option_index = int(ctx.custom_id.removeprefix("poll_option|"))
+                else:
+                    option_index = int(option)
                 option = self.poll_options[option_index]
 
                 if self.single_vote:

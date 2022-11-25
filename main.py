@@ -25,7 +25,7 @@ from naff import (
     GuildText,
     Permissions,
 )
-from naff.api.events import ButtonPressed, ModalCompletion, GuildLeft, GuildJoin, RawGatewayEvent
+from naff.api.events import ButtonPressed, ModalCompletion, GuildLeft, GuildJoin, RawGatewayEvent, Select
 from naff.api.events.processors._template import Processor
 from naff.client.errors import NotFound, Forbidden
 from naff.client.smart_cache import create_cache
@@ -184,6 +184,32 @@ class Bot(StatsClient):
                 log.info(f"Added option to {message_id}")
                 return await ctx.send(f"Added {ctx.responses['new_option']} to the poll")
             return await ctx.send("That poll could not be edited")
+
+    @listen()
+    async def on_select(self, event: Select):
+        try:
+            ctx: ComponentContext = event.ctx
+            if not self.poll_cache.ready.is_set():
+                return await ctx.send("Inquiry is restarting. Please try again in a few seconds", ephemeral=True)
+
+            guild_data = await self.poll_cache.get_guild_data(ctx.guild.id)
+            if guild_data.blacklisted_users:
+                if ctx.author.id in guild_data.blacklisted_users:
+                    return await ctx.send("This server's moderators have disabled your ability to vote", ephemeral=True)
+
+            if ctx.custom_id == "poll_option":
+                if poll := (
+                    await self.poll_cache.get_poll(ctx.message.id) or await self.poll_cache.get_poll(ctx.channel.id)
+                ):
+                    for value in ctx.values:
+                        await poll.vote(ctx, option=value)
+                else:
+                    # likely a legacy or deleted poll
+                    log.warning(f"Could not find poll with message id {ctx.message.id} or {ctx.channel.id}")
+                    await ctx.send("That poll could not be edited 😕")
+
+        except Forbidden as e:
+            log.warning(f"Could not respond to select menu | Likely archived thread", exc_info=e)
 
     @listen()
     async def on_button(self, event: ButtonPressed) -> Any:
