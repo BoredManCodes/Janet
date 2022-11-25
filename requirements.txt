@@ -1,7 +1,7 @@
 asyncpg
 matplotlib
 git+https://github.com/LordOfPolls/nafftrack.git
-git+https://github.com/NAFTeam/NAFF.git@dev#egg=naff
+naff
 numpy
 orjson
 python-dotenv

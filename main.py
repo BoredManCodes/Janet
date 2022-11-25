@@ -22,6 +22,8 @@ from naff import (
     Status,
     BrandColors,
     Embed,
+    GuildText,
+    Permissions,
 )
 from naff.api.events import ButtonPressed, ModalCompletion, GuildLeft, GuildJoin, RawGatewayEvent
 from naff.api.events.processors._template import Processor
@@ -72,6 +74,7 @@ class Bot(StatsClient):
         self._vote_analytics = Gauge(
             "inquiry_vote", "Analytics of how many votes have been cast", labelnames=["guild_name"]
         )
+        self.approx_users = Gauge("inquiry_users", "Approximate number of users")
 
     # override naff processors to prevent api calls
 
@@ -132,6 +135,7 @@ class Bot(StatsClient):
         await self.poll_cache.ready.wait()
         log.info(f"Logged in as {self.user.username}")
         log.info(f"Currently in {len(self.guilds)} guilds | Approx {sum(g.member_count for g in self.guilds)} users")
+        self.approx_users.set(sum(g.member_count for g in self.guilds))
         await self.change_presence(activity="with polls", status=Status.ONLINE)
 
     async def stop(self) -> None:
@@ -167,7 +171,14 @@ class Bot(StatsClient):
             message_id = ctx.custom_id.split("|")[1]
             if poll := await self.poll_cache.get_poll(message_id):
                 async with poll.lock:
-                    poll.add_option(ctx.author, ctx.responses["new_option"])
+                    try:
+                        poll.add_option(ctx.author, ctx.responses["new_option"])
+                    except ValueError:
+                        await ctx.send(
+                            f"This poll already has {len(poll.poll_options)} options. You cannot add another",
+                            ephemeral=True,
+                        )
+                        return
 
                     self.schedule_update(poll.message_id)
                 log.info(f"Added option to {message_id}")
@@ -195,14 +206,17 @@ class Bot(StatsClient):
                             return await ctx.send(
                                 "You do not have permission to add options to this poll", ephemeral=True
                             )
-                    log.info("Opening add-option modal")
-                    return await ctx.send_modal(
-                        Modal(
-                            "Add Option",
-                            [ShortText(label="Option", custom_id="new_option")],
-                            custom_id="add_option_modal|{}".format(poll.message_id),
+                    if len(poll.poll_options) != poll.maximum_options:
+                        log.info("Opening add-option modal")
+                        return await ctx.send_modal(
+                            Modal(
+                                "Add Option",
+                                [ShortText(label="Option", custom_id="new_option")],
+                                custom_id="add_option_modal|{}".format(poll.message_id),
+                            )
                         )
-                    )
+                    else:
+                        return await ctx.send("This poll already has the maximum number of options", ephemeral=True)
                 else:
                     return await ctx.send("Cannot add options to that poll", ephemeral=True)
             elif "poll_option" in ctx.custom_id:
@@ -349,7 +363,7 @@ class Bot(StatsClient):
 
     async def send_thanks_message(self, channel_id: Snowflake_Type) -> None:
         try:
-            channel = await self.cache.fetch_channel(channel_id)
+            channel: GuildText = await self.cache.fetch_channel(channel_id)
             if channel:
                 guild_data = await self.poll_cache.get_guild_data(channel.guild.id)
                 if guild_data is None or guild_data.thank_you_sent:
@@ -359,33 +373,36 @@ class Bot(StatsClient):
                 )
 
                 if total_polls >= 3:
-                    embed = Embed(title="Thanks for using Inquiry!", color=BrandColors.BLURPLE)
-                    vote_command = self.interactions[0].get("vote")
-                    help_command = self.interactions[0].get("help")
+                    if Permissions.SEND_MESSAGES in channel.permissions_for(channel.guild.me):
+                        embed = Embed(title="Thanks for using Inquiry!", color=BrandColors.BLURPLE)
+                        vote_command = self.interactions[0].get("vote")
+                        help_command = self.interactions[0].get("help")
 
-                    description = [
-                        "I hope you've enjoyed using it so far. Please excuse this shameless plug message.",
-                        "",
-                        f"If you have any questions; use {self.server.mention()}",
-                        f"If you have feedback; use {self.feedback.mention()}",
-                        f"If you want to help the bot grow; use {vote_command.mention()}",
-                        f"For help guides; use {help_command.mention()}",
-                        "",
-                        "Otherwise, enjoy the bot!",
-                    ]
+                        description = [
+                            "I hope you've enjoyed using it so far. Please excuse this shameless plug message.",
+                            "",
+                            f"If you have any questions; use {self.server.mention()}",
+                            f"If you have feedback; use {self.feedback.mention()}",
+                            f"If you want to help the bot grow; use {vote_command.mention()}",
+                            f"For help guides; use {help_command.mention()}",
+                            "",
+                            "Otherwise, enjoy the bot!",
+                        ]
 
-                    embed.description = "\n".join(description)
-                    embed.set_footer(
-                        text="This is the only time Inquiry will send a message like this",
-                        icon_url=self.user.avatar.url,
-                    )
-                    try:
-                        await channel.send(embed=embed)
-                        guild_data.thank_you_sent = True
-                        await self.poll_cache.set_guild_data(guild_data)
-                        log.info(f"Sent thanks message to {channel.guild.id}")
-                    except Forbidden:
-                        log.warning(f"Could not send thanks message to {channel.guild.id} (no permissions)")
+                        embed.description = "\n".join(description)
+                        embed.set_footer(
+                            text="This is the only time Inquiry will send a message like this",
+                            icon_url=self.user.avatar.url,
+                        )
+                        try:
+                            await channel.send(embed=embed)
+                            guild_data.thank_you_sent = True
+                            await self.poll_cache.set_guild_data(guild_data)
+                            log.info(f"Sent thanks message to {channel.guild.id}")
+                            return
+                        except Forbidden:
+                            pass
+                    log.warning(f"Could not send thanks message to {channel.guild.id} (no permissions)")
         except NotFound as e:
             log.warning(f"Could not send thanks message to {channel_id}", exc_info=e)
         except Exception as e:
@@ -394,6 +411,7 @@ class Bot(StatsClient):
     @listen()
     async def on_guild_remove(self, event: GuildLeft) -> None:
         if self.is_ready:
+            self.approx_users.set(sum(g.member_count for g in self.guilds))
             try:
                 async with self.poll_cache.db.acquire() as conn:
                     total_polls = await conn.fetchval(
@@ -412,6 +430,8 @@ class Bot(StatsClient):
             # this guild is blacklisted, leave
             await event.guild.leave()
             log.warning(f"Bot was invited to blacklisted guild {event.guild.id} - leaving")
+        if self.is_ready:
+            self.approx_users.set(sum(g.member_count for g in self.guilds))
 
 
 if __name__ == "__main__":

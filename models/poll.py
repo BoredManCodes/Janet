@@ -197,6 +197,10 @@ class PollData(ClientObject):
             votes += len(o.voters)
         return votes
 
+    @property
+    def maximum_options(self) -> int:
+        return len(default_emoji)
+
     def get_colour(self, *, ignore_expired: bool = False) -> Color:
         if self.expired and not ignore_expired:
             return MaterialColors.GREY
@@ -388,7 +392,7 @@ class PollData(ClientObject):
         return spread_to_rows(*buttons)
 
     def add_option(self, author: Snowflake_Type, opt_name: str, _emoji: str | None = None) -> None:
-        if len(self.poll_options) >= len(default_emoji):
+        if len(self.poll_options) >= self.maximum_options:
             raise ValueError("Poll has reached max options")
 
         self.poll_options.append(PollOption.parse(self, author, opt_name, _emoji))
@@ -540,18 +544,21 @@ class PollData(ClientObject):
 
     async def update_messages(self):
         self.reallocate_emoji()
+        interaction_context = None
+
+        if self.latest_context:
+            age = (Timestamp.now() - Timestamp.from_snowflake(self.latest_context.interaction_id)).total_seconds()
+            if age < 890:  # 15 minutes minus 10 seconds
+                interaction_context = self.latest_context
 
         try:
             message = await self._client.cache.fetch_message(self.channel_id, self.message_id)
 
             try:
-                await message.edit(embeds=self.embed, components=self.get_components(), context=self.latest_context)
-            except (NotFound, Forbidden, HTTPException) as e:
-                try:
-                    self.latest_context = MISSING
+                await message.edit(embeds=self.embed, components=self.get_components(), context=interaction_context)
+            except (NotFound, Forbidden, HTTPException):
+                if interaction_context:
                     await message.edit(embeds=self.embed, components=self.get_components())
-                except Exception as ex:
-                    raise ex from e
         except NotFound:
             log.warning(f"Poll {self.message_id} was not found in channel {self.channel_id} -- likely deleted by user")
         except Forbidden:
