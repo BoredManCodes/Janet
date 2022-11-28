@@ -57,7 +57,7 @@ class Bot(StatsClient):
         super().__init__(
             intents=Intents.new(guilds=True, reactions=True, default=False),
             sync_interactions=True,
-            delete_unused_application_cmds=False,
+            delete_unused_application_cmds=True,
             activity="with an update...",
             status=Status.DND,
             voice_state_cache=create_cache(0, 0, 0),
@@ -115,6 +115,7 @@ class Bot(StatsClient):
         bot.load_extension("extensions.help")
         bot.load_extension("extensions.moderation")
         bot.load_extension("extensions.elimination")
+        bot.load_extension("extensions.suggestions")
 
         for command in bot.application_commands:
             # it really isnt necessary to do it like this, but im really lazy
