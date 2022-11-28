@@ -530,6 +530,8 @@ class BasePoll(ClientObject):
             except (NotFound, Forbidden, HTTPException):
                 if interaction_context:
                     await message.edit(embeds=self.embed, components=self.get_components())
+                    return
+                raise
         except NotFound:
             log.warning(f"Poll {self.message_id} was not found in channel {self.channel_id} -- likely deleted by user")
         except Forbidden:
