@@ -142,11 +142,8 @@ class PollCache:
         )
         self.ready.set()
 
-    @staticmethod
-    def migrate_poll(data: dict[str, Any]) -> dict[str, Any]:
+    async def migrate_poll(self, data: dict[str, Any]) -> dict[str, Any]:
         """A placeholder method to be used for migration of data"""
-        if data.get("poll_type", None) is None:
-            data["poll_type"] = "default"
         return data
 
     async def deserialize_poll(self, data: Record, *, store: bool = True) -> DefaultPoll:
@@ -156,7 +153,7 @@ class PollCache:
                 return poll
 
             data = dict(data)
-            data = self.migrate_poll(data)
+            data = await self.migrate_poll(data)
 
             data["poll_options"] = orjson.loads(data["poll_options"])
             match data["poll_type"]:
