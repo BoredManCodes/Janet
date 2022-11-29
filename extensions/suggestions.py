@@ -214,7 +214,7 @@ class Suggestions(ExtensionBase):
         description="Setup the suggestions channel",
         default_member_permissions=Permissions.MANAGE_CHANNELS,
     )
-    @slash_option("channel", "The channel to send suggestions to", opt_type=OptionTypes.CHANNEL)
+    @slash_option("channel", "The channel to send suggestions to", opt_type=OptionTypes.CHANNEL, required=True)
     async def setup_suggestions(self, ctx: InteractionContext, channel: GuildChannel):
         if not isinstance(channel, MessageableMixin):
             return await ctx.send("You must provide a messageable channel", ephemeral=True)
@@ -235,9 +235,7 @@ class Suggestions(ExtensionBase):
             ephemeral=True,
         )
 
-    @slash_command(
-        name="suggest", description="Suggest something", default_member_permissions=Permissions.ADMINISTRATOR
-    )
+    @slash_command(name="suggest", description="Suggest something", default_member_permissions=Permissions.NONE)
     async def suggest(self, ctx: InteractionContext):
         guild_data = await self.bot.poll_cache.get_guild_data(ctx.guild_id)
 
