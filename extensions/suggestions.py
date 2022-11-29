@@ -27,6 +27,7 @@ from naff import (
     context_menu,
     CommandTypes,
     EMBED_FIELD_VALUE_LENGTH,
+    GuildText,
 )
 from naff.api.events import ButtonPressed
 from naff.client.errors import NotFound, Forbidden, HTTPException
@@ -80,7 +81,7 @@ class Suggestion(ClientObject):
         return [
             Button(ButtonStyles.SUCCESS, emoji="🔼", custom_id="suggestion|upvote", disabled=disabled),
             Button(ButtonStyles.DANGER, emoji="🔽", custom_id="suggestion|downvote", disabled=disabled),
-            Button(ButtonStyles.SECONDARY, emoji="❔", custom_id="suggestion|help", disabled=disabled),
+            Button(ButtonStyles.SECONDARY, emoji="❔", custom_id="suggestion|help"),
         ]
 
     def cast_upvote(self, user_id: Snowflake_Type) -> SuggestionVote:
@@ -108,14 +109,15 @@ class Suggestion(ClientObject):
     async def generate_embed(self) -> Embed:
         embed = Embed(title=self.text, description=self.description)
         embed.add_field(name=f"{self.score_emoji} Score", value=self.score)
+        embed.set_footer(text="Suggestion Poll", icon_url=self._client.user.avatar.url)
 
         if self.admin_accepted is not None:
             if self.admin_accepted:
                 embed.color = BrandColors.GREEN
-                embed.set_footer(text="Accepted")
+                embed.set_footer(text="Accepted", icon_url=self._client.user.avatar.url)
             else:
                 embed.color = BrandColors.RED
-                embed.set_footer(text="Rejected")
+                embed.set_footer(text="Rejected", icon_url=self._client.user.avatar.url)
         else:
             embed.color = BrandColors.BLURPLE
 
@@ -158,13 +160,11 @@ class Suggestions(ExtensionBase):
         return await self.bot.poll_cache.get_suggestion(message_id)
 
     async def __update(self, message_id: Snowflake_Type, channel_id: Snowflake_Type = None):
-        breakpoint()
         suggestion = await self.get_suggestion(message_id)
         if suggestion:
             await suggestion.update_message(channel_id)
 
     def schedule_update(self, context: InteractionContext):
-        breakpoint()
         bot_scheduler = self.bot.scheduler
         message_id = context.message.id if context.message else context.target_id
         channel_id = context.channel.id
@@ -197,10 +197,17 @@ class Suggestions(ExtensionBase):
             await ctx.send(f"Downvote {vote}!", ephemeral=True)
             self.schedule_update(ctx)
         elif ctx.custom_id == "suggestion|help":
-            await ctx.send(
-                "Use the buttons above to upvote or downvote this suggestion.\nAn Admin can approve or deny this suggestion using context menu commands",
-                ephemeral=True,
-            )
+            suggestion = await self.get_suggestion(ctx.message.id)
+            if suggestion and suggestion.admin_accepted is not None:
+                if suggestion.admin_accepted:
+                    await ctx.send("This suggestion has been accepted!", ephemeral=True)
+                else:
+                    await ctx.send("This suggestion has been rejected!", ephemeral=True)
+            else:
+                await ctx.send(
+                    "Use the buttons above to upvote or downvote this suggestion.\nAn Admin can approve or deny this suggestion using context menu commands",
+                    ephemeral=True,
+                )
 
     @slash_command(
         "setup-suggestions",
@@ -211,19 +218,22 @@ class Suggestions(ExtensionBase):
     async def setup_suggestions(self, ctx: InteractionContext, channel: GuildChannel):
         if not isinstance(channel, MessageableMixin):
             return await ctx.send("You must provide a messageable channel", ephemeral=True)
+        channel: GuildText
 
-        try:
-            await ctx.defer(ephemeral=True)
-            guild_data = await self.bot.poll_cache.get_guild_data(ctx.guild.id)
-            guild_data.suggestion_channel = channel.id
-            await self.bot.poll_cache.set_guild_data(guild_data)
-            await ctx.send(
-                f"Suggestions channel set to {channel.mention}\nRemember to enable the suggest command in your Server's Integration settings",
-                ephemeral=True,
-            )
-        except Exception as e:
-            print(e)
-            breakpoint()
+        await ctx.defer(ephemeral=True)
+        channel_perms = channel.permissions_for(ctx.guild.me)
+        if not channel_perms.SEND_MESSAGES:
+            return await ctx.send("I am missing permissions to send messages in that channel", ephemeral=True)
+        if not channel_perms.MANAGE_MESSAGES:
+            return await ctx.send("I am missing permissions to manage messages in that channel", ephemeral=True)
+
+        guild_data = await self.bot.poll_cache.get_guild_data(ctx.guild.id)
+        guild_data.suggestion_channel = channel.id
+        await self.bot.poll_cache.set_guild_data(guild_data)
+        await ctx.send(
+            f"Suggestions channel set to {channel.mention}\nRemember to enable the suggest command in your Server's Integration settings",
+            ephemeral=True,
+        )
 
     @slash_command(
         name="suggest", description="Suggest something", default_member_permissions=Permissions.ADMINISTRATOR
