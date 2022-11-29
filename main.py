@@ -167,11 +167,11 @@ class Bot(StatsClient):
         ids = ctx.custom_id.split("|")
         if len(ids) == 2:
             await ctx.defer(ephemeral=True)
-            if not await self.sanity_check(ctx):
-                return
 
             message_id = ctx.custom_id.split("|")[1]
             if poll := await self.poll_cache.get_poll(message_id):
+                if not await poll.sanity_check(ctx, {}):
+                    return
                 async with poll.lock:
                     try:
                         poll.add_option(ctx.author, ctx.responses["new_option"])
