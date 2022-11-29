@@ -227,9 +227,9 @@ class Suggestions(ExtensionBase):
 
         await ctx.defer(ephemeral=True)
         channel_perms = channel.permissions_for(ctx.guild.me)
-        if not channel_perms.SEND_MESSAGES:
+        if Permissions.SEND_MESSAGES not in channel_perms:
             return await ctx.send("I am missing permissions to send messages in that channel", ephemeral=True)
-        if not channel_perms.MANAGE_MESSAGES:
+        if Permissions.MANAGE_MESSAGES not in channel_perms:
             return await ctx.send("I am missing permissions to manage messages in that channel", ephemeral=True)
 
         guild_data = await self.bot.poll_cache.get_guild_data(ctx.guild.id)
@@ -281,18 +281,26 @@ class Suggestions(ExtensionBase):
             return await ctx.send("You took too long to respond", ephemeral=True)
 
         await m_ctx.defer(ephemeral=True)
-        suggestion = Suggestion(
-            text=m_ctx.responses["title"],
-            description=m_ctx.responses["description"],
-            author_id=ctx.author.id,
-            client=self.bot,
-        )
-        message = await suggestion_channel.send(
-            embed=await suggestion.generate_embed(), components=suggestion.components
-        )
-        suggestion.message_id = message.id
-        await self.bot.poll_cache.set_suggestion(suggestion, store=True)
-        await m_ctx.send(f"[Suggestion sent!]({message.jump_url})", ephemeral=True)
+        try:
+            suggestion = Suggestion(
+                text=m_ctx.responses["title"],
+                description=m_ctx.responses["description"],
+                author_id=ctx.author.id,
+                client=self.bot,
+            )
+            message = await suggestion_channel.send(
+                embed=await suggestion.generate_embed(), components=suggestion.components
+            )
+            suggestion.message_id = message.id
+            await self.bot.poll_cache.set_suggestion(suggestion, store=True)
+            await m_ctx.send(f"[Suggestion sent!]({message.jump_url})", ephemeral=True)
+
+        except Forbidden:
+            return await ctx.send(
+                f"I am missing permissions to send messages in that {suggestion_channel.mention}", ephemeral=True
+            )
+        except Exception as e:
+            log.error("Failed to send suggestion", exc_info=e)
 
     @context_menu("suggestion_deny", CommandTypes.MESSAGE, default_member_permissions=Permissions.ADMINISTRATOR)
     async def deny_suggestion(self, ctx: InteractionContext):
