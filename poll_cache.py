@@ -13,6 +13,7 @@ from naff.client.errors import Forbidden
 from naff.client.utils import TTLCache, TTLItem
 from prometheus_client import Gauge
 
+from extensions.suggestions import Suggestion
 from models.poll_elimination import EliminationPoll
 from models.guild_data import GuildData, GuildDataPayload
 from models.poll_default import DefaultPoll
@@ -32,6 +33,12 @@ class PollCache:
             hard_limit=10000,
             ttl=1800,  # 30 minutes
             on_expire=lambda _, value: asyncio.create_task(self.__write_poll(value)),
+        )
+        self.suggestions: TTLCache = TTLCache(
+            soft_limit=150,
+            hard_limit=10000,
+            ttl=1800,  # 30 minutes
+            on_expire=lambda _, value: asyncio.create_task(self.set_suggestion(value)),
         )
         self.guild_data: TTLCache = TTLCache(
             soft_limit=150,
@@ -264,6 +271,27 @@ class PollCache:
             int(user_id),
             last_vote,
         )
+
+    async def set_suggestion(self, suggestion: Suggestion, *, store=False) -> None:
+        if suggestion:
+            payload = suggestion.to_dict()
+            query = self.assemble_query_with_dict(
+                "INSERT INTO polls.suggestions ({}) VALUES ({}) ON CONFLICT(id) DO UPDATE SET {};", payload
+            )
+            async with self.db.acquire() as conn:
+                await conn.execute(query, *payload.values())
+                log.debug("Updated suggestion: %s", payload["id"])
+        if store:
+            self.suggestions[suggestion.id] = suggestion
+
+    async def get_suggestion(self, suggestion_id: Snowflake_Type) -> Suggestion | None:
+        if suggestion := self.suggestions.get(suggestion_id):
+            return suggestion
+        data = await self.db.fetchrow("SELECT * FROM polls.suggestions WHERE message_id = $1", int(suggestion_id))
+        if data:
+            suggestion = Suggestion.from_dict(data, client=self.bot)
+            self.suggestions[suggestion_id] = suggestion
+            return suggestion
 
     async def _update_stats(self):
         await self.bot.wait_until_ready()
