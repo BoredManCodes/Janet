@@ -135,6 +135,7 @@ class Suggestion(ClientObject):
 
     async def update_message(self, channel_id: Snowflake_Type) -> None:
         message = await self._client.cache.fetch_message(channel_id, self.message_id)
+        await self._client.poll_cache.set_suggestion(self, store=True)
         interaction_context = None
 
         if self.edit_context:
