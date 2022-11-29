@@ -6,6 +6,9 @@ Inquiry is a bot that makes polls. Nothing more nothing less. Featuring extensiv
 
 ![image](https://user-images.githubusercontent.com/22540825/186192310-653dee1e-972f-4e9e-a24a-ecd946f5d5c4.png)
 
+![image](https://user-images.githubusercontent.com/22540825/204596230-0514444a-9190-4cf2-a2cb-6148aa2394ab.png)
+
+
 ## So how do you use Inquiry?
 Simply type `/poll` and name your poll. From here you can customise the poll to your needs.
 
@@ -43,6 +46,13 @@ Custom emoji couldnt be simpler; just put an emoji anywhere in the option text, 
 ![image](https://user-images.githubusercontent.com/22540825/186945287-9c4f7807-eb1d-4acb-8e83-2772c48ed1f5.png)
 
 ![image](https://user-images.githubusercontent.com/22540825/186945315-2b1a99ad-0c70-4374-af77-652684fe8e67.png)
+
+## But what about suggestions?
+Inquiry comes with a automated suggestion system too! Let your users suggest things, and vote on them withe ease
+![image](https://user-images.githubusercontent.com/22540825/204596641-829a54b5-af84-4d51-8608-8fe05881208b.png)
+
+![image](https://user-images.githubusercontent.com/22540825/204596481-17b1c575-ddb2-45e5-87e2-e292ebf946ca.png)
+
 
 
 ## Made  a mistake?
