@@ -90,9 +90,11 @@ class Suggestion(ClientObject):
 
         if user_id in self.upvotes:
             self.upvotes.remove(user_id)
+            log.debug(f"Removed upvote from {self.id}")
             return SuggestionVote.removed
         else:
             self.upvotes.add(user_id)
+            log.debug(f"Added upvote to {self.id}")
             return SuggestionVote.added
 
     def cast_downvote(self, user_id: Snowflake_Type) -> SuggestionVote:
@@ -101,9 +103,11 @@ class Suggestion(ClientObject):
 
         if user_id in self.downvotes:
             self.downvotes.remove(user_id)
+            log.debug(f"Removed downvote from {self.id}")
             return SuggestionVote.removed
         else:
             self.downvotes.add(user_id)
+            log.debug(f"Added downvote to {self.id}")
             return SuggestionVote.added
 
     async def generate_embed(self) -> Embed:

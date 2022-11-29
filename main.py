@@ -45,8 +45,9 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 log = logging.getLogger("Inquiry")
+log.setLevel(logging.DEBUG)
 logging.getLogger("apscheduler").setLevel(logging.WARNING)
-logging.getLogger("naff").setLevel(logging.INFO)
+logging.getLogger("naff").setLevel(logging.DEBUG)
 logging.getLogger("matplotlib").setLevel(logging.WARNING)
 logging.getLogger("asyncio").setLevel(logging.WARNING)
 logging.getLogger("uvicorn.error").propagate = False  # this library really needs to learn how to use logging properly
