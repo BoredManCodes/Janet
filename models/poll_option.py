@@ -9,7 +9,7 @@ from naff.models.discord.emoji import PartialEmoji
 from models.emoji import default_emoji
 
 if TYPE_CHECKING:
-    from models.poll import PollData
+    from models.poll_default import DefaultPoll
 
 __all__ = ("PollOption",)
 
@@ -65,7 +65,7 @@ class PollOption:
         return cls(**data)
 
     @classmethod
-    def parse(cls, poll: "PollData", author: Snowflake_Type, opt_name: str, emoji: str | None = None) -> "PollOption":
+    def parse(cls, poll: "DefaultPoll", author: Snowflake_Type, opt_name: str, emoji: str | None = None) -> "PollOption":
         if not emoji:
             possible_emoji = opt_name.split(" ")[0]
             _emoji = PartialEmoji.from_str(possible_emoji)

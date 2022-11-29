@@ -15,7 +15,7 @@ from naff import (
 )
 from thefuzz import fuzz, process
 
-from models.poll import PollData
+from models.poll_default import DefaultPoll
 
 if TYPE_CHECKING:
     from main import Bot
@@ -83,10 +83,16 @@ OPT_COLOUR = SlashCommandOption(
     choices=[SlashCommandChoice(c.replace("_", " "), c) for c in colours],
     required=False,
 )
+OPT_OPEN_TIME = SlashCommandOption(
+    "open_in",
+    OptionTypes.STRING,
+    "How long until the poll opens (example: '1w 3d 7h 5m 20s')",
+    required=False,
+)
 OPT_DURATION = SlashCommandOption(
     "duration",
     OptionTypes.STRING,
-    "Choose the duration of the poll (example: '1w 3d 7h 5m 20s')",
+    "How long the poll will stay open (example: '1w 3d 7h 5m 20s')",
     required=False,
 )
 OPT_MAX_VOTES = SlashCommandOption(
@@ -179,6 +185,7 @@ get_options_list = [
     OPT_DESCRIPTION,
     OPT_PRESET,
     OPT_COLOUR,
+    OPT_OPEN_TIME,
     OPT_DURATION,
     OPT_MAX_VOTES,
     OPT_VOTING_ROLE,
@@ -201,6 +208,7 @@ def get_options_list(
     description: bool = True,
     preset: bool = True,
     colour: bool = True,
+    open_time: bool = True,
     duration: bool = True,
     max_votes: bool = True,
     voting_role: bool = True,
@@ -231,20 +239,20 @@ def get_options_list(
 class ExtensionBase(Extension):
     bot: "Bot"
 
-    async def process_poll_option(self, ctx: InteractionContext, poll: str) -> PollData | None:
+    async def process_poll_option(self, ctx: InteractionContext, poll: str) -> DefaultPoll | None:
         try:
             poll = await self.bot.poll_cache.get_poll(to_snowflake(poll))
         except AttributeError as e:
             pass
         finally:
-            if not isinstance(poll, PollData):
+            if not isinstance(poll, DefaultPoll):
                 await ctx.send("Unable to find the requested poll!")
                 return None
             return poll
 
     @staticmethod
     def poll_autocomplete_predicate(ctx: AutocompleteContext):
-        def predicate(poll: PollData):
+        def predicate(poll: DefaultPoll):
             if poll.author_id == ctx.author.id:
                 return True
             if ctx.author.has_permission(Permissions.MANAGE_MESSAGES):

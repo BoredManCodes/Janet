@@ -19,7 +19,7 @@ from naff import (
 from naff.api.events import Component
 
 from extensions.shared import ExtensionBase, OPT_find_poll, OPT_find_option
-from models.poll import PollData
+from models.poll_default import DefaultPoll
 
 if TYPE_CHECKING:
     from main import Bot
@@ -41,7 +41,7 @@ class EditPolls(ExtensionBase):
 
     @staticmethod
     def poll_autocomplete_predicate(ctx: AutocompleteContext):
-        def predicate(poll: PollData):
+        def predicate(poll: DefaultPoll):
             if poll.open_poll and str(ctx.command.sub_cmd_name) == "add_option":
                 # todo: future polls you will need to handle localization here
                 # show open polls in add_option

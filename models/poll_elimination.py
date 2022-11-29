@@ -1,6 +1,7 @@
 import textwrap
 from typing import Union
 
+import attr
 from naff import (
     Member,
     EmbedField,
@@ -14,16 +15,13 @@ from naff import (
 )
 
 from models.emoji import default_emoji
-from models.poll import PollData
+from models.poll_default import DefaultPoll
 from models.poll_option import PollOption
 
 
-class EliminationPoll(PollData):
-    @classmethod
-    async def from_ctx(cls, *args, **kwargs) -> Union["PollData", bool]:
-        new_cls = await super().from_ctx(*args, **kwargs)
-        new_cls.poll_type = "elimination"
-        return new_cls
+@attr.s(auto_attribs=True, on_setattr=[attr.setters.convert, attr.setters.validate], kw_only=True)
+class EliminationPoll(DefaultPoll):
+    poll_type: str = attr.ib(default="elimination", init=False)
 
     def get_components(self, *, disable: bool = False) -> list[ActionRow]:
         if self.expired and not disable:

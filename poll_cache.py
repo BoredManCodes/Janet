@@ -13,9 +13,10 @@ from naff.client.errors import Forbidden
 from naff.client.utils import TTLCache, TTLItem
 from prometheus_client import Gauge
 
-from models.elimination_poll import EliminationPoll
+from extensions.suggestions import Suggestion
+from models.poll_elimination import EliminationPoll
 from models.guild_data import GuildData, GuildDataPayload
-from models.poll import PollData
+from models.poll_default import DefaultPoll
 
 log = logging.getLogger("Inquiry")
 
@@ -32,6 +33,12 @@ class PollCache:
             hard_limit=10000,
             ttl=1800,  # 30 minutes
             on_expire=lambda _, value: asyncio.create_task(self.__write_poll(value)),
+        )
+        self.suggestions: TTLCache = TTLCache(
+            soft_limit=150,
+            hard_limit=10000,
+            ttl=1800,  # 30 minutes
+            on_expire=lambda _, value: asyncio.create_task(self.set_suggestion(value)),
         )
         self.guild_data: TTLCache = TTLCache(
             soft_limit=150,
@@ -61,7 +68,7 @@ class PollCache:
 
             log.info(f"Connected to postgres as {db_credentials['user']}")
             log.debug("Writing sanity check to database")
-            test_poll = PollData(
+            test_poll = DefaultPoll(
                 client=bot,
                 title="test",
                 author_id=1234,
@@ -97,7 +104,7 @@ class PollCache:
         )
         return query
 
-    async def __write_poll(self, poll: PollData):
+    async def __write_poll(self, poll: DefaultPoll):
         if isinstance(poll, TTLItem):
             # edge case where a TTLItem is passed in
             poll = poll.value
@@ -132,34 +139,35 @@ class PollCache:
             await self.bot.wait_until_ready()
         log.info("Loading polls from database...")
         async with self.db.acquire() as conn:
-            polls = await conn.fetch("SELECT * FROM polls.poll_data WHERE expire_time IS NOT NULL AND EXPIRED IS FALSE")
+            polls = await conn.fetch(
+                "SELECT * FROM polls.poll_data WHERE (expire_time IS NOT NULL AND EXPIRED IS false) or (open_time IS NOT NULL AND pending IS true)"
+            )
 
         polls = [await self.deserialize_poll(p, store=False) for p in polls]
-        await asyncio.gather(*(self.bot.schedule_close(poll) for poll in polls))
+        await asyncio.gather(
+            *(self.bot.schedule_open(poll) if poll.pending else self.bot.schedule_close(poll) for poll in polls)
+        )
         self.ready.set()
 
-    @staticmethod
-    def migrate_poll(data: dict[str, Any]) -> dict[str, Any]:
+    async def migrate_poll(self, data: dict[str, Any]) -> dict[str, Any]:
         """A placeholder method to be used for migration of data"""
-        if data.get("poll_type", None) is None:
-            data["poll_type"] = "default"
         return data
 
-    async def deserialize_poll(self, data: Record, *, store: bool = True) -> PollData:
+    async def deserialize_poll(self, data: Record, *, store: bool = True) -> DefaultPoll:
         try:
             if poll := self.polls.get(data["message_id"]):
                 # prevent edge case data loss
                 return poll
 
             data = dict(data)
-            data = self.migrate_poll(data)
+            data = await self.migrate_poll(data)
 
             data["poll_options"] = orjson.loads(data["poll_options"])
             match data["poll_type"]:
                 case "elimination":
                     poll = EliminationPoll.from_dict(data, self.bot)
                 case _:
-                    poll = PollData.from_dict(data, self.bot)
+                    poll = DefaultPoll.from_dict(data, self.bot)
 
             if not poll.author_name or not poll.author_avatar or poll.author_name == "Unknown":
                 try:
@@ -183,7 +191,7 @@ class PollCache:
         except (ValueError, KeyError, TypeError) as e:
             log.warning(f"Failed to fetch poll: {data['message_id']}", exc_info=e)
 
-    async def __fetch_poll(self, message_id: Snowflake_Type) -> PollData | None:
+    async def __fetch_poll(self, message_id: Snowflake_Type) -> DefaultPoll | None:
         async with self.db.acquire() as conn:
             poll = await conn.fetchrow("SELECT * FROM polls.poll_data WHERE message_id = $1", int(message_id))
         if poll:
@@ -191,17 +199,17 @@ class PollCache:
             return await self.deserialize_poll(poll)
         return None
 
-    async def get_poll(self, message_id: Snowflake_Type) -> PollData | None:
+    async def get_poll(self, message_id: Snowflake_Type) -> DefaultPoll | None:
         if poll := self.polls.get(message_id):
             return poll
         return await self.__fetch_poll(message_id)
 
-    async def get_polls_by_guild(self, guild_id: Snowflake_Type) -> list[PollData]:
+    async def get_polls_by_guild(self, guild_id: Snowflake_Type) -> list[DefaultPoll]:
         async with self.db.acquire() as conn:
             polls = await conn.fetch("SELECT * FROM polls.poll_data WHERE guild_id = $1", int(guild_id))
         return [await self.deserialize_poll(p, store=True) for p in polls]
 
-    async def store_poll(self, poll: PollData) -> None:
+    async def store_poll(self, poll: DefaultPoll) -> None:
         async with poll.lock:
             self.polls[poll.message_id] = poll
             await self.__write_poll(poll)
@@ -263,6 +271,27 @@ class PollCache:
             int(user_id),
             last_vote,
         )
+
+    async def set_suggestion(self, suggestion: Suggestion, *, store=False) -> None:
+        if suggestion:
+            payload = suggestion.to_dict()
+            query = self.assemble_query_with_dict(
+                "INSERT INTO polls.suggestions ({}) VALUES ({}) ON CONFLICT(id) DO UPDATE SET {};", payload
+            )
+            async with self.db.acquire() as conn:
+                await conn.execute(query, *payload.values())
+                log.debug("Updated suggestion: %s", payload["id"])
+        if store:
+            self.suggestions[suggestion.id] = suggestion
+
+    async def get_suggestion(self, suggestion_id: Snowflake_Type) -> Suggestion | None:
+        if suggestion := self.suggestions.get(suggestion_id):
+            return suggestion
+        data = await self.db.fetchrow("SELECT * FROM polls.suggestions WHERE message_id = $1", int(suggestion_id))
+        if data:
+            suggestion = Suggestion.from_dict(data, client=self.bot)
+            self.suggestions[suggestion_id] = suggestion
+            return suggestion
 
     async def _update_stats(self):
         await self.bot.wait_until_ready()

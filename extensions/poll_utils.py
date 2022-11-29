@@ -22,7 +22,7 @@ from naff import (
 )
 
 from extensions.shared import ExtensionBase, OPT_find_poll
-from models.poll import PollData
+from models.poll_default import DefaultPoll
 
 if TYPE_CHECKING:
     from main import Bot
@@ -55,7 +55,7 @@ class PollUtils(ExtensionBase):
 
     @staticmethod
     def poll_autocomplete_predicate(ctx: AutocompleteContext):
-        def predicate(poll: PollData):
+        def predicate(poll: DefaultPoll):
             if poll.anonymous:
                 return False
             if poll.author_id == ctx.author.id:
@@ -68,7 +68,7 @@ class PollUtils(ExtensionBase):
 
     export = SlashCommand(name="export", description="Export a poll into various formats")
 
-    def _csv_exporter(self, poll: PollData) -> StringIO:
+    def _csv_exporter(self, poll: DefaultPoll) -> StringIO:
         def rotate(input_list: list[list]) -> list[list]:
             expected_len = max(map(len, input_list))
             for sub_list in input_list:
@@ -90,7 +90,7 @@ class PollUtils(ExtensionBase):
         f.seek(0)
         return f
 
-    def _json_exporter(self, poll: PollData) -> StringIO:
+    def _json_exporter(self, poll: DefaultPoll) -> StringIO:
         log.debug(f"Exporting {poll.message_id} to json")
         buffer = {}
         for option in poll.poll_options:
@@ -101,7 +101,7 @@ class PollUtils(ExtensionBase):
         f.seek(0)
         return f
 
-    def _yaml_exporter(self, poll: PollData) -> StringIO:
+    def _yaml_exporter(self, poll: DefaultPoll) -> StringIO:
         log.debug(f"Exporting {poll.message_id} to yaml")
         buffer = {}
         for option in poll.poll_options:
@@ -112,7 +112,7 @@ class PollUtils(ExtensionBase):
         f.seek(0)
         return f
 
-    def _bar_exporter(self, poll: PollData) -> BytesIO:
+    def _bar_exporter(self, poll: DefaultPoll) -> BytesIO:
         log.debug(f"Exporting {poll.message_id} to bar graph")
         buffer = {}
         for option in poll.poll_options:
@@ -130,7 +130,7 @@ class PollUtils(ExtensionBase):
         f.seek(0)
         return f
 
-    def _pie_exporter(self, poll: PollData) -> BytesIO:
+    def _pie_exporter(self, poll: DefaultPoll) -> BytesIO:
         log.debug(f"Exporting {poll.message_id} to pie chart")
         buffer = {}
         for option in poll.poll_options:

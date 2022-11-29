@@ -25,7 +25,7 @@ from naff import (
     GuildText,
     Permissions,
 )
-from naff.api.events import ButtonPressed, ModalCompletion, GuildLeft, GuildJoin, RawGatewayEvent
+from naff.api.events import ButtonPressed, ModalCompletion, GuildLeft, GuildJoin, RawGatewayEvent, Select
 from naff.api.events.processors._template import Processor
 from naff.client.errors import NotFound, Forbidden
 from naff.client.smart_cache import create_cache
@@ -34,7 +34,7 @@ from nafftrack.client import StatsClient
 from prometheus_client import Gauge
 
 from models.events import PollVote
-from models.poll import PollData, sanity_check
+from models.poll_default import DefaultPoll
 from poll_cache import PollCache
 
 __all__ = ("Bot",)
@@ -57,7 +57,7 @@ class Bot(StatsClient):
         super().__init__(
             intents=Intents.new(guilds=True, reactions=True, default=False),
             sync_interactions=True,
-            delete_unused_application_cmds=False,
+            delete_unused_application_cmds=True,
             activity="with an update...",
             status=Status.DND,
             voice_state_cache=create_cache(0, 0, 0),
@@ -115,6 +115,7 @@ class Bot(StatsClient):
         bot.load_extension("extensions.help")
         bot.load_extension("extensions.moderation")
         bot.load_extension("extensions.elimination")
+        bot.load_extension("extensions.suggestions")
 
         for command in bot.application_commands:
             # it really isnt necessary to do it like this, but im really lazy
@@ -127,7 +128,7 @@ class Bot(StatsClient):
 
         await bot.astart(token)
 
-    async def set_poll(self, poll: PollData) -> None:
+    async def set_poll(self, poll: DefaultPoll) -> None:
         await self.poll_cache.store_poll(poll)
 
     @listen()
@@ -165,7 +166,7 @@ class Bot(StatsClient):
         ids = ctx.custom_id.split("|")
         if len(ids) == 2:
             await ctx.defer(ephemeral=True)
-            if not await sanity_check(ctx):
+            if not await self.sanity_check(ctx):
                 return
 
             message_id = ctx.custom_id.split("|")[1]
@@ -184,6 +185,32 @@ class Bot(StatsClient):
                 log.info(f"Added option to {message_id}")
                 return await ctx.send(f"Added {ctx.responses['new_option']} to the poll")
             return await ctx.send("That poll could not be edited")
+
+    @listen()
+    async def on_select(self, event: Select):
+        try:
+            ctx: ComponentContext = event.ctx
+            if not self.poll_cache.ready.is_set():
+                return await ctx.send("Inquiry is restarting. Please try again in a few seconds", ephemeral=True)
+
+            guild_data = await self.poll_cache.get_guild_data(ctx.guild.id)
+            if guild_data.blacklisted_users:
+                if ctx.author.id in guild_data.blacklisted_users:
+                    return await ctx.send("This server's moderators have disabled your ability to vote", ephemeral=True)
+
+            if ctx.custom_id == "poll_option":
+                if poll := (
+                    await self.poll_cache.get_poll(ctx.message.id) or await self.poll_cache.get_poll(ctx.channel.id)
+                ):
+                    for value in ctx.values:
+                        await poll.vote(ctx, option=value)
+                else:
+                    # likely a legacy or deleted poll
+                    log.warning(f"Could not find poll with message id {ctx.message.id} or {ctx.channel.id}")
+                    await ctx.send("That poll could not be edited 😕")
+
+        except Forbidden as e:
+            log.warning(f"Could not respond to select menu | Likely archived thread", exc_info=e)
 
     @listen()
     async def on_button(self, event: ButtonPressed) -> Any:
@@ -274,7 +301,23 @@ class Bot(StatsClient):
             log.error(f"Error updating poll {message_id}", exc_info=e)
             return
 
-    async def schedule_close(self, poll: PollData) -> None:
+    async def schedule_open(self, poll: DefaultPoll) -> None:
+        if poll.open_time and poll.pending:
+            if poll.open_time < datetime.datetime.now():
+                log.warning(f"Poll {poll.message_id} was scheduled to open in the past - opening now")
+                await self.open_poll(poll.message_id)
+                return
+
+            self.scheduler.add_job(
+                self.open_poll,
+                trigger=DateTrigger(poll.open_time),
+                id=f"poll_open|{poll.message_id}",
+                args=[poll.message_id],
+                replace_existing=True,
+            )
+            log.info(f"Scheduled poll {poll.message_id} to open at {poll.open_time}")
+
+    async def schedule_close(self, poll: DefaultPoll) -> None:
         if poll.expire_time and not poll.closed:
             try:
                 self.scheduler.reschedule_job(job_id=str(poll.message_id), trigger=DateTrigger(poll.expire_time))
@@ -293,7 +336,20 @@ class Bot(StatsClient):
                     await self.close_poll(poll.message_id)
                     log.warning(f"Poll {poll.message_id} already expired - closing immediately")
 
-    async def close_poll(self, message_id, *, store=True):
+    async def open_poll(self, message_id: Snowflake_Type) -> None:
+        poll = await self.poll_cache.get_poll(message_id)
+        if poll:
+            async with poll.lock:
+                poll._pending = False  # pylint: disable=protected-access
+                await poll.update_messages()
+            await self.poll_cache.store_poll(poll)
+
+            if poll.expire_time:
+                await self.schedule_close(poll)
+
+            log.info(f"Opened poll {poll.message_id}")
+
+    async def close_poll(self, message_id, *, store=True, failed=False) -> None:
         poll = await self.poll_cache.get_poll(message_id)
         tasks = []
         if poll:
@@ -303,7 +359,8 @@ class Bot(StatsClient):
                 poll.expire_time = datetime.datetime.now()
 
                 tasks.append(poll.update_messages())
-                tasks.append(poll.send_close_message())
+                if not failed:
+                    tasks.append(poll.send_close_message())
                 poll.closed = True
 
                 if store:
