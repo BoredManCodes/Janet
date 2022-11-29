@@ -11,6 +11,8 @@ class GuildDataPayload(TypedDict):
     blacklisted: bool
     blacklisted_users: list[Snowflake_Type]
     suggestion_channel: Snowflake_Type
+    suggestion_ping_role: Snowflake_Type
+    suggestion_create_thread: bool
 
 
 @attr.s(auto_attribs=True, on_setattr=[attr.setters.convert, attr.setters.validate])
@@ -20,3 +22,5 @@ class GuildData(DictSerializationMixin):
     blacklisted: bool = attr.field(default=False)
     blacklisted_users: list[Snowflake_Type] = attr.field(factory=list)
     suggestion_channel: Snowflake_Type = attr.field(default=None)
+    suggestion_ping_role: Snowflake_Type = attr.field(default=None)
+    suggestion_create_thread: bool = attr.field(default=False)

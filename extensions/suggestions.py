@@ -28,6 +28,8 @@ from naff import (
     CommandTypes,
     EMBED_FIELD_VALUE_LENGTH,
     GuildText,
+    Role,
+    AllowedMentions,
 )
 from naff.api.events import ButtonPressed
 from naff.client.errors import NotFound, Forbidden, HTTPException
@@ -220,7 +222,11 @@ class Suggestions(ExtensionBase):
         default_member_permissions=Permissions.MANAGE_CHANNELS,
     )
     @slash_option("channel", "The channel to send suggestions to", opt_type=OptionTypes.CHANNEL, required=True)
-    async def setup_suggestions(self, ctx: InteractionContext, channel: GuildChannel):
+    @slash_option("role", "The role to ping when a suggestion is made", opt_type=OptionTypes.ROLE, required=False)
+    @slash_option("create_thread", "Create a thread for each suggestion", opt_type=OptionTypes.BOOLEAN, required=False)
+    async def setup_suggestions(
+        self, ctx: InteractionContext, channel: GuildChannel, role: Role = None, create_thread: bool = False
+    ):
         if not isinstance(channel, MessageableMixin):
             return await ctx.send("You must provide a messageable channel", ephemeral=True)
         channel: GuildText
@@ -231,9 +237,16 @@ class Suggestions(ExtensionBase):
             return await ctx.send("I am missing permissions to send messages in that channel", ephemeral=True)
         if Permissions.MANAGE_MESSAGES not in channel_perms:
             return await ctx.send("I am missing permissions to manage messages in that channel", ephemeral=True)
+        if create_thread and Permissions.MANAGE_THREADS not in channel_perms:
+            return await ctx.send("I am missing permissions to manage threads in that channel", ephemeral=True)
 
         guild_data = await self.bot.poll_cache.get_guild_data(ctx.guild.id)
         guild_data.suggestion_channel = channel.id
+        if create_thread:
+            guild_data.suggestion_create_thread = True
+        if role:
+            guild_data.suggestion_ping_role = role.id
+
         await self.bot.poll_cache.set_guild_data(guild_data)
         await ctx.send(
             f"Suggestions channel set to {channel.mention}\nRemember to enable the suggest command in your Server's Integration settings",
@@ -266,12 +279,14 @@ class Suggestions(ExtensionBase):
                     placeholder="A short title for your suggestion",
                     required=True,
                     custom_id="title",
+                    max_length=100,
                 ),
                 ParagraphText(
                     label="Suggestion Description",
                     placeholder="A longer description for your suggestion",
                     required=False,
                     custom_id="description",
+                    max_length=2000,
                 ),
             ],
         )
@@ -289,11 +304,18 @@ class Suggestions(ExtensionBase):
                 client=self.bot,
             )
             message = await suggestion_channel.send(
-                embed=await suggestion.generate_embed(), components=suggestion.components
+                content=f"<@&{guild_data.suggestion_ping_role}>" if guild_data.suggestion_ping_role else None,
+                embed=await suggestion.generate_embed(),
+                components=suggestion.components,
             )
             suggestion.message_id = message.id
             await self.bot.poll_cache.set_suggestion(suggestion, store=True)
             await m_ctx.send(f"[Suggestion sent!]({message.jump_url})", ephemeral=True)
+
+            if guild_data.suggestion_create_thread:
+                thread = await message.create_thread(
+                    name=suggestion.text,
+                )
 
         except Forbidden:
             return await ctx.send(
