@@ -1,7 +1,7 @@
 import re
 from datetime import timedelta, datetime
 
-TIME_PATTERN = re.compile(r"(\d+\.?\d?[s|m|h|d|w]{1})\s?", re.I)
+TIME_PATTERN = re.compile(r"(\d+\.?\d+?[s|m|h|d|w]{1})\s?", re.I)
 
 
 def process_duration(duration, start_time: datetime | None = None) -> datetime:
