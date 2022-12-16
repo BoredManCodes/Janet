@@ -101,7 +101,7 @@ class HelpExtension(Extension):
 
             embed = Embed("🎉 Congratulations! 🎉", color=BrandColours.GREEN)
             embed.description = "It looks like you have created your first poll!\nHere are some things you can do next:"
-            embed.add_field("📊 View Who'S Voted", f"with {export_command.mention()}")
+            embed.add_field("📊 View Who's Voted", f"with {export_command.mention()}")
             embed.add_field("📚 Read The Help Documents", f"with {help_command.mention()}")
             embed.add_field("💬 Join The Support Server", f"with {server_command.mention()}")
             embed.add_field("📨 Send Feedback For Inquiry", f"with {feedback_command.mention()}")
