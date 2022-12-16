@@ -1,3 +1,5 @@
+import logging
+
 import attrs
 import yaml
 from naff import (
@@ -9,7 +11,9 @@ from naff import (
     Embed,
     BrandColours,
     File,
+    listen,
 )
+from prometheus_client import Gauge
 from thefuzz import process
 
 
@@ -33,6 +37,8 @@ class HelpExtension(Extension):
             data = yaml.safe_load(f)
             for topic, value in data.items():
                 self.topics[topic] = HelpTopic(**value)
+
+        self.first_poll_analytics = Gauge("inquiry_first_poll", "How users have created their first poll")
 
     @slash_command("help", description="Get help with the bot")
     @slash_option("topic", description="The topic to get help with", opt_type=3, required=False)
@@ -77,6 +83,30 @@ class HelpExtension(Extension):
             results = [r[0] for r in results if r[1] > 50]
 
         await ctx.send(results)
+
+    @listen("on_poll_create")
+    async def first_poll(self, event):
+        poll = event.poll
+        user_polls = await self.bot.poll_cache.db.fetchval(
+            "SELECT COUNT(*) FROM polls.poll_data WHERE author_id = $1", poll.author_id
+        )
+        if user_polls <= 1:
+            logging.info("First poll created by %s", poll.author_id)
+            self.first_poll_analytics.inc()
+
+            export_command = self.bot.interactions[0].get("export text")
+            help_command = self.bot.interactions[0].get("help")
+            server_command = self.bot.interactions[0].get("server")
+            feedback_command = self.bot.interactions[0].get("feedback")
+
+            embed = Embed("🎉 Congratulations! 🎉", color=BrandColours.GREEN)
+            embed.description = "It looks like you have created your first poll!\nHere are some things you can do next:"
+            embed.add_field("📊 View Who'S Voted", f"with {export_command.mention()}")
+            embed.add_field("📚 Read The Help Documents", f"with {help_command.mention()}")
+            embed.add_field("💬 Join The Support Server", f"with {server_command.mention()}")
+            embed.add_field("📨 Send Feedback For Inquiry", f"with {feedback_command.mention()}")
+            embed.set_footer("Thanks for using Inquiry ❤️")
+            await poll.latest_context.send(embed=embed, ephemeral=True)
 
 
 def setup(bot):
