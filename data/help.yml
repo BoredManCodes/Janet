@@ -23,13 +23,8 @@ no_emoji:
   brief: "My emoji is appearing as text instead of an image"
   content: "Inquiry can only send emoji from servers it is in. This is a limitation from Discord. Please only use emoji from servers you share with Inquiry."
   image: "no_emoji.png"
-bot_is_broken:
-  title: "The Bot Is Broken"
-  emoji: "🛠️"
-  brief: "Something things don't seem to be working, what should you do?"
-  content: "While every effort is made to ensure Inquiry is working as intended, sometimes things can go wrong. If you notice something isn't working, please report it in the [support server](https://discord.gg/vtRTAwmQsH) and we'll get it fixed as soon as possible."
 export:
-  title: "Exporting Polls"
+  title: "View Who Voted / Export Results"
   emoji: "📤"
   brief: "How do i see who's voted for what?"
   content: "If you want to see who's voted for what, you can export the poll. Simply use `/export`; From here you can choose your format of file. Inquiry supports multiple formats each with their own advantages and disadvantages."
