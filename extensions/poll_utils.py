@@ -5,6 +5,7 @@ import logging
 from io import BytesIO, StringIO
 from typing import TYPE_CHECKING
 
+import emoji as emoji_utils
 import matplotlib.pyplot as plt
 import numpy as np
 import yaml
@@ -23,6 +24,7 @@ from naff import (
 
 from extensions.shared import ExtensionBase, OPT_find_poll
 from models.poll_default import DefaultPoll
+from models.poll_option import PollOption
 
 if TYPE_CHECKING:
     from main import Bot
@@ -68,6 +70,12 @@ class PollUtils(ExtensionBase):
 
     export = SlashCommand(name="export", description="Export a poll into various formats")
 
+    @staticmethod
+    def option_to_text(poll: DefaultPoll, option: PollOption) -> str:
+        if len(set([x.text for x in poll.poll_options])) != len(poll.poll_options):
+            return f"{emoji_utils.demojize(option.emoji)} {option.text}"
+        return option.text
+
     def _csv_exporter(self, poll: DefaultPoll) -> StringIO:
         def rotate(input_list: list[list]) -> list[list]:
             expected_len = max(map(len, input_list))
@@ -80,7 +88,7 @@ class PollUtils(ExtensionBase):
         log.debug(f"Exporting {poll.message_id} to csv")
         buffer = []
         for option in poll.poll_options:
-            buffer.append([option.text] + [self.get_user(v) for v in option.voters])
+            buffer.append([self.option_to_text(poll, option)] + [self.get_user(v) for v in option.voters])
 
         buffer = rotate(buffer)
         f = StringIO()
@@ -94,7 +102,7 @@ class PollUtils(ExtensionBase):
         log.debug(f"Exporting {poll.message_id} to json")
         buffer = {}
         for option in poll.poll_options:
-            buffer[option.text] = [self.get_user(v) for v in option.voters]
+            buffer[self.option_to_text(poll, option)] = [self.get_user(v) for v in option.voters]
         f = StringIO()
 
         json.dump(buffer, f)
@@ -105,7 +113,7 @@ class PollUtils(ExtensionBase):
         log.debug(f"Exporting {poll.message_id} to yaml")
         buffer = {}
         for option in poll.poll_options:
-            buffer[option.text] = [self.get_user(v) for v in option.voters]
+            buffer[self.option_to_text(poll, option)] = [self.get_user(v) for v in option.voters]
         f = StringIO()
 
         yaml.dump(buffer, f, Dumper=Dumper)
@@ -116,7 +124,7 @@ class PollUtils(ExtensionBase):
         log.debug(f"Exporting {poll.message_id} to bar graph")
         buffer = {}
         for option in poll.poll_options:
-            buffer[option.text] = [self.get_user(v) for v in option.voters]
+            buffer[self.option_to_text(poll, option)] = [self.get_user(v) for v in option.voters]
         f = BytesIO()
 
         arr = np.array([len(x) for x in buffer.values()])
@@ -134,7 +142,7 @@ class PollUtils(ExtensionBase):
         log.debug(f"Exporting {poll.message_id} to pie chart")
         buffer = {}
         for option in poll.poll_options:
-            buffer[option.text] = [self.get_user(v) for v in option.voters]
+            buffer[self.option_to_text(poll, option)] = [self.get_user(v) for v in option.voters]
         f = BytesIO()
 
         arr = np.array([len(x) for x in buffer.values()])
