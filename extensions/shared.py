@@ -161,6 +161,7 @@ OPT_IMAGE = SlashCommandOption(
     "Attach an image to the embed",
     required=False,
 )
+
 OPT_CLOSE_MESSAGE = SlashCommandOption(
     "close_message",
     OptionTypes.BOOLEAN,
@@ -177,6 +178,13 @@ OPT_HIDE_AUTHOR = SlashCommandOption(
     "hide_author",
     OptionTypes.BOOLEAN,
     "Hide the author of the poll (default False)",
+    required=False,
+)
+
+OPT_HIDE_CONFIG = SlashCommandOption(
+    "hide_config",
+    OptionTypes.BOOLEAN,
+    "Hide the configuration of the poll (default False)",
     required=False,
 )
 
@@ -199,6 +207,7 @@ get_options_list = [
     OPT_IMAGE,
     OPT_CLOSE_MESSAGE,
     OPT_HIDE_AUTHOR,
+    OPT_HIDE_CONFIG,
 ]
 
 
@@ -222,6 +231,7 @@ def get_options_list(
     image: bool = True,
     close_message: bool = True,
     hide_author: bool = True,
+    hide_config: bool = True,
 ) -> list[SlashCommandOption]:
     to_process = locals()
 

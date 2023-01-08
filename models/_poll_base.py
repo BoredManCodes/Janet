@@ -65,7 +65,11 @@ def deserialize_datetime(date) -> datetime.datetime:
     return date
 
 
-@attr.s(auto_attribs=True, on_setattr=[attr.setters.convert, attr.setters.validate], kw_only=True)
+@attr.s(
+    auto_attribs=True,
+    on_setattr=[attr.setters.convert, attr.setters.validate],
+    kw_only=True,
+)
 class BasePoll(ClientObject):
     """The basic poll model
 
@@ -95,6 +99,7 @@ class BasePoll(ClientObject):
     )
 
     # config
+    hide_config: bool = attr.ib(default=False)
     anonymous: bool = attr.ib(default=False)
     author_hidden: bool = attr.ib(default=False)
     close_message: bool = attr.ib(default=False)
@@ -204,9 +209,16 @@ class BasePoll(ClientObject):
                 await ctx.send("You can't make a thread inside a thread", ephemeral=True)
                 return False
             if not all(
-                perm in channel_perms for perm in (Permissions.USE_PUBLIC_THREADS, Permissions.USE_PRIVATE_THREADS)
+                perm in channel_perms
+                for perm in (
+                    Permissions.USE_PUBLIC_THREADS,
+                    Permissions.USE_PRIVATE_THREADS,
+                )
             ):
-                await ctx.send("I don't have the permissions to create threads in this channel", ephemeral=True)
+                await ctx.send(
+                    "I don't have the permissions to create threads in this channel",
+                    ephemeral=True,
+                )
                 return False
             if isinstance(ctx.channel, ThreadChannel):
                 await ctx.send("You cannot create a thread inside a thread!", ephemeral=True)
@@ -230,13 +242,19 @@ class BasePoll(ClientObject):
                 return False
 
         if kwargs.get("vote_to_view", None) is True and ctx.kwargs.get("hide_results") is False:
-            await ctx.send("You cannot enable `vote_to_view` and disable `hide_results`", ephemeral=True)
+            await ctx.send(
+                "You cannot enable `vote_to_view` and disable `hide_results`",
+                ephemeral=True,
+            )
             return False
 
         if kwargs.get("hide_author", False) is True:
             user_perms = ctx.channel.permissions_for(ctx.author)
             if Permissions.MANAGE_MESSAGES not in user_perms:
-                await ctx.send("You must have the `manage_messages` permission to hide the author", ephemeral=True)
+                await ctx.send(
+                    "You must have the `manage_messages` permission to hide the author",
+                    ephemeral=True,
+                )
                 return False
             if Permissions.SEND_MESSAGES not in channel_perms:
                 await ctx.send("I cannot hide the author if I cannot send messages", ephemeral=True)
@@ -273,6 +291,7 @@ class BasePoll(ClientObject):
             thread=kwargs.get("thread", False),
             vote_to_view=kwargs.get("vote_to_view", False),
             voting_role=to_optional_snowflake(kwargs.get("voting_role", None)),
+            hide_config=kwargs.get("hide_config", False),
         )
 
         if not await instance.sanity_check(ctx, kwargs):
@@ -456,11 +475,15 @@ class BasePoll(ClientObject):
         try:
             if self.author_hidden:
                 msg = await context.channel.send(
-                    embeds=self.embed, components=[] if self.expired else self.get_components()
+                    embeds=self.embed,
+                    components=[] if self.expired else self.get_components(),
                 )
                 await context.send(f"[Poll created]({msg.jump_url})", ephemeral=True)
             else:
-                msg = await context.send(embeds=self.embed, components=[] if self.expired else self.get_components())
+                msg = await context.send(
+                    embeds=self.embed,
+                    components=[] if self.expired else self.get_components(),
+                )
 
             self.channel_id = msg.channel.id
             self.message_id = msg.id
@@ -526,7 +549,11 @@ class BasePoll(ClientObject):
             message = await self._client.cache.fetch_message(self.channel_id, self.message_id)
 
             try:
-                await message.edit(embeds=self.embed, components=self.get_components(), context=interaction_context)
+                await message.edit(
+                    embeds=self.embed,
+                    components=self.get_components(),
+                    context=interaction_context,
+                )
             except (NotFound, Forbidden, HTTPException):
                 if interaction_context:
                     await message.edit(embeds=self.embed, components=self.get_components())
@@ -561,11 +588,17 @@ class BasePoll(ClientObject):
             if self.expired:
                 message = await self._client.cache.fetch_message(self.channel_id, self.message_id)
                 await message.edit(components=self.get_components(disable=True))
-                await ctx.send("This poll is closing - your vote will not be counted", ephemeral=True)
+                await ctx.send(
+                    "This poll is closing - your vote will not be counted",
+                    ephemeral=True,
+                )
                 return
             else:
                 if self.voting_role and self.voting_role != ctx.guild_id and not ctx.author.has_role(self.voting_role):
-                    return await ctx.send("You do not have permission to vote in this poll", ephemeral=True)
+                    return await ctx.send(
+                        "You do not have permission to vote in this poll",
+                        ephemeral=True,
+                    )
                 if not option:
                     option_index = int(ctx.custom_id.removeprefix("poll_option|"))
                 else:
@@ -593,8 +626,14 @@ class BasePoll(ClientObject):
                                 color=BrandColors.RED,
                             )
                             embed.add_field("Maximum Votes", self.max_votes)
-                            embed.add_field("Your Votes", ", ".join([f"`{o.emoji} {o.text}`" for o in voted_options]))
-                            embed.add_field("To remove a vote", "Vote again for the option you want to remove")
+                            embed.add_field(
+                                "Your Votes",
+                                ", ".join([f"`{o.emoji} {o.text}`" for o in voted_options]),
+                            )
+                            embed.add_field(
+                                "To remove a vote",
+                                "Vote again for the option you want to remove",
+                            )
                             return await ctx.send(embed=embed, ephemeral=True)
 
                 if not await self._vote_check(ctx, option):
@@ -646,7 +685,11 @@ class BasePoll(ClientObject):
                     components=[],
                 )
             else:
-                await ctx.edit(message, embed=Embed("Vote not removed", color=BrandColors.RED), components=[])
+                await ctx.edit(
+                    message,
+                    embed=Embed("Vote not removed", color=BrandColors.RED),
+                    components=[],
+                )
 
     def add_preset_options(self, preset: str, author: Member):
         log.debug(f"Creating poll from preset: {preset}")

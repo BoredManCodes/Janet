@@ -21,7 +21,11 @@ __all__ = ("DefaultPoll",)
 log = logging.getLogger("Inquiry")
 
 
-@attr.s(auto_attribs=True, on_setattr=[attr.setters.convert, attr.setters.validate], kw_only=True)
+@attr.s(
+    auto_attribs=True,
+    on_setattr=[attr.setters.convert, attr.setters.validate],
+    kw_only=True,
+)
 class DefaultPoll(BasePoll):
     poll_type: str = attr.ib(default="default", init=False)
 
@@ -82,37 +86,41 @@ class DefaultPoll(BasePoll):
             description.append(
                 f"• {total_votes:,} vote{'s' if total_votes != 1 else ''} cast by {len(self.voters):,} user{'s' if len(self.voters) != 1 else ''}"
             )
+        if not self.hide_results:
+            if self.poll_type != "default":
+                description.append(f"• {self.poll_type.title()} Poll")
 
-        if self.poll_type != "default":
-            description.append(f"• {self.poll_type.title()} Poll")
+            if self.single_vote:
+                description.append("• One Vote Per User")
+            elif self.max_votes:
+                description.append(f"• {self.max_votes} Votes Per User")
 
-        if self.single_vote:
-            description.append("• One Vote Per User")
-        elif self.max_votes:
-            description.append(f"• {self.max_votes} Votes Per User")
+            if self.proportional_results:
+                description.append("• Proportional Results")
 
-        if self.proportional_results:
-            description.append("• Proportional Results")
+            if self.vote_to_view:
+                description.append("• Vote To View Results")
+            elif self.hide_results:
+                if self.expired:
+                    description.append("• Results were hidden until the poll ended")
+                else:
+                    description.append("• Results are hidden until the poll ends")
 
-        if self.vote_to_view:
-            description.append("• Vote To View Results")
-        elif self.hide_results:
-            if self.expired:
-                description.append("• Results were hidden until the poll ended")
-            else:
-                description.append("• Results are hidden until the poll ends")
+            if self.anonymous:
+                description.append("• Anonymous Voting")
 
-        if self.anonymous:
-            description.append("• Anonymous Voting")
+            if self.voting_role:
+                description.append(f"• Required Role: <@&{self.voting_role}>")
 
-        if self.voting_role:
-            description.append(f"• Required Role: <@&{self.voting_role}>")
+            if self.open_poll:
+                description.append("• Open Poll - Anyone can add options")
 
-        if self.open_poll:
-            description.append("• Open Poll - Anyone can add options")
-
-        if len(self.poll_options) == 0:
-            e.add_field("This poll has no options", "Be the first to add one with the `+` button!", inline=False)
+            if len(self.poll_options) == 0:
+                e.add_field(
+                    "This poll has no options",
+                    "Be the first to add one with the `+` button!",
+                    inline=False,
+                )
 
         if self.open_time and self.pending:
             description.append(f"• Opens {Timestamp.fromdatetime(self.open_time).format(TimestampStyles.RelativeTime)}")
