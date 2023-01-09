@@ -86,7 +86,7 @@ class DefaultPoll(BasePoll):
             description.append(
                 f"• {total_votes:,} vote{'s' if total_votes != 1 else ''} cast by {len(self.voters):,} user{'s' if len(self.voters) != 1 else ''}"
             )
-        if not self.hide_results:
+        if not self.hide_config:
             if self.poll_type != "default":
                 description.append(f"• {self.poll_type.title()} Poll")
 
